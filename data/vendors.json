@@ -1,0 +1,14 @@
+[
+  {
+    "id": "adobe",
+    "name": "Adobe Inc.",
+    "website": "https://www.adobe.com",
+    "support_email": "support@adobe.com"
+  },
+  {
+    "id": "atlassian",
+    "name": "Atlassian",
+    "website": "https://www.atlassian.com",
+    "support_email": "support@atlassian.com"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "creative",
+    "name": "Creative Suite",
+    "slug": "creative-suite",
+    "description": "Design, illustration, and multimedia authoring tools."
+  },
+  {
+    "id": "productivity",
+    "name": "Productivity",
+    "slug": "productivity",
+    "description": "Project management, collaboration, and office software."
+  },
+  {
+    "id": "security",
+    "name": "Security",
+    "slug": "security",
+    "description": "Endpoint protection, identity management, and compliance."
+  }
+]

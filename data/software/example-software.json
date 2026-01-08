@@ -1,0 +1,47 @@
+{
+  "id": "adobe-photoshop",
+  "slug": "adobe-photoshop",
+  "name": "Adobe Photoshop",
+  "short_description": "Industry-leading graphics editor for imaging, compositing, and digital painting.",
+  "description": "Adobe Photoshop is the reference application for pixel-perfect image editing, compositing, and digital painting. It helps creative teams deliver visual assets faster with collaborative workflows and AI-assisted features.",
+  "vendor_id": "adobe",
+  "category_ids": ["creative"],
+  "download_url": "https://www.adobe.com/products/photoshop/free-trial-download.html",
+  "official_url": "https://www.adobe.com/products/photoshop.html",
+  "trial": true,
+  "pricing": {
+    "model": "subscription",
+    "startingPrice": "$22.99",
+    "currency": "USD",
+    "billingCycle": "monthly"
+  },
+  "platforms": ["Windows", "macOS"],
+  "images": [],
+  "tags": ["design", "imaging", "creative-cloud"],
+  "meta": {
+    "title": "Adobe Photoshop | SoftHub Software Directory",
+    "description": "Adobe Photoshop licensing options, supported platforms, and official download links curated by SoftHub.",
+    "canonical": "https://softhub.example.com/software/adobe-photoshop"
+  },
+  "schema": {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Adobe Photoshop",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Windows, macOS",
+    "offers": {
+      "@type": "Offer",
+      "price": "22.99",
+      "priceCurrency": "USD"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Adobe Inc."
+    }
+  },
+  "related": [],
+  "created_at": "2026-01-08T20:40:00.000Z",
+  "updated_at": "2026-01-08T20:40:00.000Z",
+  "status": "published",
+  "visibility": "public"
+}

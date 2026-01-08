@@ -1,0 +1,26 @@
+{
+  "siteName": "SoftHub",
+  "tagline": "Your gateway to trusted professional software.",
+  "description": "SoftHub curates premium and enterprise-grade applications with verified sources and rich insights to help teams choose the right tools faster.",
+  "hero": {
+    "title": "Discover enterprise software without the guesswork",
+    "subtitle": "Browse trusted listings, compare licensing models, and download directly from official vendors.",
+    "cta": {
+      "label": "Explore catalog",
+      "href": "#catalog"
+    }
+  },
+  "navigation": [
+    { "label": "Home", "href": "/" },
+    { "label": "Categories", "href": "#categories" },
+    { "label": "About", "href": "#about" }
+  ],
+  "social": {
+    "github": "https://github.com/your-org/soft-hub"
+  },
+  "seo": {
+    "title": "SoftHub | Curated software directory",
+    "description": "SoftHub curates premium software with vetted download links, licensing details, and in-depth vendor insights.",
+    "canonical": "https://softhub.example.com"
+  }
+}
