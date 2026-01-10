@@ -6,10 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint .",
     "export": "next export",
     "validate-json": "node scripts/validate-json.js",
-    "deploy": "npm run validate-json && npm run build && npm run export"
+    "deploy": "npm run validate-json && npm run build && npm run export",
+    "security-scan": "npm audit --audit-level=high && npx next info && npx @next/third-parties check && node scripts/audit-log.js build_started"
   },
   "dependencies": {
     "next": "16.1.1",

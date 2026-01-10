@@ -1,0 +1,10 @@
+# Branch protection for main
+required_status_checks:
+  strict: true
+  contexts:
+    - "build-and-deploy"
+required_pull_request_reviews:
+  required_approving_review_count: 1
+  dismiss_stale_reviews: true
+restrictions: null
+enforce_admins: true

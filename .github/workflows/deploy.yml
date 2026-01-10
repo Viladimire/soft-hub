@@ -25,6 +25,13 @@ jobs:
       - name: Validate JSON
         run: npm run validate-json
 
+      - name: Security Scan
+        run: |
+          npm audit --audit-level=high
+          npx next info
+          npx @next/third-parties check
+          node scripts/audit-log.js "build_started"
+
       - name: Build
         run: npm run build
 

@@ -1,0 +1,18 @@
+{
+  "rules": [
+    {
+      "description": "Block admin without auth",
+      "expression": "http.request.uri.path contains \"/admin\" and not http.request.headers[\"authorization\"]",
+      "action": "block"
+    },
+    {
+      "description": "Rate limit API",
+      "expression": "http.request.uri.path contains \"/api/\"",
+      "action": "managed_challenge",
+      "ratelimit": {
+        "period": 60,
+        "requests_per_period": 100
+      }
+    }
+  ]
+}
