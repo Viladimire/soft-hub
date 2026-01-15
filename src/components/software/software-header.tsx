@@ -1,0 +1,100 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowUpRight, Download, ExternalLink, Sparkles } from "lucide-react";
+import { useLocale } from "next-intl";
+
+import type { Software } from "@/lib/types/software";
+import { formatBytes, formatCompactNumber, formatReleaseDate } from "@/lib/utils/format";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+export const SoftwareHeader = ({ software }: { software: Software }) => {
+  const locale = useLocale();
+  const releaseDate = formatReleaseDate(software.updatedAt, locale);
+
+  return (
+    <header className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        {software.isFeatured ? (
+          <Badge className="gap-1 rounded-full border border-amber-300/30 bg-amber-400/15 text-[11px] uppercase tracking-wide text-amber-100">
+            <Sparkles className="h-3.5 w-3.5" />
+            Featured
+          </Badge>
+        ) : null}
+        {software.categories.map((category) => (
+          <Badge key={category} variant="soft" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-wide">
+            {category}
+          </Badge>
+        ))}
+        <Badge className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-wide text-white">
+          {software.type}
+        </Badge>
+      </div>
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-neutral-50 sm:text-4xl">{software.name}</h1>
+          <p className="max-w-2xl text-sm leading-6 text-neutral-300">{software.summary}</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="ghost" className="gap-2 text-neutral-200">
+            <Link href={software.websiteUrl ?? software.downloadUrl} target="_blank">
+              Website
+              <ExternalLink className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="primary" className="gap-2">
+            <Link href={software.downloadUrl}>
+              Download
+              <Download className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-4">
+        <Card className="border-white/10 bg-white/5">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs text-neutral-400">Version</p>
+            <p className="text-lg font-semibold text-white">{software.version}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-white/10 bg-white/5">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs text-neutral-400">Size</p>
+            <p className="text-lg font-semibold text-white">{formatBytes(software.sizeInBytes)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-white/10 bg-white/5">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs text-neutral-400">Downloads</p>
+            <p className="text-lg font-semibold text-white">{formatCompactNumber(software.stats.downloads, locale)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-white/10 bg-white/5">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs text-neutral-400">Last updated</p>
+            <p className="text-lg font-semibold text-white">{releaseDate}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-400">
+        <span>Platforms:</span>
+        {software.platforms.map((platform) => (
+          <span key={platform} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 uppercase text-neutral-200">
+            {platform}
+          </span>
+        ))}
+        <Link href={`/${locale}/software`} className="ml-auto inline-flex items-center gap-2 text-neutral-300 hover:text-neutral-100">
+          Back to library
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </header>
+  );
+};
