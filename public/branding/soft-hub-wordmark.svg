@@ -1,34 +1,34 @@
-<svg width="320" height="72" viewBox="0 0 320 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="360" height="92" viewBox="0 0 360 92" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="wordmarkGradient" x1="0" y1="0" x2="320" y2="72" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#5EE7FF" />
-      <stop offset="0.48" stop-color="#7C6BFF" />
-      <stop offset="1" stop-color="#FF7AC7" />
+    <linearGradient id="wordmark_fill" x1="36" y1="10" x2="324" y2="82" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#78D1FF" />
+      <stop offset="0.45" stop-color="#7E6BFF" />
+      <stop offset="1" stop-color="#FF7EC6" />
     </linearGradient>
-    <linearGradient id="underlineGradient" x1="24" y1="68" x2="296" y2="68" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="rgba(94,231,255,0)" />
-      <stop offset="0.12" stop-color="rgba(94,231,255,0.45)" />
-      <stop offset="0.5" stop-color="rgba(124,107,255,0.55)" />
-      <stop offset="0.88" stop-color="rgba(255,122,199,0.45)" />
-      <stop offset="1" stop-color="rgba(255,122,199,0)" />
+    <linearGradient id="wordmark_accent" x1="60" y1="74" x2="300" y2="74" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#78D1FF" stop-opacity="0" />
+      <stop offset="0.18" stop-color="#78D1FF" stop-opacity="0.4" />
+      <stop offset="0.5" stop-color="#7E6BFF" stop-opacity="0.55" />
+      <stop offset="0.82" stop-color="#FF7EC6" stop-opacity="0.4" />
+      <stop offset="1" stop-color="#FF7EC6" stop-opacity="0" />
     </linearGradient>
-    <filter id="glow" x="-10%" y="-40%" width="120%" height="220%" color-interpolation-filters="sRGB">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+    <filter id="wordmark_glow" x="-20" y="-20" width="400" height="160" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
   </defs>
-  <rect x="12" y="60" width="296" height="4" rx="2" fill="url(#underlineGradient)" />
-  <g filter="url(#glow)">
-    <path d="M31.42 50C20.18 50 12 41.88 12 29.18C12 17.06 20.02 9 32.74 9C40.28 9 46.62 12.06 50.08 17.36L41.38 21.94C39.04 18.58 36 16.94 32.44 16.94C26.02 16.94 21.66 21.7 21.66 29.16C21.66 36.94 25.94 41.72 32.5 41.72C36.92 41.72 39.82 39.82 42.1 36.16L50.96 40.52C46.9 46.32 40.46 50 31.42 50Z" fill="url(#wordmarkGradient)" />
-    <path d="M54.14 48.7V10.3H64.22V48.7H54.14Z" fill="url(#wordmarkGradient)" />
-    <path d="M72.78 48.7V10.3H82.86V22.48H96.28V10.3H106.36V48.7H96.28V31.06H82.86V48.7H72.78Z" fill="url(#wordmarkGradient)" />
-    <path d="M119.26 48.7L105.1 10.3H115.82L124.18 37.64L132.52 10.3H143.02L128.98 48.7H119.26Z" fill="url(#wordmarkGradient)" />
-    <path d="M152.9 48.7V10.3H179.9V18.62H162.98V24.82H177.62V32.82H162.98V40.42H180.64V48.7H152.9Z" fill="url(#wordmarkGradient)" />
-    <path d="M188.86 48.7V10.3H199.3L211.34 28.08V10.3H221.3V48.7H210.86L198.82 30.96V48.7H188.86Z" fill="url(#wordmarkGradient)" />
-    <path d="M229.14 48.7V10.3H256.14V18.62H239.22V24.82H253.86V32.82H239.22V40.42H256.88V48.7H229.14Z" fill="url(#wordmarkGradient)" />
-    <path d="M265.06 48.7V10.3H288.18C302.14 10.3 308 17.32 308 29.46C308 41.7 301.9 48.7 287.78 48.7H265.06ZM275.14 40.46H286.72C294.26 40.46 298.22 37.16 298.22 29.5C298.22 21.92 294.34 18.62 286.64 18.62H275.14V40.46Z" fill="url(#wordmarkGradient)" />
+  <g filter="url(#wordmark_glow)">
+    <path d="M40.158 62C28.014 62 19 52.988 19 39.982C19 27.05 27.936 18 40.544 18C48.486 18 54.852 21.348 58.38 27.188L49.896 31.406C47.34 27.828 43.842 25.936 39.762 25.936C33.492 25.936 29.214 30.372 29.214 39.888C29.214 49.308 33.87 53.828 40.806 53.828C45.39 53.828 48.72 51.652 51.39 47.676L59.874 52.1C55.17 58.148 48.438 62 40.158 62Z" fill="url(#wordmark_fill)" />
+    <path d="M64.392 60.2V19.8H74.592V60.2H64.392Z" fill="url(#wordmark_fill)" />
+    <path d="M84.048 60.2V19.8H94.14V32.288H108.116V19.8H118.208V60.2H108.116V40.172H94.14V60.2H84.048Z" fill="url(#wordmark_fill)" />
+    <path d="M132.214 60.2L117.43 19.8H128.726L137.422 46.22L145.782 19.8H156.742L142.486 60.2H132.214Z" fill="url(#wordmark_fill)" />
+    <path d="M167.714 60.2V19.8H196.314V28.52H178.002V35.36H194.314V43.76H178.002V51.48H197.214V60.2H167.714Z" fill="url(#wordmark_fill)" />
+    <path d="M203.214 60.2V19.8H214.374L227.994 39.652V19.8H238.454V60.2H227.294L213.674 40.348V60.2H203.214Z" fill="url(#wordmark_fill)" />
+    <path d="M246.21 60.2V19.8H274.81V28.52H256.498V35.36H272.81V43.76H256.498V51.48H276.178V60.2H246.21Z" fill="url(#wordmark_fill)" />
+    <path d="M284.964 60.2V19.8H309.54C324.18 19.8 330.54 27.192 330.54 39.676C330.54 52.376 324.084 60.2 307.5 60.2H284.964ZM295.38 51.676H306.948C315.036 51.676 319.14 48.26 319.14 39.908C319.14 31.812 315.12 28.52 306.756 28.52H295.38V51.676Z" fill="url(#wordmark_fill)" />
   </g>
+  <rect x="60" y="70" width="240" height="6" rx="3" fill="url(#wordmark_accent)" />
 </svg>

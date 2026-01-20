@@ -265,7 +265,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       onMouseMove={shouldTilt ? handleMouseMove : undefined}
       onMouseLeave={shouldTilt ? resetTilt : undefined}
       className={cn(
-        "group/card relative overflow-hidden rounded-3xl",
+        "group/card relative overflow-hidden rounded-[28px]",
         "transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:-translate-y-2",
         className,
       )}
@@ -273,13 +273,13 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-[-1px] -z-10 rounded-[inherit] opacity-70 blur-xl"
+        className="pointer-events-none absolute inset-[-1px] -z-10 rounded-[inherit] opacity-80"
         style={{
           background:
-            "conic-gradient(from 140deg at 50% 50%, rgba(0,102,255,0.28), rgba(124,58,237,0.24), rgba(16,185,129,0.24), rgba(0,102,255,0.28))",
+            "linear-gradient(140deg, rgba(59,130,246,0.3), rgba(129,140,248,0.25), rgba(244,114,182,0.25))",
         }}
       />
-      <div className="relative flex h-full flex-col gap-5 rounded-[inherit] border border-white/12 bg-neutral-950/65 p-5 backdrop-blur-2xl shadow-[0_24px_60px_rgba(15,23,42,0.45)]">
+      <div className="relative flex h-full flex-col gap-6 rounded-[inherit] border border-white/12/70 bg-neutral-950/75 p-6 backdrop-blur-3xl shadow-[0_30px_80px_rgba(15,23,42,0.55)]">
         <div className="relative h-52 w-full overflow-hidden rounded-2xl border border-white/12">
           {resolvedHeroImage ? (
             <Image
@@ -296,10 +296,10 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
               <MonitorSmartphone className="h-12 w-12" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/30 to-transparent" />
 
-          <div className="absolute inset-x-0 bottom-0 z-20 flex items-center gap-3 p-5">
-            <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/15 bg-neutral-950/40 shadow-[0_12px_24px_rgba(15,23,42,0.45)]">
+          <div className="absolute inset-x-0 bottom-0 z-20 flex items-center gap-4 p-5">
+            <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/15 bg-neutral-950/5 shadow-[0_12px_28px_rgba(15,23,42,0.5)]">
               {resolvedLogoImage ? (
                 <Image
                   src={resolvedLogoImage}
@@ -313,10 +313,10 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
                 <MonitorSmartphone className="absolute inset-0 m-auto h-6 w-6 text-white/70" />
               )}
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white">{software.name}</h3>
-              <p className="text-xs text-neutral-200/80 line-clamp-2">{software.summary}</p>
-              <div className="mt-1 flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-lg font-semibold text-white">{software.name}</h3>
+              <p className="text-xs text-neutral-200/75 line-clamp-2">{software.summary}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-neutral-300">
                 <RatingStars rating={software.stats.rating} />
                 <span className="text-[11px] text-neutral-300/80">{t("reviewsLabel", { count: software.stats.votes })}</span>
               </div>
@@ -325,7 +325,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
 
           <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.25),transparent_55%)] opacity-0 transition duration-500 group-hover/card:opacity-100" />
 
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-gradient-to-t from-neutral-950/78 via-neutral-950/35 to-transparent p-4 text-center opacity-100 transition duration-300 md:opacity-0 md:group-hover/card:opacity-100">
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-gradient-to-t from-neutral-950/75 via-neutral-950/30 to-transparent p-4 text-center opacity-100 transition duration-300 md:opacity-0 md:group-hover/card:opacity-100">
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Dialog open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen}>
                 <DialogTrigger asChild>
@@ -442,7 +442,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
             {platformsChips.map((platform: string) => (
               <span
                 key={platform}
-                className="rounded-full bg-neutral-900/60 px-3 py-1 text-[11px] uppercase tracking-wide text-neutral-200"
+                className="rounded-full bg-white/12 px-3 py-1 text-[11px] uppercase tracking-wide text-neutral-100"
               >
                 {platform}
               </span>
@@ -461,7 +461,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="flex h-24 w-full min-w-0 flex-col items-stretch justify-center gap-1 rounded-2xl border border-white/10 bg-white/10 px-3 text-center shadow-[0_12px_26px_rgba(15,23,42,0.2)]"
+                className="flex h-24 w-full min-w-0 flex-col items-stretch justify-center gap-1 rounded-2xl border border-white/10 bg-white/8 px-3 text-center shadow-[0_16px_34px_rgba(15,23,42,0.22)]"
               >
                 <p className="w-full min-w-0 truncate text-[9px] font-medium uppercase tracking-normal text-neutral-400">{stat.label}</p>
                 <p className="w-full min-w-0 truncate text-sm font-semibold leading-tight text-white">{stat.value}</p>
@@ -471,16 +471,16 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
         </div>
 
         {showActions ? (
-          <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
             <div className="flex items-center gap-2 text-xs text-neutral-300">
-              <Download className="h-4 w-4 text-primary-200" />
+              <Download className="h-4 w-4 text-indigo-200" />
               {downloadsLabel}
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:justify-start">
               <Button
                 variant="ghost"
                 asChild
-                className="group/button relative overflow-hidden rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-wide text-white transition hover:-translate-y-1"
+                className="group/button relative overflow-hidden rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-wide text-white transition hover:-translate-y-1 hover:border-white/30"
               >
                 <Link href={detailHref}>
                   {t("viewDetails")}
@@ -492,7 +492,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
               <Button
                 variant="primary"
                 asChild
-                className="relative overflow-hidden rounded-full bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(0,102,255,0.35)] transition hover:-translate-y-1"
+                className="relative overflow-hidden rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_20px_46px_rgba(67,56,202,0.5)] transition hover:-translate-y-1"
               >
                 <Link href={software.downloadUrl}>
                   {t("downloadNow")}

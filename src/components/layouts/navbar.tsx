@@ -28,6 +28,7 @@ export const NavBar = () => {
   const locale = useLocale();
   const pathname = usePathname();
   const [brandMarkErrored, setBrandMarkErrored] = useState(false);
+  const [wordmarkErrored, setWordmarkErrored] = useState(false);
 
   const gamesLabel = t("games.label");
   const filmsLabel = t("films.label");
@@ -45,9 +46,9 @@ export const NavBar = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/70 backdrop-blur-xl">
       <div className="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-        <div className="flex items-center gap-4">
-          <Link href={`/${locale}`} className="group inline-flex items-center gap-3">
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-white/5 shadow-[0_12px_30px_rgba(32,56,132,0.35)] transition duration-300 group-hover:shadow-[0_18px_40px_rgba(99,102,241,0.45)]">
+        <div className="flex items-center gap-6">
+          <Link href={`/${locale}`} className="group inline-flex items-center gap-5">
+            <div className="flex h-12 w-12 items-center justify-center rounded-3xl border border-white/15 bg-white/5 shadow-[0_14px_36px_rgba(59,130,246,0.38)] transition duration-300 group-hover:shadow-[0_24px_60px_rgba(99,102,241,0.5)]">
               {brandMarkErrored ? (
                 <span className="text-sm font-semibold text-white">SH</span>
               ) : (
@@ -61,12 +62,22 @@ export const NavBar = () => {
                   onError={() => setBrandMarkErrored(true)}
                 />
               )}
-            </span>
+            </div>
             <div className="flex flex-col">
-              <span className="bg-gradient-to-r from-sky-200 via-indigo-200 to-rose-200 bg-clip-text text-sm font-semibold uppercase tracking-[0.2em] text-transparent">
-                {t("brandTitle")}
-              </span>
-              <span className="text-[11px] text-neutral-400 transition duration-300 group-hover:text-neutral-200">
+              {wordmarkErrored ? (
+                <span className="text-xl font-semibold uppercase tracking-[0.28em] text-white">SOFT-HUB</span>
+              ) : (
+                <Image
+                  src="/branding/soft-hub-wordmark.svg"
+                  alt="SOFT-HUB wordmark"
+                  width={140}
+                  height={24}
+                  className="h-6 w-auto"
+                  priority
+                  onError={() => setWordmarkErrored(true)}
+                />
+              )}
+              <span className="mt-1 text-[12px] text-neutral-300 transition duration-300 group-hover:text-neutral-100">
                 {t("brandSubtitle")}
               </span>
             </div>
