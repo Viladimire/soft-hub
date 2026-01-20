@@ -311,10 +311,28 @@ export const HeroSection = () => {
     return Object.values(entries).filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, 6);
   }, [readRaw]);
 
-  const featuredHighlights = useMemo(
-    () => featuredCategories.filter((category) => category.id !== "games").slice(0, 3),
-    [],
-  );
+  const featuredHighlights = useMemo(() => {
+    const preferredOrder = [
+      "software",
+      "games",
+      "utilities",
+      "operating-systems",
+      "multimedia",
+    ];
+
+    const seen = new Set<string>();
+    const prioritized = preferredOrder
+      .map((categoryId) => featuredCategories.find((category) => category.id === categoryId))
+      .filter((category): category is (typeof featuredCategories)[number] => Boolean(category));
+
+    const extended = [...prioritized, ...featuredCategories];
+
+    return extended.filter((category) => {
+      if (seen.has(category.id)) return false;
+      seen.add(category.id);
+      return true;
+    }).slice(0, 4);
+  }, []);
 
   const submitSearch = useCallback(
     (value: string) => {
@@ -330,34 +348,34 @@ export const HeroSection = () => {
   return (
     <section ref={sectionRef} className="relative overflow-hidden py-20" style={{ position: "relative" }}>
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -inset-[32%] animate-mesh rounded-[45%] bg-hero opacity-80 blur-[180px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,102,255,0.18),transparent_55%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.18),transparent_58%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(17,24,39,0.95),rgba(2,6,23,0.85))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_20%_20%,rgba(51,65,255,0.22),transparent),radial-gradient(110%_110%_at_80%_30%,rgba(13,148,136,0.18),transparent),radial-gradient(90%_90%_at_50%_90%,rgba(244,114,182,0.16),transparent)]" />
         <div
           aria-hidden="true"
-          className="absolute inset-0 opacity-15 mix-blend-screen [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:140px_140px] [mask-image:radial-gradient(circle_at_center,white,transparent_65%)]"
+          className="absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(112deg,rgba(255,255,255,0.05)1px,transparent_1px),linear-gradient(-65deg,rgba(255,255,255,0.04)1px,transparent_1px)] [background-size:180px_140px]"
         />
 
-        <motion.div style={{ y: blueParallax }} className="absolute left-[8%] top-[18%] h-52 w-52">
+        <motion.div style={{ y: blueParallax }} className="absolute left-[10%] top-[14%] h-64 w-64">
           <motion.div
             animate={{ x: [0, 28, -24, 0], y: [0, -24, 20, 0], rotate: [0, 8, -6, 0] }}
             transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-            className="h-full w-full rounded-full bg-[radial-gradient(circle_at_top,rgba(0,102,255,0.6),rgba(0,102,255,0))] blur-3xl"
+            className="h-full w-full rounded-full bg-[radial-gradient(circle_at_top,rgba(79,70,229,0.5),rgba(37,99,235,0.05))] blur-3xl"
           />
         </motion.div>
 
-        <motion.div style={{ y: purpleParallax }} className="absolute right-[14%] top-[28%] h-44 w-44">
+        <motion.div style={{ y: purpleParallax }} className="absolute right-[12%] top-[40%] h-48 w-48">
           <motion.div
             animate={{ x: [0, -24, 26, 0], scale: [1, 1.08, 1], rotate: [0, -12, 10, 0] }}
             transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-            className="h-full w-full rounded-full bg-[radial-gradient(circle_at_bottom,rgba(124,58,237,0.55),rgba(124,58,237,0))] blur-3xl"
+            className="h-full w-full rounded-full bg-[radial-gradient(circle_at_bottom,rgba(236,72,153,0.45),rgba(236,72,153,0.05))] blur-3xl"
           />
         </motion.div>
 
-        <motion.div style={{ y: greenParallax }} className="absolute bottom-[16%] left-1/2 h-48 w-48 -translate-x-1/2">
+        <motion.div style={{ y: greenParallax }} className="absolute bottom-[16%] left-1/2 h-56 w-56 -translate-x-1/2">
           <motion.div
             animate={{ x: [0, 22, 38, 0], y: [0, 20, -16, 0], rotate: [0, 8, -6, 0] }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-            className="h-full w-full rounded-full bg-[radial-gradient(circle_at_top_right,rgba(15,185,160,0.5),rgba(16,185,129,0))] blur-3xl"
+            className="h-full w-full rounded-full bg-[radial-gradient(circle_at_top_right,rgba(34,197,94,0.5),rgba(34,197,94,0.05))] blur-3xl"
           />
         </motion.div>
       </div>
@@ -397,18 +415,8 @@ export const HeroSection = () => {
           </motion.div>
 
           <motion.div variants={fadeUpVariants} className="w-full space-y-5">
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: "easeOut", delay: 0.05 }}
-              className="inline-flex items-center gap-2 rounded-full border border-primary-400/30 bg-primary-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-primary-100"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              {t("search.cta")}
-            </motion.div>
-
-            <div className="group relative isolate flex w-full items-center gap-3 overflow-hidden rounded-[26px] border border-white/15 bg-white/[0.12] px-6 py-4 text-sm text-white shadow-[0_28px_60px_rgba(8,47,73,0.35)] backdrop-blur-xl transition duration-300 focus-within:shadow-[0_30px_70px_rgba(14,116,144,0.45)] focus-within:ring-4 focus-within:ring-cyan-400/30 sm:text-base">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-500/15 text-primary-200 shadow-[0_10px_25px_rgba(14,116,144,0.35)]">
+            <div className="group relative isolate flex w-full items-center gap-3 overflow-hidden rounded-[26px] border border-white/15 bg-white/[0.06] px-6 py-5 text-sm text-white shadow-[0_30px_70px_rgba(30,64,175,0.35)] backdrop-blur-2xl transition duration-300 focus-within:shadow-[0_35px_85px_rgba(79,70,229,0.5)] focus-within:ring-4 focus-within:ring-indigo-400/40 sm:text-base">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/25 via-purple-500/25 to-sky-400/25 text-indigo-100 shadow-[0_12px_32px_rgba(59,130,246,0.35)]">
                 <Search className="h-5 w-5" />
               </span>
               <input
@@ -427,13 +435,13 @@ export const HeroSection = () => {
               <button
                 type="button"
                 onClick={() => submitSearch(homeSearch)}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_12px_28px_rgba(0,102,255,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(0,102,255,0.45)]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-indigo-400/30 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-400 px-6 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(76,29,149,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(76,29,149,0.45)]"
               >
                 {t("search.cta")}
                 <ArrowRight className="h-4 w-4" />
               </button>
               <span className="pointer-events-none absolute inset-0 rounded-[26px] opacity-0 transition duration-300 group-hover:opacity-80" aria-hidden="true">
-                <span className="absolute inset-0 rounded-[26px] bg-[radial-gradient(circle_at_top,rgba(14,116,144,0.35),transparent_60%)]" />
+                <span className="absolute inset-0 rounded-[26px] bg-[radial-gradient(circle_at_top,rgba(79,70,229,0.38),transparent_60%)]" />
               </span>
             </div>
 
@@ -454,7 +462,7 @@ export const HeroSection = () => {
                       setHomeSearch(chip);
                       submitSearch(chip);
                     }}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-100 transition hover:border-white/40 hover:bg-white/20"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-100 transition hover:border-white/40 hover:bg-white/15"
                     style={{ animationDelay: `${index * 40}ms` }}
                   >
                     <Flame className="h-3.5 w-3.5 text-primary-200" />
@@ -464,11 +472,11 @@ export const HeroSection = () => {
               </motion.div>
             ) : null}
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
               <Button
                 variant="primary"
                 asChild
-                className="group relative w-full overflow-hidden rounded-full border border-white/15 bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_0_30px_rgba(0,102,255,0.45)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_45px_rgba(0,102,255,0.6)] sm:w-auto"
+                className="group relative w-full overflow-hidden rounded-full border border-white/15 bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_0_34px_rgba(67,56,202,0.55)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_52px_rgba(37,99,235,0.65)] sm:w-auto"
               >
                 <Link href={`/${locale}/software`} className="relative flex items-center justify-center gap-3">
                   <span>{t("cta.primary")}</span>
@@ -489,7 +497,7 @@ export const HeroSection = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="w-full rounded-full border border-white/20 px-8 py-3 text-sm text-neutral-100 transition-all duration-300 hover:border-white/50 hover:bg-white/10 sm:w-auto"
+                className="w-full rounded-full border border-white/20 px-8 py-3 text-sm text-neutral-100 transition-all duration-300 hover:border-white/40 hover:bg-white/10 sm:w-auto"
                 asChild
               >
                 <Link href={`/${locale}/collections`} className="flex items-center justify-center gap-2">
@@ -525,10 +533,7 @@ export const HeroSection = () => {
           className="relative space-y-6"
         >
           <div className="space-y-6">
-            <Card
-              id="films"
-              className="scroll-mt-28 relative overflow-hidden border border-white/12 bg-neutral-950/70 p-0 backdrop-blur-2xl"
-            >
+            <Card id="films" className="scroll-mt-28 relative overflow-hidden border border-white/12 bg-neutral-950/70 p-0 backdrop-blur-2xl">
               <motion.div
                 className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,102,255,0.22),transparent_62%),radial-gradient(circle_at_bottom_right,rgba(124,58,237,0.18),transparent_72%)]"
                 animate={{ opacity: [0.35, 0.6, 0.35] }}
@@ -554,7 +559,7 @@ export const HeroSection = () => {
 
             <Card
               id="games"
-              className="scroll-mt-28 relative overflow-hidden border border-white/12 bg-gradient-to-br from-[#101c2f]/75 via-[#111827]/70 to-[#1e293b]/75 p-0 backdrop-blur-2xl"
+              className="scroll-mt-28 relative overflow-hidden border border-white/12 bg-gradient-to-br from-[#111827]/80 via-[#141833]/75 to-[#1e1b4b]/80 p-0 backdrop-blur-2xl"
             >
               <motion.div
                 className="absolute inset-x-0 -top-20 h-44 rounded-full bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.22),transparent_70%)] blur-3xl"

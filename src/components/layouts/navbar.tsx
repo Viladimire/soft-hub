@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AlignLeft, ArrowUpRight, Film, MonitorSmartphone, Moon, Search, Sun, Zap } from "lucide-react";
+import { AlignLeft, ArrowUpRight, Film, MonitorSmartphone, Moon, Search, Sun } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils/cn";
 
@@ -25,6 +27,7 @@ export const NavBar = () => {
   const t = useTranslations("nav");
   const locale = useLocale();
   const pathname = usePathname();
+  const [brandMarkErrored, setBrandMarkErrored] = useState(false);
 
   const gamesLabel = t("games.label");
   const filmsLabel = t("films.label");
@@ -43,20 +46,36 @@ export const NavBar = () => {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/70 backdrop-blur-xl">
       <div className="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
         <div className="flex items-center gap-4">
-          <Link href={`/${locale}`} className="group inline-flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 via-accent-500 to-cyan-400 text-white shadow-glow">
-              <Zap className="h-4 w-4" />
+          <Link href={`/${locale}`} className="group inline-flex items-center gap-3">
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-white/5 shadow-[0_12px_30px_rgba(32,56,132,0.35)] transition duration-300 group-hover:shadow-[0_18px_40px_rgba(99,102,241,0.45)]">
+              {brandMarkErrored ? (
+                <span className="text-sm font-semibold text-white">SH</span>
+              ) : (
+                <Image
+                  src="/branding/soft-hub-logomark.svg"
+                  alt="SOFT-HUB logomark"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8"
+                  priority
+                  onError={() => setBrandMarkErrored(true)}
+                />
+              )}
             </span>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-neutral-50">{t("brandTitle")}</span>
-              <span className="text-[11px] text-neutral-400">{t("brandSubtitle")}</span>
+              <span className="bg-gradient-to-r from-sky-200 via-indigo-200 to-rose-200 bg-clip-text text-sm font-semibold uppercase tracking-[0.2em] text-transparent">
+                {t("brandTitle")}
+              </span>
+              <span className="text-[11px] text-neutral-400 transition duration-300 group-hover:text-neutral-200">
+                {t("brandSubtitle")}
+              </span>
             </div>
           </Link>
           <Tabs defaultValue="windows" className="hidden md:block">
             <TabsList className="bg-transparent">
               <TabsTrigger value="windows" startIcon={<MonitorSmartphone className="h-3.5 w-3.5" />}> {t("tabs.windows")} </TabsTrigger>
               <TabsTrigger value="mac" startIcon={<Moon className="h-3.5 w-3.5" />}> {t("tabs.mac")} </TabsTrigger>
-              <TabsTrigger value="linux" startIcon={<Zap className="h-3.5 w-3.5" />}> {t("tabs.linux")} </TabsTrigger>
+              <TabsTrigger value="linux" startIcon={<MonitorSmartphone className="h-3.5 w-3.5 rotate-90" />}> {t("tabs.linux")} </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
