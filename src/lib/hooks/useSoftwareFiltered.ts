@@ -3,14 +3,18 @@
 import { useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-import { mockSoftwares } from "@/lib/data/software";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { fetchFilteredSoftware, type FilteredSoftwareOptions, type SoftwareListResponse } from "@/lib/services/softwareService";
+import { queryStaticSoftware } from "@/lib/services/staticSoftwareRepository";
 
 import { useSupabase } from "@/lib/hooks/useSupabase";
 import { useFilters } from "@/lib/hooks/useFilters";
 
-type SoftwareQueryPage = SoftwareListResponse & { usedFallback: boolean };
+type SoftwareQueryPage = SoftwareListResponse & {
+  usedFallback: boolean;
+  source: "supabase" | "fallback";
+  originError?: string;
+};
 
 const sanitizeFilters = (snapshot: ReturnType<typeof useFilters>["snapshot"]): Omit<FilteredSoftwareOptions, "page"> => {
   const platforms = [...snapshot.selectedPlatforms].sort();
@@ -46,6 +50,7 @@ export const useSoftwareFiltered = () => {
   const query = useInfiniteQuery<SoftwareQueryPage, Error>({
     queryKey,
     initialPageParam: 1,
+    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
@@ -54,17 +59,12 @@ export const useSoftwareFiltered = () => {
       const perPage = filters.perPage ?? 24;
 
       if (!isSupabaseConfigured()) {
-        const start = (page - 1) * perPage;
-        const slice = mockSoftwares.slice(start, start + perPage);
-        const total = mockSoftwares.length;
+        const response = await queryStaticSoftware({ ...filters, page, perPage });
 
         return {
-          items: slice,
-          total,
-          page,
-          perPage,
-          hasMore: start + perPage < total,
+          ...response,
           usedFallback: true,
+          source: "fallback",
         } satisfies SoftwareQueryPage;
       }
 
@@ -72,19 +72,54 @@ export const useSoftwareFiltered = () => {
         throw new Error("Supabase client is not available in the browser context.");
       }
 
-      const response = await fetchFilteredSoftware({ ...filters, page }, supabase);
+      try {
+        const response = await fetchFilteredSoftware({ ...filters, page }, supabase);
 
-      return {
-        ...response,
-        usedFallback: false,
-      } satisfies SoftwareQueryPage;
+        if (page === 1 && response.items.length === 0) {
+          const fallbackResponse = await queryStaticSoftware({ ...filters, page, perPage });
+          return {
+            ...fallbackResponse,
+            usedFallback: true,
+            source: "fallback",
+            originError: "Supabase dataset is empty",
+          } satisfies SoftwareQueryPage;
+        }
+
+        return {
+          ...response,
+          usedFallback: false,
+          source: "supabase",
+        } satisfies SoftwareQueryPage;
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Falling back to static dataset after Supabase error", error);
+        }
+
+        const fallbackResponse = await queryStaticSoftware({ ...filters, page, perPage });
+
+        return {
+          ...fallbackResponse,
+          usedFallback: true,
+          source: "fallback",
+          originError: error instanceof Error ? error.message : String(error),
+        } satisfies SoftwareQueryPage;
+      }
     },
   });
 
-  const pages = query.data?.pages ?? [];
+  const pages = useMemo(() => query.data?.pages ?? [], [query.data?.pages]);
   const combinedItems = pages.flatMap((page) => page.items);
   const total = pages.at(0)?.total ?? 0;
   const usedFallback = pages.some((page) => page.usedFallback);
+  const lastError = useMemo(() => {
+    for (let index = pages.length - 1; index >= 0; index -= 1) {
+      const message = pages[index]?.originError;
+      if (message) {
+        return message;
+      }
+    }
+    return undefined;
+  }, [pages]);
 
   return {
     ...query,
@@ -93,5 +128,6 @@ export const useSoftwareFiltered = () => {
     usedFallback,
     filters,
     filtersState,
+    lastError,
   } as const;
 };

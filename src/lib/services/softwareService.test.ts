@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import type { Database } from "@/lib/supabase/database.types";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
 import {
@@ -16,59 +18,45 @@ type FilterQueryResponse = {
   count?: number | null;
 };
 
-const createFilterQuery = (response: FilterQueryResponse) => {
-  const builder: any = {};
+type MockFn = ReturnType<typeof vi.fn>;
 
-  builder.select = vi.fn(() => builder);
-  builder.or = vi.fn(() => builder);
-  builder.contains = vi.fn(() => builder);
-  builder.in = vi.fn(() => builder);
-  builder.order = vi.fn(() => builder);
-  builder.range = vi.fn(() => builder);
-  builder.then = (onFulfilled: (value: FilterQueryResponse) => unknown, onRejected?: (reason: unknown) => unknown) =>
-    Promise.resolve(response).then(onFulfilled, onRejected);
-
-  return builder;
+type QueryBuilder = {
+  select: MockFn;
+  insert: MockFn;
+  update: MockFn;
+  delete: MockFn;
+  eq: MockFn;
+  or: MockFn;
+  contains: MockFn;
+  in: MockFn;
+  order: MockFn;
+  range: MockFn;
+  then: MockFn;
+  maybeSingle: MockFn;
 };
 
-const createSingleQuery = (response: { data: unknown; error: unknown }) => {
-  const builder: any = {};
+const createSupabaseMock = (response: FilterQueryResponse) => {
+  const builder = {} as QueryBuilder;
+  const chain = () => vi.fn(() => builder);
 
-  builder.select = vi.fn(() => builder);
-  builder.eq = vi.fn(() => builder);
-  builder.maybeSingle = vi.fn(() => Promise.resolve(response));
+  builder.select = chain();
+  builder.insert = chain();
+  builder.update = chain();
+  builder.delete = chain();
+  builder.eq = chain();
+  builder.or = chain();
+  builder.contains = chain();
+  builder.in = chain();
+  builder.order = chain();
+  builder.range = chain();
+  builder.then = vi.fn((onFulfilled: (value: FilterQueryResponse) => unknown, onRejected?: (reason: unknown) => unknown) =>
+    Promise.resolve(response).then(onFulfilled, onRejected),
+  );
+  builder.maybeSingle = vi.fn(() => Promise.resolve({ data: response.data, error: response.error }));
 
-  return builder;
-};
-
-const createInsertQuery = (response: { data: unknown; error: unknown }) => {
-  const builder: any = {};
-
-  builder.insert = vi.fn(() => builder);
-  builder.select = vi.fn(() => builder);
-  builder.maybeSingle = vi.fn(() => Promise.resolve(response));
-
-  return builder;
-};
-
-const createUpdateQuery = (response: { data: unknown; error: unknown }) => {
-  const builder: any = {};
-
-  builder.update = vi.fn(() => builder);
-  builder.eq = vi.fn(() => builder);
-  builder.select = vi.fn(() => builder);
-  builder.maybeSingle = vi.fn(() => Promise.resolve(response));
-
-  return builder;
-};
-
-const createDeleteQuery = (response: { error: unknown }) => {
-  const builder: any = {};
-
-  builder.delete = vi.fn(() => builder);
-  builder.eq = vi.fn(() => Promise.resolve(response));
-
-  return builder;
+  const from = vi.fn(() => builder);
+  const supabase = { from } as unknown as SupabaseClient<Database>;
+  return { supabase, builder, from };
 };
 
 const platformValues: Platform[] = ["windows", "linux"];
@@ -150,9 +138,7 @@ describe("fetchFilteredSoftware", () => {
       count: 1,
     } satisfies FilterQueryResponse;
 
-    const supabase = {
-      from: vi.fn(() => createFilterQuery(response)),
-    } as any;
+    const { supabase, from } = createSupabaseMock(response);
 
     const result = await fetchFilteredSoftware({ query: "Test" }, supabase);
 
@@ -165,7 +151,7 @@ describe("fetchFilteredSoftware", () => {
     });
     expect(result.total).toBe(1);
     expect(result.hasMore).toBe(false);
-    expect(supabase.from).toHaveBeenCalledWith("software");
+    expect(from).toHaveBeenCalledWith("software");
   });
 
   it("يرمي الخطأ القادم من Supabase", async () => {
@@ -176,9 +162,7 @@ describe("fetchFilteredSoftware", () => {
       count: null,
     } satisfies FilterQueryResponse;
 
-    const supabase = {
-      from: vi.fn(() => createFilterQuery(response)),
-    } as any;
+    const { supabase } = createSupabaseMock(response);
 
     await expect(fetchFilteredSoftware({}, supabase)).rejects.toThrow(error);
   });
@@ -186,14 +170,12 @@ describe("fetchFilteredSoftware", () => {
 
 describe("fetchSoftwareBySlug", () => {
   it("يعيد null عندما لا تعود Supabase بأي صف", async () => {
-    const supabase = {
-      from: vi.fn(() => createSingleQuery({ data: null, error: null })),
-    } as any;
+    const { supabase, from } = createSupabaseMock({ data: null, error: null, count: null });
 
     const result = await fetchSoftwareBySlug("missing", supabase);
 
     expect(result).toBeNull();
-    expect(supabase.from).toHaveBeenCalledWith("software");
+    expect(from).toHaveBeenCalledWith("software");
   });
 });
 
@@ -218,16 +200,12 @@ describe("createSoftware", () => {
   };
 
   it("يعيد السجل بعد الإنشاء بنجاح", async () => {
-    const response = { data: baseRow, error: null };
-    const query = createInsertQuery(response);
-    const supabase = {
-      from: vi.fn(() => query),
-    } as any;
+    const { supabase, builder, from } = createSupabaseMock({ data: baseRow, error: null, count: null });
 
     const result = await createSoftware(payload, supabase);
 
     expect(result).toMatchObject({ id: baseRow.id, slug: baseRow.slug, name: baseRow.name });
-    expect(query.insert).toHaveBeenCalledWith(
+    expect(builder.insert).toHaveBeenCalledWith(
       expect.objectContaining({
         slug: payload.slug,
         name: payload.name,
@@ -236,14 +214,14 @@ describe("createSoftware", () => {
       }),
       { count: "exact" },
     );
-    expect(supabase.from).toHaveBeenCalledWith("software");
+    expect(builder.select).toHaveBeenCalled();
+    expect(builder.maybeSingle).toHaveBeenCalled();
+    expect(from).toHaveBeenCalledWith("software");
   });
 
   it("يرمي الخطأ عند فشل الإنشاء", async () => {
     const error = new Error("insert failed");
-    const supabase = {
-      from: vi.fn(() => createInsertQuery({ data: null, error })),
-    } as any;
+    const { supabase } = createSupabaseMock({ data: null, error, count: null });
 
     await expect(createSoftware(payload, supabase)).rejects.toThrow(error);
   });
@@ -257,24 +235,21 @@ describe("updateSoftware", () => {
 
   it("يعيد السجل بعد التحديث بنجاح", async () => {
     const updatedRow = { ...baseRow, name: patch.name, summary: patch.summary };
-    const query = createUpdateQuery({ data: updatedRow, error: null });
-    const supabase = {
-      from: vi.fn(() => query),
-    } as any;
+    const { supabase, builder, from } = createSupabaseMock({ data: updatedRow, error: null, count: null });
 
     const result = await updateSoftware(baseRow.id, patch, supabase);
 
     expect(result).toMatchObject({ id: baseRow.id, name: patch.name, summary: patch.summary });
-    expect(query.update).toHaveBeenCalledWith(expect.objectContaining(patch));
-    expect(query.eq).toHaveBeenCalledWith("id", baseRow.id);
-    expect(supabase.from).toHaveBeenCalledWith("software");
+    expect(builder.update).toHaveBeenCalledWith(expect.objectContaining(patch));
+    expect(builder.eq).toHaveBeenCalledWith("id", baseRow.id);
+    expect(builder.select).toHaveBeenCalled();
+    expect(builder.maybeSingle).toHaveBeenCalled();
+    expect(from).toHaveBeenCalledWith("software");
   });
 
   it("يرمي الخطأ عند فشل التحديث", async () => {
     const error = new Error("update failed");
-    const supabase = {
-      from: vi.fn(() => createUpdateQuery({ data: null, error })),
-    } as any;
+    const { supabase } = createSupabaseMock({ data: null, error, count: null });
 
     await expect(updateSoftware(baseRow.id, patch, supabase)).rejects.toThrow(error);
   });
@@ -282,22 +257,17 @@ describe("updateSoftware", () => {
 
 describe("deleteSoftware", () => {
   it("ينفّذ الحذف دون أخطاء", async () => {
-    const query = createDeleteQuery({ error: null });
-    const supabase = {
-      from: vi.fn(() => query),
-    } as any;
+    const { supabase, builder, from } = createSupabaseMock({ data: null, error: null, count: null });
 
     await expect(deleteSoftware(baseRow.id, supabase)).resolves.toBeUndefined();
-    expect(query.delete).toHaveBeenCalled();
-    expect(query.eq).toHaveBeenCalledWith("id", baseRow.id);
-    expect(supabase.from).toHaveBeenCalledWith("software");
+    expect(builder.delete).toHaveBeenCalled();
+    expect(builder.eq).toHaveBeenCalledWith("id", baseRow.id);
+    expect(from).toHaveBeenCalledWith("software");
   });
 
   it("يرمي الخطأ عند فشل الحذف", async () => {
     const error = new Error("delete failed");
-    const supabase = {
-      from: vi.fn(() => createDeleteQuery({ error })),
-    } as any;
+    const { supabase } = createSupabaseMock({ data: null, error, count: null });
 
     await expect(deleteSoftware(baseRow.id, supabase)).rejects.toThrow(error);
   });

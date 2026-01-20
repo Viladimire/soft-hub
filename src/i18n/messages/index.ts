@@ -2,314 +2,12 @@ import type { AbstractIntlMessages } from "next-intl";
 
 import { defaultLocale, supportedLocales, type SupportedLocale } from "@/i18n/locales";
 
-const catalog = {
-  ar: {
-    nav: {
-      brandTitle: "SOFT-HUB",
-      brandSubtitle: "منصة اكتشاف البرمجيات الذكية",
-      tabs: {
-        windows: "Windows",
-        mac: "macOS",
-        linux: "Linux",
-      },
-      games: {
-        label: "Games",
-      },
-      films: {
-        label: "Films",
-        title: "Premium film library",
-        subtitle: "Coming soon",
-        cta: "We are preparing a curated selection. Stay tuned!",
-      },
-      links: {
-        home: "الرئيسية",
-        software: "المكتبة",
-        collections: "المجموعات",
-        insights: "تحليلات",
-      },
-      search: {
-        openButton: "بحث سريع",
-        placeholder: "ابحث عن برنامج، فئة، أو منصة...",
-        themePlaceholder: "اختيار الوضع",
-        recentTitle: "أحدث عمليات البحث",
-        recentKeywords: {
-          orbitSync: "Orbit Sync",
-          design: "Design",
-          webgpu: "WebGPU",
-        },
-      },
-      themeOptions: {
-        system: "النظام",
-        light: "فاتح",
-        dark: "داكن",
-      },
-      actions: {
-        submit: "أضف برنامجًا",
-      },
-    },
-    hero: {
-      badge: "منصة واحدة لاكتشاف البرمجيات الأكثر تأثيرًا",
-      title: {
-        highlight: "استعد لمستقبل البرمجيات",
-        trailing: "حلول ذكية، سكندرية، وجاهزة للنمو.",
-      },
-      description:
-        "SOFT-HUB يجمع أفضل أدوات العمل، الإنتاجية، والأمان في مكان واحد مع تحليلات حيّة، توصيات مخصصة، وتجارب تحميل فائقة السرعة.",
-      search: {
-        placeholder: "ابحث عن برنامج، وظيفة، أو منصة...",
-        chips: {
-          ai: "AI",
-          webgpu: "WebGPU",
-          productivity: "Productivity",
-        },
-      },
-      cta: {
-        primary: "تصفّح المكتبة",
-        secondary: "شاهد المختارات الخاصة",
-      },
-      stats: {
-        programs: "برامج مختارة",
-        experts: "خبراء قيّموا",
-        platforms: "منصات مدعومة",
-      },
-      platforms: {
-        title: "منصات مميزة",
-        subtitle: "ابدأ حسب النظام الذي يستهدفه فريقك",
-        badge: "محدّث أسبوعيًا",
-        items: {
-          windows: {
-            label: "Windows",
-            description: "أكبر منظومة مكتبية مع انتشار قوي في المؤسسات",
-          },
-          mac: {
-            label: "macOS",
-            description: "تجارب مصقولة وأداء ثابت لمستخدمي أجهزة آبل",
-          },
-          linux: {
-            label: "Linux",
-            description: "منصة مفتوحة المصدر للخوادم وأجهزة التطوير",
-          },
-        },
-        titleFilms: "Premium film library",
-        subtitleFilms: "Cinematic experiences tailored for desktop screens",
-        comingSoon: "Coming soon",
-        lockedLibraryTitle: "Film catalog is locked",
-        lockedLibrarySubtitle: "We are preparing a curated selection. Stay tuned!",
-      },
-      categories: {
-        title: "اختر مسارك",
-        recommendedSoon: "سنضيف قريبًا توصيات مخصصة حسب تفضيلاتك وسجل بحثك.",
-        subscribe: "اشترك في التحديثات",
-        labels: {
-          design: "التصميم",
-          development: "التطوير",
-          productivity: "الإنتاجية",
-          security: "الحماية",
-        },
-      },
-      games: {
-        title: "ألعاب مميزة لويندوز وماك",
-        subtitle: "تجارب سينمائية محسّنة للأجهزة المكتبية مع أداء عالي وإضاءة متقدمة.",
-        cta: "استكشف مكتبة الألعاب",
-        badges: {
-          windows: "Windows",
-          mac: "macOS",
-        },
-        items: {
-          aurora: {
-            title: "Aurora Odyssey",
-            description: "رحلة خيال علمي بدعم تتبع الأشعة وموسيقى تفاعلية.",
-            platforms: {
-              windows: "Windows",
-              mac: "macOS",
-            },
-          },
-          skyforge: {
-            title: "Skyforge Legends",
-            description: "تحالفات PvE/PvP مع دعم وحدات تحكم متقدّم وإطارات ثابتة.",
-            platforms: {
-              windows: "Windows",
-            },
-          },
-          echo: {
-            title: "Echo Drift",
-            description: "سباقات مستقبلية بسرعة 120FPS مع دعم يد التحكم على الماك.",
-            platforms: {
-              mac: "macOS",
-              windows: "Windows",
-            },
-          },
-        },
-      },
-    },
-    filters: {
-      title: "المرشحات الذكية",
-      reset: "إعادة ضبط",
-      searchLabel: "بحث",
-      searchPlaceholder: "البحث عن برنامج أو وظيفة محددة...",
-      search: {
-        placeholder: "ابحث عن برنامج أو ميزة أو منصة...",
-        clear: "مسح البحث",
-        chips: {
-          automation: "الأتمتة",
-          design: "التصميم",
-          analytics: "التحليلات",
-        },
-      },
-      platformLabel: "المنصة",
-      platformAll: "جميع المنصات",
-      platformHint: "يمكنك تفعيل أكثر من منصة",
-      pricingLabel: "الأسعار",
-      pricingAll: "كافة الخطط",
-      categoriesLabel: "تصنيفات",
-      collapse: "طيّ الخيارات",
-      expand: "توسيع الخيارات",
-      sortLabel: "ترتيب حسب",
-      sortDescription: "اضبط طريقة عرض النتائج بحسب ما يناسبك.",
-      sortOptions: {
-        latest: "الأحدث",
-        popular: "الأكثر شيوعًا",
-        name: "أبجديًا",
-      },
-      activeFilters: "{count} مرشح فعال",
-      activeSummary: "{count, number} مرشح مفعل",
-      tabs: {
-        all: "الكل",
-        recommended: "مقترح",
-      },
-      groups: {
-        platforms: "منصات",
-        pricing: "الأسعار",
-      },
-      recommendedMessage: "سنضيف قريبًا توصيات مخصصة حسب تفضيلاتك وسجل بحثك.",
-      subscribeCta: "اشترك في التحديثات",
-      clear: "مسح",
-      platformOptions: {
-        windows: "Windows",
-        mac: "macOS",
-        linux: "Linux",
-      },
-      pricingOptions: {
-        free: "مجاني بالكامل",
-        freemium: "خطة مجانية ومدفوعة",
-        "open-source": "مفتوح المصدر",
-      },
-      pricingChip: "خطة التسعير",
-      categoryLabels: {
-        design: "التصميم",
-        development: "التطوير",
-        productivity: "الإنتاجية",
-        security: "الحماية",
-      },
-      categoryPills: {
-        all: {
-          label: "جميع البرامج",
-          description: "أظهر كل النتائج",
-        },
-        desktop: {
-          label: "سطح المكتب",
-          description: "مثالي لويندوز وماك",
-        },
-      },
-    },
-    softwareCard: {
-      downloadsLabel: "تنزيلات",
-      ratingLabel: "التقييم",
-      updatedLabel: "آخر تحديث",
-      viewsLabel: "مشاهدات",
-      versionLabel: "الإصدار",
-      reviewsLabel: "{count, number} تقييم",
-      featuredBadge: "مميز",
-      quickView: "معاينة",
-      share: "مشاركة",
-      favorite: "مفضلة",
-      downloadCount: "{count, number} عملية تنزيل",
-      viewDetails: "استعرض التفاصيل",
-      downloadNow: "تنزيل الآن",
-      notAvailable: "غير متوفر",
-      shareCopied: "تم نسخ الرابط!",
-      shareFailed: "تعذّر نسخ الرابط",
-      quickViewTitle: "نظرة سريعة على {name}",
-      quickViewSubtitle: "كل ما تحتاج معرفته قبل الاعتماد عليه في فريقك.",
-    },
-    softwareGrid: {
-      heading: {
-        default: "استكشف مكتبة البرامج",
-        count: "تم العثور على {count, number} برنامج",
-      },
-      status: {
-        loading: "جارٍ تحديث النتائج...",
-        updating: "تحديث النتائج",
-      },
-      fallbackBadge: "بيانات تجريبية",
-      actions: {
-        loadMore: "تحميل المزيد",
-        loadingMore: "جارٍ التحميل",
-      },
-    },
-    emptyState: {
-      noResults: {
-        title: "لا توجد نتائج مطابقة",
-        description: "جرّب تعديل معايير البحث أو قم بإعادة تعيين الفلاتر لعرض المزيد من النتائج.",
-        action: "إعادة تعيين الفلاتر",
-      },
-      noSoftware: {
-        title: "لا توجد برامج متاحة حاليًا",
-        description: "نعمل على تحديث المكتبة باستمرار. تفقد الفئات المتاحة أو عد لاحقًا.",
-        action: "استعرض الفئات",
-      },
-      error: {
-        title: "تعذّر تحميل النتائج",
-        description: "يرجى التحقق من اتصالك بالإنترنت أو إعادة المحاولة بعد لحظات.",
-        action: "إعادة المحاولة",
-      },
-    },
-    sidebar: {
-      trending: {
-        title: "برامج رائجة",
-        badge: "مميز",
-        viewAll: "عرض القائمة الكاملة",
-      },
-      pricing: {
-        title: "خطط الأسعار",
-        includeTag: "يتضمن وسم {chip}",
-        viewAll: "كل الأسعار",
-        badges: {
-          free: "مجاني",
-          freemium: "فريميوم",
-          "open-source": "مفتوح المصدر",
-        },
-      },
-      submit: {
-        title: "هل لديك برنامج مميز؟",
-        description: "شارك مشروعك مع مجتمع SOFT-HUB واحصل على صفحة مخصصة وتحليلات أداء.",
-        cta: "أرسل برنامجك",
-      },
-      community: {
-        title: "مجتمع SOFT-HUB",
-        links: {
-          forums: {
-            label: "منتدى الخبراء",
-            description: "انضم إلى نقاشات المستخدمين والخبراء التقنيين",
-          },
-          alternatives: {
-            label: "دليل البدائل",
-            description: "قارن بين البرامج واعثر على البديل الأنسب",
-          },
-          trends: {
-            label: "تقرير التوجهات",
-            description: "تعرّف على أكثر البرمجيات نموًا هذا الشهر",
-          },
-        },
-      },
-    },
-  },
-  en: {
-    nav: {
-      brandTitle: "SOFT-HUB",
-      brandSubtitle: "Intelligent software discovery hub",
-      tabs: {
-        windows: "Windows",
+const enMessages = {
+  nav: {
+    brandTitle: "SOFT-HUB",
+    brandSubtitle: "The biggest free software & games library",
+    tabs: {
+      windows: "Windows",
         mac: "macOS",
         linux: "Linux",
       },
@@ -335,8 +33,8 @@ const catalog = {
         recentTitle: "Recent searches",
         recentKeywords: {
           orbitSync: "Orbit Sync",
-          design: "Design",
-          webgpu: "WebGPU",
+          chrome: "Chrome",
+          winrar: "WinRAR",
         },
       },
       themeOptions: {
@@ -349,29 +47,30 @@ const catalog = {
       },
     },
     hero: {
-      badge: "One platform to discover the most impactful software",
+      badge: "The biggest free software library",
       title: {
-        highlight: "Get ready for the future of software",
-        trailing: "Smart, scalable solutions ready to grow.",
+        highlight: "Download software & games",
+        trailing: "100% free with direct links",
       },
       description:
-        "SOFT-HUB brings together the best productivity, security and workflow tools with live analytics, personalized recommendations and blazing-fast downloads.",
+        "Download thousands of free software titles and games with fast direct links from our servers — no annoying ads.",
       search: {
         placeholder: "Search for a product, capability or platform...",
         chips: {
-          ai: "AI",
-          webgpu: "WebGPU",
-          productivity: "Productivity",
+          chrome: "Chrome",
+          winrar: "WinRAR",
+          games: "Games",
         },
+        cta: "Start search",
       },
       cta: {
         primary: "Browse the library",
         secondary: "View curated picks",
       },
       stats: {
-        programs: "Featured products",
-        experts: "Expert reviewers",
-        platforms: "Supported platforms",
+        programs: "Free software",
+        experts: "100% free",
+        platforms: "Direct links",
       },
       platforms: {
         title: "Featured platforms",
@@ -398,14 +97,13 @@ const catalog = {
         lockedLibrarySubtitle: "We are preparing a curated selection. Stay tuned!",
       },
       categories: {
-        title: "Choose your track",
-        recommendedSoon: "We'll soon add personalized recommendations based on your preferences and search history.",
+        title: "Discover categories",
+        subtitle: "Curated groups to help you pick the right tools for your next project.",
+        recommendedSoon: "Coming soon",
         subscribe: "Subscribe for updates",
         labels: {
-          design: "Design",
-          development: "Development",
-          productivity: "Productivity",
-          security: "Security",
+          software: "Software",
+          games: "Games",
         },
       },
       games: {
@@ -452,16 +150,16 @@ const catalog = {
         placeholder: "Search for a product, feature or platform...",
         clear: "Clear search",
         chips: {
-          automation: "Automation",
-          design: "Design",
-          analytics: "Analytics",
+          chrome: "Chrome",
+          winrar: "WinRAR",
+          games: "Games",
         },
       },
       platformLabel: "Platform",
       platformAll: "All platforms",
       platformHint: "Select one or more platforms",
-      pricingLabel: "Pricing",
-      pricingAll: "All plans",
+      pricingLabel: "",
+      pricingAll: "",
       categoriesLabel: "Categories",
       collapse: "Collapse",
       expand: "Expand",
@@ -480,7 +178,7 @@ const catalog = {
       },
       groups: {
         platforms: "Platforms",
-        pricing: "Pricing",
+        pricing: "",
       },
       recommendedMessage: "We'll soon add personalized recommendations based on your preferences and search history.",
       subscribeCta: "Subscribe for updates",
@@ -489,27 +187,65 @@ const catalog = {
         windows: "Windows",
         mac: "macOS",
         linux: "Linux",
+        android: "Android",
+        ios: "iOS",
       },
       pricingOptions: {
         free: "Completely free",
-        freemium: "Free & paid tiers",
-        "open-source": "Open source",
       },
-      pricingChip: "Pricing tier",
+      freeBadge: "100% free",
+      pricingChip: "Free",
       categoryLabels: {
-        design: "Design",
+        software: "Software",
+        games: "Games",
+        "operating-systems": "Operating systems",
+        multimedia: "Multimedia",
+        utilities: "Utilities",
         development: "Development",
-        productivity: "Productivity",
         security: "Security",
+        productivity: "Productivity",
+        education: "Education",
       },
       categoryPills: {
         all: {
           label: "All software",
           description: "Show everything",
         },
-        desktop: {
-          label: "Desktop",
-          description: "Perfect for Windows & macOS",
+        software: {
+          label: "Software",
+          description: "Free desktop apps",
+        },
+        games: {
+          label: "Games",
+          description: "Free PC games",
+        },
+        "operating-systems": {
+          label: "Operating systems",
+          description: "Desktop OS distributions",
+        },
+        multimedia: {
+          label: "Multimedia",
+          description: "Media and creativity tools",
+        },
+        utilities: {
+          label: "Utilities",
+          description: "Power tools and optimizers",
+        },
+        development: {
+          label: "Development",
+          description: "Build and deployment tooling",
+        },
+        security: {
+          label: "Security",
+          description: "Protect endpoints and data",
+        },
+        productivity: {
+          label: "Productivity",
+          description: "Organise work and teams",
+        },
+        education: {
+          label: "Education",
+          description: "Learning and training apps",
         },
       },
     },
@@ -569,16 +305,15 @@ const catalog = {
       trending: {
         title: "Trending software",
         badge: "Top",
+        empty: "No trending software right now",
         viewAll: "View full list",
       },
       pricing: {
-        title: "Pricing plans",
-        includeTag: "Includes the {chip} badge",
-        viewAll: "See all pricing",
+        title: "",
+        includeTag: "",
+        viewAll: "",
         badges: {
-          free: "Free",
-          freemium: "Freemium",
-          "open-source": "Open source",
+          free: "",
         },
       },
       submit: {
@@ -604,8 +339,30 @@ const catalog = {
         },
       },
     },
-  },
-} as const satisfies Partial<Record<SupportedLocale, AbstractIntlMessages>>;
+    pages: {
+      collections: {
+        title: "Collections",
+        description: "Curated software packs are on the way. We’re preparing specialised bundles for every workflow.",
+        ctas: {
+          primary: "Back to home",
+        },
+      },
+      insights: {
+        title: "Insights",
+        description: "Coming soon: analytics on top downloads, most-viewed products, and live trend tracking.",
+        ctas: {
+          trends: "Open Trends",
+          primary: "Back to home",
+        },
+      },
+    }
+  }
+
+const typedEnMessages: AbstractIntlMessages = enMessages;
+
+const catalog: Partial<Record<SupportedLocale, AbstractIntlMessages>> = {
+  en: typedEnMessages,
+};
 
 const isSupportedLocale = (value: string): value is SupportedLocale =>
   supportedLocales.includes(value as SupportedLocale);

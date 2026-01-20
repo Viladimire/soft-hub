@@ -52,7 +52,7 @@ export default async function LocaleLayout({
   const dir = rtlLocales.has(locale) ? "rtl" : "ltr";
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning>
+    <html lang={locale} dir={dir} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} bg-neutral-950 antialiased`}>
         <Providers locale={locale} messages={messages}>
           <PageTransition>{children}</PageTransition>

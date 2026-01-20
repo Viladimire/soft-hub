@@ -40,7 +40,7 @@ export const softwareSchema = z
     releaseDate: z.string().datetime({ message: "صيغة التاريخ غير صحيحة" }),
     platforms: z.array(z.string()).min(1, "اختر منصة واحدة على الأقل"),
     categories: z.array(z.string()).min(1, "اختر فئة واحدة على الأقل"),
-    type: z.enum(["free", "freemium", "open-source"]).default("free"),
+    type: z.enum(["free"]).default("free"),
     isFeatured: z.boolean().default(false),
     stats: softwareStatsSchema,
     media: softwareMetaSchema,

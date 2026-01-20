@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { defaultLocale, supportedLocales } from "@/i18n/locales";
-import { getRelatedSoftwares, getSoftwareBySlug, mockSoftwares } from "@/lib/data/software";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchSoftwareBySlug } from "@/lib/services/softwareService";
+import { getStaticRelatedSoftware, getStaticSoftwareBySlug, listStaticSoftwareSlugs } from "@/lib/services/staticSoftwareRepository";
 
 import { AppShell } from "@/components/layouts/app-shell";
 import { SideBar } from "@/components/layouts/sidebar";
@@ -20,10 +20,12 @@ import { SoftwareHeader } from "@/components/software/software-header";
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
+  const slugs = await listStaticSoftwareSlugs();
+
   return supportedLocales.flatMap((locale) =>
-    mockSoftwares.map((software) => ({
+    slugs.map((slug) => ({
       locale,
-      slug: software.slug,
+      slug,
     })),
   );
 }
@@ -38,7 +40,7 @@ export async function generateMetadata({
 
   const software = isSupabaseConfigured()
     ? await fetchSoftwareBySlug(slug, createSupabaseServerClient()).catch(() => null)
-    : getSoftwareBySlug(slug);
+    : await getStaticSoftwareBySlug(slug);
 
   if (!software) {
     return {};
@@ -69,13 +71,13 @@ export default async function SoftwareDetailPage({
 
   const software = isSupabaseConfigured()
     ? await fetchSoftwareBySlug(slug, createSupabaseServerClient()).catch(() => null)
-    : getSoftwareBySlug(slug);
+    : await getStaticSoftwareBySlug(slug);
 
   if (!software) {
     notFound();
   }
 
-  const related = getRelatedSoftwares(slug, 3);
+  const related = await getStaticRelatedSoftware(slug, 3);
 
   return (
     <AppShell sidebar={<SideBar />} className="pt-12">

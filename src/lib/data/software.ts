@@ -7,28 +7,58 @@ export const featuredCategories: Array<{
   icon: string;
 }> = [
   {
-    id: "design",
-    label: "Design",
-    description: "Cutting-edge creative tools for crafting outstanding interfaces",
-    icon: "palette",
+    id: "software",
+    label: "Software",
+    description: "Free software library for Windows, macOS, and Linux",
+    icon: "package",
+  },
+  {
+    id: "games",
+    label: "Games",
+    description: "Free games for PC",
+    icon: "gamepad-2",
+  },
+  {
+    id: "operating-systems",
+    label: "Operating systems",
+    description: "Desktop distributions and live environments",
+    icon: "cpu",
+  },
+  {
+    id: "multimedia",
+    label: "Multimedia",
+    description: "Media hubs, editors, and playback suites",
+    icon: "film",
+  },
+  {
+    id: "utilities",
+    label: "Utilities",
+    description: "Maintenance, cleanup, and power tools",
+    icon: "wrench",
   },
   {
     id: "development",
     label: "Development",
-    description: "Robust tooling and runtimes that accelerate product delivery",
-    icon: "terminal",
-  },
-  {
-    id: "productivity",
-    label: "Productivity",
-    description: "Work orchestration suites that boost velocity and focus",
-    icon: "clock",
+    description: "Build, test, and deployment toolchains",
+    icon: "code-2",
   },
   {
     id: "security",
     label: "Security",
-    description: "Modern defenses that keep infrastructure and data resilient",
-    icon: "shield",
+    description: "Endpoint defence and privacy utilities",
+    icon: "shield-check",
+  },
+  {
+    id: "productivity",
+    label: "Productivity",
+    description: "Planning, writing, and team collaboration",
+    icon: "bar-chart-3",
+  },
+  {
+    id: "education",
+    label: "Education",
+    description: "Learning platforms and study assistants",
+    icon: "book-open",
   },
 ];
 
@@ -41,12 +71,12 @@ export const platformOptions: SoftwareFilterOption[] = [
   { id: "windows", label: "Windows" },
   { id: "mac", label: "macOS" },
   { id: "linux", label: "Linux" },
+  { id: "android", label: "Android" },
+  { id: "ios", label: "iOS" },
 ];
 
 export const pricingOptions: Array<{ id: SoftwareType; label: string; chip: string }> = [
   { id: "free", label: "Completely free", chip: "Free" },
-  { id: "freemium", label: "Free & paid tiers", chip: "Freemium" },
-  { id: "open-source", label: "Open source", chip: "OSS" },
 ];
 
 export const topPlatforms: Array<{ id: Platform; label: string; description: string }> = [
@@ -76,8 +106,8 @@ const createSoftware = (partial: Partial<Software>): Software => ({
   version: partial.version ?? "1.0.0",
   sizeInBytes: partial.sizeInBytes ?? 250 * 1024 * 1024,
   platforms: partial.platforms ?? ["windows"],
-  categories: partial.categories ?? ["utilities"],
-  type: partial.type ?? "freemium",
+  categories: partial.categories ?? ["software"],
+  type: partial.type ?? "free",
   websiteUrl: partial.websiteUrl ?? null,
   downloadUrl: partial.downloadUrl ?? "https://example.com/download",
   isFeatured: partial.isFeatured ?? false,
@@ -121,8 +151,8 @@ export const mockSoftwares: Software[] = [
     version: "2.6.1",
     sizeInBytes: 512 * 1024 * 1024,
     platforms: ["windows", "mac"],
-    categories: ["design", "productivity"],
-    type: "freemium",
+    categories: ["software"],
+    type: "free",
     isFeatured: true,
     stats: {
       downloads: 89200,
@@ -140,8 +170,8 @@ export const mockSoftwares: Software[] = [
     version: "5.4.2",
     sizeInBytes: 320 * 1024 * 1024,
     platforms: ["windows", "mac", "linux"],
-    categories: ["productivity", "security"],
-    type: "freemium",
+    categories: ["software"],
+    type: "free",
     isFeatured: true,
     stats: {
       downloads: 154000,
@@ -159,8 +189,8 @@ export const mockSoftwares: Software[] = [
     version: "3.1.0",
     sizeInBytes: 280 * 1024 * 1024,
     platforms: ["windows", "linux"],
-    categories: ["security"],
-    type: "freemium",
+    categories: ["software"],
+    type: "free",
     stats: {
       downloads: 189000,
       views: 410000,
@@ -177,7 +207,7 @@ export const mockSoftwares: Software[] = [
     version: "1.8.4",
     sizeInBytes: 190 * 1024 * 1024,
     platforms: ["mac"],
-    categories: ["productivity", "education"],
+    categories: ["software"],
     type: "free",
     stats: {
       downloads: 72000,
@@ -195,8 +225,8 @@ export const mockSoftwares: Software[] = [
     version: "0.9.5",
     sizeInBytes: 640 * 1024 * 1024,
     platforms: ["windows", "linux"],
-    categories: ["development", "multimedia"],
-    type: "open-source",
+    categories: ["games"],
+    type: "free",
     stats: {
       downloads: 45000,
       views: 96000,

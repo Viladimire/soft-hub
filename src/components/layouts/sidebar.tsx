@@ -4,17 +4,17 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Flame, FolderGit2, MessageCircle, PlusCircle, TrendingUp } from "lucide-react";
 
-import { mockSoftwares } from "@/lib/data/software";
+import { useEffect, useState } from "react";
+import type { Software } from "@/lib/types/software";
 import { formatCompactNumber } from "@/lib/utils/format";
+import { getStaticTrendingSoftware } from "@/lib/services/staticSoftwareRepository";
+import { fetchTrendingSoftware } from "@/lib/services/softwareService";
+import { useSupabase } from "@/lib/hooks/useSupabase";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const trendingSoftwares = mockSoftwares
-  .slice(0, 3)
-  .sort((a, b) => b.stats.downloads - a.stats.downloads);
 
 const communityLinkIcons = {
   forums: MessageCircle,
@@ -25,11 +25,74 @@ const communityLinkIcons = {
 export const SideBar = () => {
   const locale = useLocale();
   const t = useTranslations("sidebar");
+  const supabase = useSupabase();
+  const [trending, setTrending] = useState<Software[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const apply = (items: Software[]) => {
+      if (active) {
+        setTrending(items);
+      }
+    };
+
+    const loadFallback = async () => {
+      try {
+        const fallback = await getStaticTrendingSoftware(3);
+        apply(fallback);
+      } catch {
+        apply([]);
+      }
+    };
+
+    const run = async () => {
+      setLoadingTrending(true);
+      if (!supabase) {
+        await loadFallback();
+        if (active) setLoadingTrending(false);
+        return;
+      }
+
+      try {
+        const live = await fetchTrendingSoftware(3, supabase);
+        if (live.length > 0) {
+          apply(live);
+        } else {
+          await loadFallback();
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to load trending software from Supabase", error);
+        }
+        await loadFallback();
+      } finally {
+        if (active) {
+          setLoadingTrending(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
 
   const community = t.raw("community.links") as Record<
     keyof typeof communityLinkIcons,
     { label: string; description: string }
   >;
+
+  const trendingEmptyMessage = (() => {
+    try {
+      return t("trending.empty");
+    } catch {
+      return locale.startsWith("ar") ? "لا توجد برامج رائجة حالياً" : "No trending software right now";
+    }
+  })();
 
   return (
     <aside className="space-y-6">
@@ -44,28 +107,36 @@ export const SideBar = () => {
           </Badge>
         </CardHeader>
         <CardContent className="space-y-4">
-          {trendingSoftwares.map((software, index) => (
-            <Link
-              key={software.id}
-              href={`/${locale}/software/${software.slug}`}
-              className="group block rounded-xl border border-white/10 bg-neutral-900/60 p-4 transition hover:border-primary-400/60 hover:bg-primary-500/10"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-sm font-semibold text-neutral-100">
-                    {index + 1}
-                  </span>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-neutral-50">{software.name}</p>
-                    <p className="text-xs text-neutral-400 line-clamp-1">{software.summary}</p>
+          {loadingTrending ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className="h-16 w-full rounded-xl" />
+            ))
+          ) : trending.length > 0 ? (
+            trending.map((software, index) => (
+              <Link
+                key={software.id}
+                href={`/${locale}/software/${software.slug}`}
+                className="group block rounded-xl border border-white/10 bg-neutral-900/60 p-4 transition hover:border-primary-400/60 hover:bg-primary-500/10"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-sm font-semibold text-neutral-100">
+                      {index + 1}
+                    </span>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-neutral-50">{software.name}</p>
+                      <p className="text-xs text-neutral-400 line-clamp-1">{software.summary}</p>
+                    </div>
                   </div>
+                  <span className="text-xs text-primary-200">
+                    {formatCompactNumber(software.stats.downloads, locale)}+
+                  </span>
                 </div>
-                <span className="text-xs text-primary-200">
-                  {formatCompactNumber(software.stats.downloads, locale)}+
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          ) : (
+            <p className="text-xs text-neutral-400">{trendingEmptyMessage}</p>
+          )}
           <Button variant="ghost" className="w-full text-sm text-neutral-300" asChild>
             <Link href={`/${locale}/software?sort=popular`}>{t("trending.viewAll")}</Link>
           </Button>
@@ -109,7 +180,7 @@ export const SideBar = () => {
               </Link>
             );
           })}
-          <Skeleton className="h-12" shimmer={false} />
+          {loadingTrending ? <Skeleton className="h-12" shimmer={false} /> : null}
         </CardContent>
       </Card>
     </aside>

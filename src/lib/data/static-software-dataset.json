@@ -1,0 +1,380 @@
+[
+  {
+    "id": "software-nova-os",
+    "slug": "nova-os",
+    "name": "Nova OS",
+    "summary": "Lightweight desktop operating system built for instant productivity",
+    "description": "Nova OS delivers a fluid desktop experience with sandboxed apps, adaptive theming, and seamless cloud sync designed for creators on any hardware.",
+    "version": "6.2",
+    "sizeInBytes": 2181038080,
+    "platforms": ["windows", "linux"],
+    "categories": ["software", "operating-systems"],
+    "type": "free",
+    "websiteUrl": "https://nova-os.dev",
+    "downloadUrl": "https://cdn.nova-os.dev/download/latest.iso",
+    "isFeatured": true,
+    "releaseDate": "2024-06-10T00:00:00.000Z",
+    "updatedAt": "2024-12-05T00:00:00.000Z",
+    "createdAt": "2021-09-12T00:00:00.000Z",
+    "stats": {
+      "downloads": 412000,
+      "views": 680000,
+      "rating": 4.6,
+      "votes": 9100
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Dual-core CPU", "4 GB RAM", "32 GB storage"],
+      "recommended": ["Quad-core CPU", "8 GB RAM", "SSD storage"]
+    },
+    "changelog": [
+      {
+        "version": "6.2",
+        "date": "2024-12-05T00:00:00.000Z",
+        "highlights": ["New low-power mode", "Wayland compositor upgrades"]
+      }
+    ]
+  },
+  {
+    "id": "software-aurora-suite",
+    "slug": "aurora-suite",
+    "name": "Aurora Suite",
+    "summary": "Creative productivity studio for writing, planning, and brainstorming",
+    "description": "Aurora Suite combines notebooks, kanban boards, and AI-assisted drafting in a gorgeous multi-platform workspace crafted for remote teams.",
+    "version": "3.4.1",
+    "sizeInBytes": 603979776,
+    "platforms": ["windows", "mac"],
+    "categories": ["software", "productivity", "design"],
+    "type": "free",
+    "websiteUrl": "https://aurorasuite.io",
+    "downloadUrl": "https://downloads.aurorasuite.io/latest",
+    "isFeatured": true,
+    "releaseDate": "2023-11-18T00:00:00.000Z",
+    "updatedAt": "2024-11-22T00:00:00.000Z",
+    "createdAt": "2020-03-08T00:00:00.000Z",
+    "stats": {
+      "downloads": 235000,
+      "views": 520000,
+      "rating": 4.7,
+      "votes": 6400
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Windows 10 or macOS 12", "8 GB RAM"],
+      "recommended": ["Windows 11 or macOS 14", "16 GB RAM", "Dedicated GPU"]
+    },
+    "changelog": [
+      {
+        "version": "3.4.1",
+        "date": "2024-11-22T00:00:00.000Z",
+        "highlights": ["AI storyboard assistant", "Shared canvases"]
+      }
+    ]
+  },
+  {
+    "id": "software-pulse-security",
+    "slug": "pulse-security",
+    "name": "Pulse Security",
+    "summary": "Runtime threat defense with unified compliance automation",
+    "description": "Pulse Security prevents ransomware and lateral attacks using behavior-aware sensors, live forensics, and single-click compliance reporting.",
+    "version": "2.9.0",
+    "sizeInBytes": 440401920,
+    "platforms": ["windows", "linux"],
+    "categories": ["software", "security", "utilities"],
+    "type": "free",
+    "websiteUrl": "https://pulse-sec.io",
+    "downloadUrl": "https://pulse-sec.io/download",
+    "isFeatured": false,
+    "releaseDate": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-10-14T00:00:00.000Z",
+    "createdAt": "2019-12-01T00:00:00.000Z",
+    "stats": {
+      "downloads": 198000,
+      "views": 430000,
+      "rating": 4.5,
+      "votes": 5700
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Windows 10", "6 GB RAM", "TPM 2.0"],
+      "recommended": ["Windows 11", "8 GB RAM", "Hardware security module"]
+    },
+    "changelog": [
+      {
+        "version": "2.9.0",
+        "date": "2024-10-14T00:00:00.000Z",
+        "highlights": ["SOAR playbooks", "Kernel trap hardening"]
+      }
+    ]
+  },
+  {
+    "id": "software-horizon-player",
+    "slug": "horizon-player",
+    "name": "Horizon Player",
+    "summary": "Studio-grade media hub with HDR tone mapping and casting",
+    "description": "Horizon Player keeps your media library organized with cloud sync, HDR tone mapping, and AI-powered upscaling for films, music, and podcasts.",
+    "version": "5.1.3",
+    "sizeInBytes": 530579456,
+    "platforms": ["windows", "mac", "linux"],
+    "categories": ["software", "multimedia"],
+    "type": "free",
+    "websiteUrl": "https://horizonplayer.app",
+    "downloadUrl": "https://cdn.horizonplayer.app/latest",
+    "isFeatured": true,
+    "releaseDate": "2022-05-17T00:00:00.000Z",
+    "updatedAt": "2024-08-28T00:00:00.000Z",
+    "createdAt": "2018-07-04T00:00:00.000Z",
+    "stats": {
+      "downloads": 520000,
+      "views": 890000,
+      "rating": 4.8,
+      "votes": 12300
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Any dual-core CPU", "4 GB RAM", "HD display"],
+      "recommended": ["Quad-core CPU", "8 GB RAM", "4K HDR display"]
+    },
+    "changelog": [
+      {
+        "version": "5.1.3",
+        "date": "2024-08-28T00:00:00.000Z",
+        "highlights": ["Dolby Vision support", "Podcast auto-chapters"]
+      }
+    ]
+  },
+  {
+    "id": "software-atlas-utilities",
+    "slug": "atlas-utilities",
+    "name": "Atlas Utilities",
+    "summary": "Swiss-army toolkit for power users and IT technicians",
+    "description": "Atlas Utilities bundles disk cleanup, driver snapshots, network diagnostics, and automation workflows in one portable package.",
+    "version": "4.7.0",
+    "sizeInBytes": 272629760,
+    "platforms": ["windows"],
+    "categories": ["software", "utilities"],
+    "type": "free",
+    "websiteUrl": "https://atlas-utilities.app",
+    "downloadUrl": "https://atlas-utilities.app/download",
+    "isFeatured": false,
+    "releaseDate": "2024-03-02T00:00:00.000Z",
+    "updatedAt": "2024-09-12T00:00:00.000Z",
+    "createdAt": "2016-10-24T00:00:00.000Z",
+    "stats": {
+      "downloads": 345000,
+      "views": 510000,
+      "rating": 4.4,
+      "votes": 8000
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Windows 10", "4 GB RAM"],
+      "recommended": ["Windows 11", "8 GB RAM", "SSD"]
+    },
+    "changelog": [
+      {
+        "version": "4.7.0",
+        "date": "2024-09-12T00:00:00.000Z",
+        "highlights": ["New automation recipes", "Faster driver rollback"]
+      }
+    ]
+  },
+  {
+    "id": "software-spectra-devkit",
+    "slug": "spectra-devkit",
+    "name": "Spectra DevKit",
+    "summary": "Modern development toolkit with container-native pipelines",
+    "description": "Spectra DevKit simplifies cross-platform builds with project templates, dependency insights, and GPU-accelerated testing environments.",
+    "version": "1.6.3",
+    "sizeInBytes": 805306368,
+    "platforms": ["windows", "mac", "linux"],
+    "categories": ["software", "development"],
+    "type": "free",
+    "websiteUrl": "https://spectradevkit.dev",
+    "downloadUrl": "https://spectradevkit.dev/releases/latest",
+    "isFeatured": false,
+    "releaseDate": "2023-04-14T00:00:00.000Z",
+    "updatedAt": "2024-07-26T00:00:00.000Z",
+    "createdAt": "2019-05-10T00:00:00.000Z",
+    "stats": {
+      "downloads": 165000,
+      "views": 310000,
+      "rating": 4.5,
+      "votes": 4500
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Any 64-bit CPU", "8 GB RAM"],
+      "recommended": ["8-core CPU", "16 GB RAM", "Discrete GPU"]
+    },
+    "changelog": [
+      {
+        "version": "1.6.3",
+        "date": "2024-07-26T00:00:00.000Z",
+        "highlights": ["Container image insights", "VS Code live link"]
+      }
+    ]
+  },
+  {
+    "id": "software-lumen-note",
+    "slug": "lumen-note",
+    "name": "Lumen Note",
+    "summary": "Markdown-first knowledge hub with real-time collaboration",
+    "description": "Lumen Note powers knowledge workflows with AI summarisation, keyboard-driven navigation, and frictionless multi-device sync.",
+    "version": "2.1.0",
+    "sizeInBytes": 209715200,
+    "platforms": ["mac"],
+    "categories": ["software", "productivity", "education"],
+    "type": "free",
+    "websiteUrl": "https://lumennote.com",
+    "downloadUrl": "https://lumennote.com/download/mac",
+    "isFeatured": false,
+    "releaseDate": "2024-02-20T00:00:00.000Z",
+    "updatedAt": "2024-10-01T00:00:00.000Z",
+    "createdAt": "2021-02-05T00:00:00.000Z",
+    "stats": {
+      "downloads": 83000,
+      "views": 142000,
+      "rating": 4.8,
+      "votes": 1280
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["macOS 13", "4 GB RAM"],
+      "recommended": ["macOS 14", "8 GB RAM", "iCloud Drive"]
+    },
+    "changelog": [
+      {
+        "version": "2.1.0",
+        "date": "2024-10-01T00:00:00.000Z",
+        "highlights": ["Canvas view", "AI summariser"]
+      }
+    ]
+  },
+  {
+    "id": "software-singularity-games",
+    "slug": "singularity-games",
+    "name": "Singularity Games Launcher",
+    "summary": "Premium indie titles with cloud saves and cooperative play",
+    "description": "Singularity curates cinematic indie releases with cross-platform cloud saves, shared achievements, and buttery-smooth controller support.",
+    "version": "1.14",
+    "sizeInBytes": 754974720,
+    "platforms": ["windows", "mac"],
+    "categories": ["games"],
+    "type": "free",
+    "websiteUrl": "https://singularity.games",
+    "downloadUrl": "https://singularity.games/download",
+    "isFeatured": true,
+    "releaseDate": "2024-04-04T00:00:00.000Z",
+    "updatedAt": "2024-09-30T00:00:00.000Z",
+    "createdAt": "2022-01-31T00:00:00.000Z",
+    "stats": {
+      "downloads": 178000,
+      "views": 360000,
+      "rating": 4.6,
+      "votes": 4100
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Windows 10", "8 GB RAM", "GTX 960"],
+      "recommended": ["Windows 11", "16 GB RAM", "RTX 3070"]
+    },
+    "changelog": [
+      {
+        "version": "1.14",
+        "date": "2024-09-30T00:00:00.000Z",
+        "highlights": ["Cloud co-op", "Ultra textures"]
+      }
+    ]
+  },
+  {
+    "id": "software-quantum-scan",
+    "slug": "quantum-scan",
+    "name": "Quantum Scan",
+    "summary": "Next-gen document digitiser with OCR and vector exports",
+    "description": "Quantum Scan cleans, OCRs, and exports documents to vector formats, all while synchronising securely across your devices.",
+    "version": "2.3",
+    "sizeInBytes": 180355072,
+    "platforms": ["windows", "mac"],
+    "categories": ["software", "utilities"],
+    "type": "free",
+    "websiteUrl": "https://quantumscan.app",
+    "downloadUrl": "https://quantumscan.app/download",
+    "isFeatured": false,
+    "releaseDate": "2023-09-19T00:00:00.000Z",
+    "updatedAt": "2024-06-11T00:00:00.000Z",
+    "createdAt": "2020-05-23T00:00:00.000Z",
+    "stats": {
+      "downloads": 96000,
+      "views": 210000,
+      "rating": 4.4,
+      "votes": 2200
+    },
+    "media": {
+      "logoUrl": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=200&h=200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "heroImage": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": ["Windows 10", "4 GB RAM"],
+      "recommended": ["Windows 11", "8 GB RAM", "SSD"]
+    },
+    "changelog": [
+      {
+        "version": "2.3",
+        "date": "2024-06-11T00:00:00.000Z",
+        "highlights": ["Vector PDF export", "Noise suppression"]
+      }
+    ]
+  }
+]

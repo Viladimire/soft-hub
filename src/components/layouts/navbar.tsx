@@ -26,9 +26,6 @@ export const NavBar = () => {
   const locale = useLocale();
   const pathname = usePathname();
 
-  const filmsTitle = t("films.title");
-  const filmsSubtitle = t("films.subtitle");
-  const filmsCta = t("films.cta");
   const gamesLabel = t("games.label");
   const filmsLabel = t("films.label");
 
@@ -89,30 +86,13 @@ export const NavBar = () => {
             {gamesLabel}
           </a>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-900/70 hover:text-neutral-100"
-              >
-                <Film className="h-4 w-4" />
-                {filmsLabel}
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md space-y-4 border-white/5 bg-neutral-950/90">
-              <DialogHeader className="space-y-2 text-start">
-                <DialogTitle className="text-lg font-semibold text-white">{filmsTitle}</DialogTitle>
-                <DialogDescription className="text-sm leading-6 text-neutral-300">
-                  {filmsSubtitle}
-                </DialogDescription>
-              </DialogHeader>
-              <p className="text-sm leading-6 text-neutral-300">{filmsCta}</p>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-200">
-                <p className="font-semibold text-white">Coming soon</p>
-                <p className="mt-1 text-xs text-neutral-400">This section is not available yet.</p>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Link
+            href={`/${locale}/films`}
+            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-900/70 hover:text-neutral-100"
+          >
+            <Film className="h-4 w-4" />
+            {filmsLabel}
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -207,12 +187,12 @@ export const NavBar = () => {
                 >
                   {gamesLabel}
                 </a>
-                <a
-                  href="#films"
+                <Link
+                  href={`/${locale}/films`}
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-neutral-100 transition hover:border-white/20 hover:bg-white/10"
                 >
                   {filmsLabel}
-                </a>
+                </Link>
               </div>
             </DialogContent>
           </Dialog>

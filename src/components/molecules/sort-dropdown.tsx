@@ -24,7 +24,7 @@ const iconBySort: Record<FilterSortOption, ReactNode> = {
 };
 
 export const SortDropdown = () => {
-  const { snapshot, setSortBy, isNavigating } = useFilters();
+  const { snapshot, setSortBy } = useFilters();
   const t = useTranslations('filters');
 
   const options = useMemo(() => t.raw('sortOptions') as Record<FilterSortOption, string>, [t]);
@@ -41,7 +41,6 @@ export const SortDropdown = () => {
           type="button"
           variant="ghost"
           className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-medium text-neutral-100 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/15"
-          disabled={isNavigating}
         >
           <ArrowDownUp className="h-4 w-4 text-primary-200" />
           <span>{t('sortLabel')}</span>

@@ -37,9 +37,13 @@ export const fetchFilteredSoftware = async (
   let query = supabase.from("software").select("*", { count: "exact" });
 
   if (options.query) {
-    const escaped = options.query.replace(/%/g, "\\%").replace(/_/g, "\\_");
+    const escaped = options.query
+      .trim()
+      .replace(/\*/g, "\\*")
+      .replace(/,/g, "\\,");
+    const pattern = `*${escaped}*`;
     query = query.or(
-      `name.ilike.%${escaped}%,summary.ilike.%${escaped}%,description.ilike.%${escaped}%`,
+      `name.ilike.${pattern},summary.ilike.${pattern},description.ilike.${pattern}`,
     );
   }
 
@@ -142,15 +146,17 @@ const parseMedia = (media: Json | null): Software["media"] => {
   };
 };
 
-const PLATFORM_VALUES: Platform[] = ["windows", "mac", "linux", "android", "ios", "web"];
+const PLATFORM_VALUES: Platform[] = ["windows", "mac", "linux", "android", "ios"];
 const CATEGORY_VALUES: SoftwareCategory[] = [
-  "design",
-  "development",
-  "productivity",
-  "security",
-  "education",
+  "software",
+  "games",
+  "operating-systems",
   "multimedia",
   "utilities",
+  "development",
+  "security",
+  "productivity",
+  "education",
 ];
 
 const parsePlatforms = (platforms: string[]): Platform[] =>
@@ -312,6 +318,37 @@ export const fetchSoftwareBySlug = async (slug: string, client: Supabase) => {
   const record = data as SoftwareRow | null;
 
   return record ? toSoftware(record) : null;
+};
+
+export const fetchSoftwareStats = async (client: Supabase) => {
+  const supabase = client;
+  const { data, error, count } = await supabase
+    .from("software")
+    .select("platforms, stats", { count: "exact" });
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as Pick<SoftwareRow, "platforms" | "stats">[];
+  const totalPrograms = count ?? rows.length;
+  const totalDownloads = rows.reduce((sum, row) => sum + parseStats(row.stats).downloads, 0);
+  const platformSet = rows.reduce((set, row) => {
+    parsePlatforms(row.platforms ?? []).forEach((platform) => set.add(platform));
+    return set;
+  }, new Set<Platform>());
+
+  return {
+    totalPrograms,
+    totalDownloads,
+    totalPlatforms: platformSet.size,
+  } as const;
+};
+
+export const fetchTrendingSoftware = async (limit: number, client: Supabase) => {
+  const perPage = Math.max(Math.floor(limit) || 0, 1);
+  const response = await fetchFilteredSoftware({ sortBy: "popular", page: 1, perPage }, client);
+  return response.items;
 };
 
 export const createSoftware = async (

@@ -1,17 +1,19 @@
-export type Platform = "windows" | "mac" | "linux" | "android" | "ios" | "web";
+export type Platform = "windows" | "mac" | "linux" | "android" | "ios";
 
 export type SoftwareCategory =
-  | "design"
-  | "development"
-  | "productivity"
-  | "security"
-  | "education"
+  | "software"
+  | "games"
+  | "operating-systems"
   | "multimedia"
-  | "utilities";
+  | "utilities"
+  | "development"
+  | "security"
+  | "productivity"
+  | "education";
 
 export type ReleaseStatus = "draft" | "published" | "archived";
 
-export type SoftwareType = "free" | "freemium" | "open-source";
+export type SoftwareType = "free";
 
 export type Software = {
   id: string;

@@ -2,13 +2,34 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Apple, CheckCircle2, ChevronDown, Filter, Loader2, Monitor, Package, RefreshCw, Search, Terminal, X } from "lucide-react";
+import {
+  Apple,
+  BarChart3,
+  BookOpen,
+  CheckCircle2,
+  ChevronDown,
+  Code2,
+  Cpu,
+  Film,
+  Filter,
+  Gauge,
+  Loader2,
+  Monitor,
+  MonitorSmartphone,
+  Package,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Smartphone,
+  Terminal,
+  Wrench,
+  X,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { platformOptions } from "@/lib/data/software";
 import { cn } from "@/lib/utils/cn";
 
-import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useFilters } from "@/lib/hooks/useFilters";
 
 import { Badge } from "@/components/ui/badge";
@@ -40,12 +61,16 @@ const platformIconMap: Record<string, LucideIcon> = {
   windows: Monitor,
   mac: Apple,
   linux: Terminal,
+  android: MonitorSmartphone,
+  ios: Smartphone,
 };
 
 const platformGradientMap: Record<string, string> = {
   windows: "bg-gradient-to-r from-blue-500/20 via-blue-400/15 to-blue-500/10",
   mac: "bg-gradient-to-r from-neutral-100/30 via-neutral-200/10 to-slate-200/10",
   linux: "bg-gradient-to-r from-emerald-400/20 via-lime-400/15 to-emerald-400/10",
+  android: "bg-gradient-to-r from-green-500/25 via-lime-400/20 to-green-500/25",
+  ios: "bg-gradient-to-r from-slate-200/40 via-neutral-200/20 to-slate-300/30",
 };
 
 const resolveLabel = (entry: RawLabelEntry | undefined, fallback: string) => {
@@ -65,31 +90,30 @@ export const FiltersPanel = () => {
     snapshot,
     setCategory,
     togglePlatform,
-    toggleType,
     setSearch,
     resetFilters,
     activeFilters,
     hasActiveFilters,
     direction,
-    isNavigating,
   } = useFilters();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const pendingTimeoutRef = useRef<number | null>(null);
+  const isEditingSearchRef = useRef(false);
 
   const { searchQuery, selectedCategory, selectedPlatforms } = snapshot;
 
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const debouncedSearch = useDebounce(searchInput, 500);
 
   useEffect(() => {
-    setSearchInput(searchQuery);
-  }, [searchQuery]);
+    if (isEditingSearchRef.current) return;
+    if (searchQuery === searchInput) return;
+    const timeout = window.setTimeout(() => {
+      setSearchInput(searchQuery);
+    }, 0);
 
-  useEffect(() => {
-    if (debouncedSearch === searchQuery) return;
-    setSearch(debouncedSearch);
-  }, [debouncedSearch, searchQuery, setSearch]);
+    return () => window.clearTimeout(timeout);
+  }, [searchInput, searchQuery]);
 
   useEffect(() => {
     return () => {
@@ -144,14 +168,94 @@ export const FiltersPanel = () => {
         fallbackDescription: "Show everything",
       },
       {
-        id: "desktop",
-        value: "desktop",
-        icon: Monitor,
+        id: "software",
+        value: "software",
+        icon: Package,
         gradientClass:
-          "bg-gradient-to-br from-blue-500/30 via-blue-400/20 to-indigo-400/25",
-        ringClass: "ring-blue-300/70",
-        fallbackLabel: "Desktop",
-        fallbackDescription: "Perfect for Windows & macOS",
+          "bg-gradient-to-br from-primary-500/30 via-blue-500/20 to-primary-400/25",
+        ringClass: "ring-primary-300/70",
+        fallbackLabel: "Software",
+        fallbackDescription: "Free apps for desktop",
+      },
+      {
+        id: "games",
+        value: "games",
+        icon: Gauge,
+        gradientClass:
+          "bg-gradient-to-br from-emerald-500/30 via-teal-400/20 to-emerald-400/25",
+        ringClass: "ring-emerald-200/70",
+        fallbackLabel: "Games",
+        fallbackDescription: "Free PC games",
+      },
+      {
+        id: "operating-systems",
+        value: "operating-systems",
+        icon: Cpu,
+        gradientClass:
+          "bg-gradient-to-br from-sky-500/30 via-cyan-400/20 to-blue-500/25",
+        ringClass: "ring-sky-300/70",
+        fallbackLabel: "Operating systems",
+        fallbackDescription: "Desktop OS distributions",
+      },
+      {
+        id: "multimedia",
+        value: "multimedia",
+        icon: Film,
+        gradientClass:
+          "bg-gradient-to-br from-fuchsia-500/30 via-purple-400/20 to-fuchsia-400/25",
+        ringClass: "ring-fuchsia-300/70",
+        fallbackLabel: "Multimedia",
+        fallbackDescription: "Media and creativity tools",
+      },
+      {
+        id: "utilities",
+        value: "utilities",
+        icon: Wrench,
+        gradientClass:
+          "bg-gradient-to-br from-amber-500/25 via-amber-400/20 to-amber-500/25",
+        ringClass: "ring-amber-200/70",
+        fallbackLabel: "Utilities",
+        fallbackDescription: "Power tools and optimizers",
+      },
+      {
+        id: "development",
+        value: "development",
+        icon: Code2,
+        gradientClass:
+          "bg-gradient-to-br from-indigo-500/30 via-sky-500/20 to-indigo-500/25",
+        ringClass: "ring-indigo-300/70",
+        fallbackLabel: "Development",
+        fallbackDescription: "Build and deployment tooling",
+      },
+      {
+        id: "security",
+        value: "security",
+        icon: ShieldCheck,
+        gradientClass:
+          "bg-gradient-to-br from-rose-500/30 via-rose-400/20 to-rose-500/25",
+        ringClass: "ring-rose-300/70",
+        fallbackLabel: "Security",
+        fallbackDescription: "Protect endpoints and data",
+      },
+      {
+        id: "productivity",
+        value: "productivity",
+        icon: BarChart3,
+        gradientClass:
+          "bg-gradient-to-br from-emerald-500/30 via-emerald-400/20 to-emerald-500/25",
+        ringClass: "ring-emerald-300/70",
+        fallbackLabel: "Productivity",
+        fallbackDescription: "Organise work and teams",
+      },
+      {
+        id: "education",
+        value: "education",
+        icon: BookOpen,
+        gradientClass:
+          "bg-gradient-to-br from-violet-500/30 via-violet-400/20 to-violet-500/25",
+        ringClass: "ring-violet-300/70",
+        fallbackLabel: "Education",
+        fallbackDescription: "Learning and study assistants",
       },
     ];
 
@@ -238,6 +342,9 @@ export const FiltersPanel = () => {
           isCollapsed ? "pointer-events-none -translate-y-3 opacity-0" : "opacity-100",
         )}
       >
+        <Badge className="w-fit rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-200">
+          {t("freeBadge")}
+        </Badge>
         <section className="space-y-2">
           <header className="flex items-center justify-between text-xs uppercase text-neutral-400">
             <span>{t("searchLabel")}</span>
@@ -245,7 +352,10 @@ export const FiltersPanel = () => {
               <button
                 type="button"
                 className="text-[10px] font-medium uppercase text-primary-200 transition hover:text-primary-100"
-                onClick={() => setSearch("")}
+                onClick={() => {
+                  setSearchInput("");
+                  setSearch("");
+                }}
               >
                 {t("clear")}
               </button>
@@ -256,8 +366,18 @@ export const FiltersPanel = () => {
             leadingIcon={<Search className="h-4 w-4" />}
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                setSearch(searchInput);
+              }
+            }}
+            onFocus={() => {
+              isEditingSearchRef.current = true;
+            }}
+            onBlur={() => {
+              isEditingSearchRef.current = false;
+            }}
             className="h-14 rounded-2xl border-white/15 bg-white/10 text-base text-neutral-100 placeholder:text-neutral-400 focus-visible:border-primary-400/60 focus-visible:ring-4 focus-visible:ring-primary-400/30"
-            disabled={isNavigating}
           />
         </section>
 

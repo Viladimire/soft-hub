@@ -28,6 +28,16 @@ const parseCommaSeparated = (value: string | null) => {
 
 const serializeCommaSeparated = (values: string[]) => values.join(",");
 
+const canonicalizeSearchParamsString = (value: string) => {
+  if (!value) return "";
+  const params = new URLSearchParams(value);
+  const entries = Array.from(params.entries()).sort(([aKey, aValue], [bKey, bValue]) => {
+    if (aKey === bKey) return aValue.localeCompare(bValue);
+    return aKey.localeCompare(bKey);
+  });
+  return new URLSearchParams(entries).toString();
+};
+
 const parseSort = (value: string | null): FilterSortOption => {
   if (value === "popular" || value === "name" || value === "latest") {
     return value;
@@ -39,7 +49,7 @@ const parseSort = (value: string | null): FilterSortOption => {
 const computeSnapshotFromParams = (params: URLSearchParams): FiltersSnapshot => {
   const searchQuery = params.get("query")?.trim() ?? "";
   const selectedCategory = params.get("category")?.trim() || null;
-  const selectedPlatforms = parseCommaSeparated(params.get("platforms"));
+  const selectedPlatforms = parseCommaSeparated(params.get("platforms") ?? params.get("platform"));
   const selectedTypes = parseCommaSeparated(params.get("types"));
   const sortBy = parseSort(params.get("sort"));
 
@@ -61,10 +71,12 @@ export const useFilters = () => {
   const searchParams = useSearchParams();
   const [isNavigating, startTransition] = useTransition();
 
+  const searchParamsKey = canonicalizeSearchParamsString(searchParams.toString());
+
   const snapshot = useMemo(() => {
-    const currentParams = new URLSearchParams(searchParams.toString());
+    const currentParams = new URLSearchParams(searchParamsKey);
     return computeSnapshotFromParams(currentParams);
-  }, [searchParams]);
+  }, [searchParamsKey]);
 
   const activeFilters = useMemo(() => {
     const queryCount = snapshot.searchQuery ? 1 : 0;
@@ -81,17 +93,22 @@ export const useFilters = () => {
 
   const updateParams = useCallback(
     (mutator: (params: URLSearchParams) => void) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParamsKey);
       mutator(params);
 
-      const query = params.toString();
+      const query = canonicalizeSearchParamsString(params.toString());
       const destination = query ? `${pathname}?${query}` : pathname;
+
+      const currentDestination = searchParamsKey ? `${pathname}?${searchParamsKey}` : pathname;
+      if (destination === currentDestination) {
+        return;
+      }
 
       startTransition(() => {
         router.replace(destination, { scroll: false });
       });
     },
-    [pathname, router, searchParams, startTransition],
+    [pathname, router, searchParamsKey, startTransition],
   );
 
   const setCategory = useCallback(
