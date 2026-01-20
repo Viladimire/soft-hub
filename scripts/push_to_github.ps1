@@ -15,6 +15,9 @@ Param(
     [string]$CommitMessage = "chore: sync project",
 
     [Parameter(Mandatory = $false)]
+    [bool]$PrivateRepo = $false,
+
+    [Parameter(Mandatory = $false)]
     [string]$GitUserName,
 
     [Parameter(Mandatory = $false)]
@@ -29,6 +32,27 @@ function Write-Info($message) {
 
 function Write-WarningMessage($message) {
     Write-Warning "[WARN] $message"
+}
+
+function Invoke-GitHubApi {
+    param(
+        [Parameter(Mandatory = $true)][string]$Method,
+        [Parameter(Mandatory = $true)][string]$Url,
+        [Parameter(Mandatory = $false)]$Body
+    )
+
+    $headers = @{
+        "Accept"             = "application/vnd.github+json"
+        "Authorization"      = "Bearer $GitHubToken"
+        "X-GitHub-Api-Version" = "2022-11-28"
+    }
+
+    if ($null -ne $Body) {
+        $jsonBody = $Body | ConvertTo-Json -Depth 10
+        return Invoke-RestMethod -Method $Method -Uri $Url -Headers $headers -Body $jsonBody -ContentType "application/json"
+    }
+
+    return Invoke-RestMethod -Method $Method -Uri $Url -Headers $headers
 }
 
 function Run-Git {
@@ -57,6 +81,44 @@ try {
 
     if (-not (Test-Path "$repoRoot\package.json")) {
         throw "package.json غير موجود في $repoRoot. تأكد من تشغيل السكربت من مجلد المشروع."
+    }
+
+    $authUser = Invoke-GitHubApi -Method "GET" -Url "https://api.github.com/user"
+    if (-not $RepoOwner) {
+        $RepoOwner = $authUser.login
+        Write-Info "استخدام مالك المستودع الافتراضي: $RepoOwner"
+    }
+
+    $repoApiUrl = "https://api.github.com/repos/$RepoOwner/$Repository"
+
+    try {
+        Invoke-GitHubApi -Method "GET" -Url $repoApiUrl | Out-Null
+        Write-Info "المستودع $Repository موجود مسبقًا."
+    } catch {
+        $response = $_.Exception.Response
+        $statusCode = $null
+        if ($response -and $response.PSObject.Properties.Name -contains 'StatusCode') {
+            $statusCode = [int]$response.StatusCode
+        }
+
+        if ($statusCode -eq 404) {
+            Write-Info "إنشاء مستودع جديد باسم $Repository"
+            $createBody = @{
+                name        = $Repository
+                private     = $PrivateRepo
+                description = "Repository for $RepoOwner/$Repository"
+            }
+
+            if ($RepoOwner -eq $authUser.login) {
+                Invoke-GitHubApi -Method "POST" -Url "https://api.github.com/user/repos" -Body $createBody | Out-Null
+            } else {
+                Invoke-GitHubApi -Method "POST" -Url "https://api.github.com/orgs/$RepoOwner/repos" -Body $createBody | Out-Null
+            }
+
+            Write-Info "تم إنشاء المستودع بنجاح."
+        } else {
+            throw
+        }
     }
 
     if (-not (Test-Path "$repoRoot\.git")) {
