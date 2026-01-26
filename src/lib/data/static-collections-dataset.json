@@ -1,0 +1,207 @@
+[
+  {
+    "id": "collection-top-2025",
+    "slug": "best-software-2025",
+    "title": "أفضل برامج 2025",
+    "subtitle": "اختيارات فريق SOFT-HUB لهذا العام",
+    "description": "مجموعة متكاملة من التطبيقات التي أثبتت قدرتها على تحسين الإنتاجية والإبداع والأمان خلال عام 2025.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#6C47FF",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(108,71,255,0.25), rgba(0,0,0,0.6))",
+      "foreground": "#F5F4FF"
+    },
+    "isFeatured": true,
+    "displayOrder": 100,
+    "publishedAt": "2025-01-05T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "nova-os", "highlight": "أفضل نظام تشغيل خفيف" },
+      { "softwareSlug": "aurora-suite", "highlight": "أقوى استوديو إنتاجي" },
+      { "softwareSlug": "horizon-player", "highlight": "تجربة وسائط مذهلة" }
+    ]
+  },
+  {
+    "id": "collection-devs",
+    "slug": "developers-toolkit",
+    "title": "برامج للمطورين",
+    "subtitle": "أدوات تعزز إنتاجية المطور",
+    "description": "كل ما يحتاجه المطور المحترف من بيئات تطوير، تكامل مستمر، وأدوات تحليل الشفرات.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#2FD080",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(47,208,128,0.2), rgba(11,36,52,0.85))",
+      "foreground": "#E5FFF4"
+    },
+    "isFeatured": true,
+    "displayOrder": 90,
+    "publishedAt": "2025-01-10T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "spectra-devkit", "highlight": "أداة تطوير شاملة" },
+      { "softwareSlug": "atlas-utilities", "highlight": "مجموعة أدوات صيانة عملية" },
+      { "softwareSlug": "aurora-suite", "highlight": "مخطط مشاريع متقدم" }
+    ]
+  },
+  {
+    "id": "collection-designers",
+    "slug": "designers-favorites",
+    "title": "برامج للمصممين",
+    "subtitle": "أدوات تصميم تحرّك الخيال",
+    "description": "باقة مختارة من تطبيقات التصميم، الإنفيجوال موشن، وإدارة المشاريع الإبداعية.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1483058712412-4245e9b90334?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#FF8C69",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(255,140,105,0.2), rgba(26,0,48,0.85))",
+      "foreground": "#FFEFE8"
+    },
+    "isFeatured": true,
+    "displayOrder": 80,
+    "publishedAt": "2025-01-12T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "aurora-suite", "highlight": "لوحات أفكار ذكية" },
+      { "softwareSlug": "horizon-player", "highlight": "إدارة وسائط مرئية" },
+      { "softwareSlug": "lumen-note", "highlight": "ملاحظات تعاونية للمشاريع" }
+    ]
+  },
+  {
+    "id": "collection-security",
+    "slug": "security-essentials",
+    "title": "برامج الأمان",
+    "subtitle": "حماية متقدمة ومراقبة لحظية",
+    "description": "أدوات تهدف لحماية أجهزتك وبياناتك من التهديدات الرقمية المتزايدة.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#0AA2FF",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(10,162,255,0.2), rgba(8,12,28,0.85))",
+      "foreground": "#E8F6FF"
+    },
+    "isFeatured": false,
+    "displayOrder": 70,
+    "publishedAt": "2025-01-18T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "pulse-security", "highlight": "دفاع في الزمن الحقيقي" },
+      { "softwareSlug": "quantum-scan", "highlight": "تحويل مستندات آمن" }
+    ]
+  },
+  {
+    "id": "collection-creators",
+    "slug": "content-creators-kit",
+    "title": "عدة صانعي المحتوى",
+    "subtitle": "تحرير، بث، ونشر بلا مجهود",
+    "description": "برامج مصممة لمساعدة صانعي المحتوى على إنتاج فيديو وصوت عالي الجودة مع أدوات نشر سريعة.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#FF4F81",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(255,79,129,0.2), rgba(20,0,30,0.85))",
+      "foreground": "#FFE6F0"
+    },
+    "isFeatured": false,
+    "displayOrder": 60,
+    "publishedAt": "2025-01-20T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "horizon-player", "highlight": "تحكم متكامل بالوسائط" },
+      { "softwareSlug": "aurora-suite", "highlight": "تخطيط وجدولة إنتاج" },
+      { "softwareSlug": "lumen-note", "highlight": "كتابة نصوص سريعة" }
+    ]
+  },
+  {
+    "id": "collection-students",
+    "slug": "students-essentials",
+    "title": "برامج للطلاب",
+    "subtitle": "تنظيم الدراسة والمذاكرة الحديثة",
+    "description": "مجموعة تساعد الطلاب على تدوين الملاحظات، العمل التعاوني، وتنظيم المهام اليومية.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#FFD166",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(255,209,102,0.25), rgba(24,22,5,0.85))",
+      "foreground": "#FFF7E0"
+    },
+    "isFeatured": false,
+    "displayOrder": 50,
+    "publishedAt": "2025-01-22T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "lumen-note", "highlight": "مذكرات تفاعلية" },
+      { "softwareSlug": "aurora-suite", "highlight": "إدارة مشاريع دراسية" }
+    ]
+  },
+  {
+    "id": "collection-linux",
+    "slug": "linux-favorites",
+    "title": "برامج لمحبي لينكس",
+    "subtitle": "أدوات مفتوحة المصدر بكل ما تحتاجه",
+    "description": "حزمة جاهزة لأفضل الأدوات التي تعمل بسلاسة على توزيعات لينكس المختلفة.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#51D6FF",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(81,214,255,0.2), rgba(0,29,40,0.85))",
+      "foreground": "#E0F8FF"
+    },
+    "isFeatured": false,
+    "displayOrder": 40,
+    "publishedAt": "2025-01-25T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "nova-os", "highlight": "نظام تشغيل سريع" },
+      { "softwareSlug": "pulse-security", "highlight": "حماية متقدمة" },
+      { "softwareSlug": "spectra-devkit", "highlight": "تطوير سريع" }
+    ]
+  },
+  {
+    "id": "collection-multimedia",
+    "slug": "home-entertainment",
+    "title": "ترفيه منزلي",
+    "subtitle": "صوت وصورة بجودة سينمائية",
+    "description": "مجموعة لعشّاق الوسائط المنزلية تشمل تشغيل الوسائط، إدارة المكتبة، والأجهزة الذكية.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1527443224154-9c9c8c5e0fd2?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#FF7F50",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(255,127,80,0.2), rgba(33,12,0,0.85))",
+      "foreground": "#FFE8DC"
+    },
+    "isFeatured": false,
+    "displayOrder": 30,
+    "publishedAt": "2025-01-28T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "horizon-player", "highlight": "تجربة سينمائية" },
+      { "softwareSlug": "quantum-scan", "highlight": "أرشفة رقمية" }
+    ]
+  },
+  {
+    "id": "collection-productivity",
+    "slug": "focus-and-flow",
+    "title": "تركيز وإنتاجية",
+    "subtitle": "حافظ على الإيقاع طوال اليوم",
+    "description": "أدوات متخصصة للحفاظ على التركيز، تتبّع الإنجازات، وتنسيق العمل اليومي.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#9C6BFF",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(156,107,255,0.2), rgba(14,0,51,0.85))",
+      "foreground": "#EEE5FF"
+    },
+    "isFeatured": false,
+    "displayOrder": 20,
+    "publishedAt": "2025-01-30T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "aurora-suite", "highlight": "إدارة الوقت" },
+      { "softwareSlug": "lumen-note", "highlight": "ملاحظات بإلهام" },
+      { "softwareSlug": "atlas-utilities", "highlight": "تحسين الأداء" }
+    ]
+  },
+  {
+    "id": "collection-games",
+    "slug": "lightweight-games",
+    "title": "ألعاب خفيفة",
+    "subtitle": "تجارب ممتعة على أي جهاز",
+    "description": "مجموعة ألعاب تناسب الأجهزة المتوسطة وتدعم اللعب التعاوني أو الفردي.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1527443224154-9c9c8c5e0fd2?auto=format&fit=crop&w=1600&q=80",
+    "accentColor": "#24E0A9",
+    "theme": {
+      "background": "linear-gradient(135deg, rgba(36,224,169,0.25), rgba(10,20,12,0.85))",
+      "foreground": "#E6FFF6"
+    },
+    "isFeatured": false,
+    "displayOrder": 10,
+    "publishedAt": "2025-02-02T00:00:00.000Z",
+    "items": [
+      { "softwareSlug": "singularity-games", "highlight": "منصة ألعاب متجددة" }
+    ]
+  }
+]

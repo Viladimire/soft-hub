@@ -43,7 +43,6 @@ scripts/test-images.ts
 supabase/.branches
 supabase/.temp
 supabase/.cache
-src/lib/data/static-collections-dataset.json
 /.local/
 
 # typescript
