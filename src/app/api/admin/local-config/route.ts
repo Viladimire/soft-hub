@@ -50,6 +50,16 @@ export const PUT = async (request: NextRequest) => {
     const config = await mergeLocalAdminConfig(body);
     return NextResponse.json({ config });
   } catch (error) {
+    if (error instanceof Error && error.message === "LOCAL_ADMIN_CONFIG_NOT_WRITABLE") {
+      return NextResponse.json(
+        {
+          message:
+            "لا يمكن حفظ الإعدادات على Vercel لأن نظام الملفات للـ Serverless غير مخصص للتخزين. ضع القيم في Vercel Environment Variables بدلًا من ذلك.",
+        },
+        { status: 501 },
+      );
+    }
+
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "صيغة غير صالحة" }, { status: 400 });
     }

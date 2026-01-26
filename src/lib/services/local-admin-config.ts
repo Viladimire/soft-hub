@@ -37,6 +37,9 @@ const CONFIG_PATH = path.join(CONFIG_DIR, "soft-hub-admin-config.json");
 export const getLocalAdminConfigPath = () => CONFIG_PATH;
 
 const ensureDir = async () => {
+  if (process.env.VERCEL) {
+    throw new Error("LOCAL_ADMIN_CONFIG_NOT_WRITABLE");
+  }
   await fs.mkdir(CONFIG_DIR, { recursive: true });
 };
 
@@ -51,6 +54,9 @@ export const readLocalAdminConfig = async (): Promise<LocalAdminConfig> => {
 };
 
 export const writeLocalAdminConfig = async (next: LocalAdminConfig) => {
+  if (process.env.VERCEL) {
+    throw new Error("LOCAL_ADMIN_CONFIG_NOT_WRITABLE");
+  }
   const validated = configSchema.parse(next);
   await ensureDir();
   await fs.writeFile(CONFIG_PATH, JSON.stringify(validated, null, 2), "utf8");
