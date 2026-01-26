@@ -12,9 +12,8 @@ const loginSchema = z.object({
 });
 
 export const POST = async (request: NextRequest) => {
-  const secret = getAdminSecretOrThrow();
-
   try {
+    const secret = getAdminSecretOrThrow();
     const payload = await request.json();
     const { token } = loginSchema.parse(payload);
 
@@ -27,6 +26,13 @@ export const POST = async (request: NextRequest) => {
     response.cookies.set(cookie.name, secret, cookie);
     return response;
   } catch (error) {
+    if (error instanceof Error && error.message === "ADMIN_API_SECRET is not configured") {
+      return NextResponse.json(
+        { message: "لوحة الأدمن غير مفعّلة: ADMIN_API_SECRET غير مُعدّ على السيرفر" },
+        { status: 501 },
+      );
+    }
+
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "صيغة غير صالحة" }, { status: 400 });
     }
