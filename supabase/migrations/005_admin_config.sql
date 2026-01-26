@@ -6,3 +6,30 @@ create table if not exists public.admin_config (
 );
 
 alter table public.admin_config enable row level security;
+
+create policy if not exists "admin_config_admin_read"
+  on public.admin_config
+  for select
+  using (public.is_admin() or public.is_service_role());
+
+create policy if not exists "admin_config_admin_write"
+  on public.admin_config
+  for all
+  to authenticated
+  using (public.is_admin() or public.is_service_role())
+  with check (public.is_admin() or public.is_service_role());
+
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_admin_config_updated_at on public.admin_config;
+create trigger trg_admin_config_updated_at
+before update on public.admin_config
+for each row execute function public.touch_updated_at();
