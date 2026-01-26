@@ -7,8 +7,14 @@
     "description": "Spectrum Studio delivers a generative 3D design environment with rich component libraries, motion prototypes, and zero-friction handoff across front-end frameworks.",
     "version": "2.6.1",
     "sizeInBytes": 536870912,
-    "platforms": ["windows", "mac"],
-    "categories": ["design", "productivity"],
+    "platforms": [
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "design",
+      "productivity"
+    ],
     "type": "freemium",
     "websiteUrl": "https://spectrum.studio",
     "downloadUrl": "https://cdn.spectrum.studio/download/latest",
@@ -31,14 +37,25 @@
       "heroImage": "https://images.unsplash.com/photo-1523473827534-86c5be8377aa?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Windows 10 or macOS 12", "8 GB RAM", "Intel Iris Plus"],
-      "recommended": ["Windows 11 or macOS 14", "16 GB RAM", "RTX 3060 or M2"]
+      "minimum": [
+        "Windows 10 or macOS 12",
+        "8 GB RAM",
+        "Intel Iris Plus"
+      ],
+      "recommended": [
+        "Windows 11 or macOS 14",
+        "16 GB RAM",
+        "RTX 3060 or M2"
+      ]
     },
     "changelog": [
       {
         "version": "2.6.1",
         "date": "2024-12-12T00:00:00.000Z",
-        "highlights": ["New procedural texturing", "Team presence indicators"]
+        "highlights": [
+          "New procedural texturing",
+          "Team presence indicators"
+        ]
       }
     ]
   },
@@ -50,8 +67,15 @@
     "description": "Orbit Sync modernizes cloud file orchestration with per-object encryption, adaptive bandwidth controls, and an analytics cockpit for usage insights and governance.",
     "version": "5.4.2",
     "sizeInBytes": 335544320,
-    "platforms": ["windows", "mac", "linux"],
-    "categories": ["productivity", "security"],
+    "platforms": [
+      "windows",
+      "mac",
+      "linux"
+    ],
+    "categories": [
+      "productivity",
+      "security"
+    ],
     "type": "freemium",
     "websiteUrl": "https://orbit-sync.io",
     "downloadUrl": "https://downloads.orbit-sync.io/latest",
@@ -74,14 +98,25 @@
       "heroImage": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Dual-core CPU", "4 GB RAM", "Broadband connection"],
-      "recommended": ["Quad-core CPU", "8 GB RAM", "SSD storage"]
+      "minimum": [
+        "Dual-core CPU",
+        "4 GB RAM",
+        "Broadband connection"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8 GB RAM",
+        "SSD storage"
+      ]
     },
     "changelog": [
       {
         "version": "5.4.0",
         "date": "2024-07-15T00:00:00.000Z",
-        "highlights": ["Edge deduplication", "Adaptive throttling"]
+        "highlights": [
+          "Edge deduplication",
+          "Adaptive throttling"
+        ]
       }
     ]
   },
@@ -93,8 +128,13 @@
     "description": "Sentinel Guard blends behavioral AI and topology awareness to neutralize ransomware, lateral movement, and zero-day exploits with real-time mitigation playbooks.",
     "version": "3.1.0",
     "sizeInBytes": 293601280,
-    "platforms": ["windows", "linux"],
-    "categories": ["security"],
+    "platforms": [
+      "windows",
+      "linux"
+    ],
+    "categories": [
+      "security"
+    ],
     "type": "freemium",
     "websiteUrl": "https://sentinelguard.ai",
     "downloadUrl": "https://sentinelguard.ai/download",
@@ -116,14 +156,25 @@
       "heroImage": "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Windows 10", "6 GB RAM", "Trusted Platform Module"],
-      "recommended": ["Windows 11", "8 GB RAM", "Dedicated security chip"]
+      "minimum": [
+        "Windows 10",
+        "6 GB RAM",
+        "Trusted Platform Module"
+      ],
+      "recommended": [
+        "Windows 11",
+        "8 GB RAM",
+        "Dedicated security chip"
+      ]
     },
     "changelog": [
       {
         "version": "3.1.0",
         "date": "2024-11-05T00:00:00.000Z",
-        "highlights": ["Kernel isolation improvements", "New telemetry exporter"]
+        "highlights": [
+          "Kernel isolation improvements",
+          "New telemetry exporter"
+        ]
       }
     ]
   },
@@ -135,8 +186,13 @@
     "description": "Lumen Note powers knowledge workflows with ambient AI assistants, deep integrations, and multi-device sync designed for thinkers and product squads.",
     "version": "1.8.4",
     "sizeInBytes": 199229440,
-    "platforms": ["mac"],
-    "categories": ["productivity", "education"],
+    "platforms": [
+      "mac"
+    ],
+    "categories": [
+      "productivity",
+      "education"
+    ],
     "type": "free",
     "websiteUrl": "https://lumennote.com",
     "downloadUrl": "https://lumennote.com/download/mac",
@@ -158,14 +214,24 @@
       "heroImage": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["macOS 13", "4 GB RAM"],
-      "recommended": ["macOS 14", "8 GB RAM", "iCloud Drive"]
+      "minimum": [
+        "macOS 13",
+        "4 GB RAM"
+      ],
+      "recommended": [
+        "macOS 14",
+        "8 GB RAM",
+        "iCloud Drive"
+      ]
     },
     "changelog": [
       {
         "version": "1.8.4",
         "date": "2024-09-18T00:00:00.000Z",
-        "highlights": ["Canvas mode", "Notion import"]
+        "highlights": [
+          "Canvas mode",
+          "Notion import"
+        ]
       }
     ]
   },
@@ -177,8 +243,14 @@
     "description": "Nebula Engine unlocks GPU-native rendering on the web with modular rendering stages, XR tooling, and automated asset optimization for indie teams.",
     "version": "0.9.5",
     "sizeInBytes": 671088640,
-    "platforms": ["windows", "linux"],
-    "categories": ["development", "multimedia"],
+    "platforms": [
+      "windows",
+      "linux"
+    ],
+    "categories": [
+      "development",
+      "multimedia"
+    ],
     "type": "open-source",
     "websiteUrl": "https://nebula.engine.dev",
     "downloadUrl": "https://github.com/nebula/engine/releases/latest",
@@ -200,14 +272,25 @@
       "heroImage": "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Windows 10", "8 GB RAM", "Compatible GPU"],
-      "recommended": ["Windows 11", "16 GB RAM", "RTX 3070"]
+      "minimum": [
+        "Windows 10",
+        "8 GB RAM",
+        "Compatible GPU"
+      ],
+      "recommended": [
+        "Windows 11",
+        "16 GB RAM",
+        "RTX 3070"
+      ]
     },
     "changelog": [
       {
         "version": "0.9.5",
         "date": "2024-10-05T00:00:00.000Z",
-        "highlights": ["WebXR stabilizer", "SDF shader pack"]
+        "highlights": [
+          "WebXR stabilizer",
+          "SDF shader pack"
+        ]
       }
     ]
   },
@@ -219,8 +302,13 @@
     "description": "Keystone Build orchestrates multi-region deployments with typed pipelines, structured logs, and progressive verification for enterprise-grade delivery.",
     "version": "4.2.0",
     "sizeInBytes": 251658240,
-    "platforms": ["web"],
-    "categories": ["development", "productivity"],
+    "platforms": [
+      "web"
+    ],
+    "categories": [
+      "development",
+      "productivity"
+    ],
     "type": "freemium",
     "websiteUrl": "https://keystonebuild.com",
     "downloadUrl": "https://keystonebuild.com/signup",
@@ -242,14 +330,23 @@
       "heroImage": "https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Latest Chrome", "Team permissions"],
-      "recommended": ["SSO provider", "GitHub / GitLab integration"]
+      "minimum": [
+        "Latest Chrome",
+        "Team permissions"
+      ],
+      "recommended": [
+        "SSO provider",
+        "GitHub / GitLab integration"
+      ]
     },
     "changelog": [
       {
         "version": "4.2.0",
         "date": "2024-09-30T00:00:00.000Z",
-        "highlights": ["Pipeline blueprints", "Error budgets dashboard"]
+        "highlights": [
+          "Pipeline blueprints",
+          "Error budgets dashboard"
+        ]
       }
     ]
   },
@@ -261,8 +358,12 @@
     "description": "Aurora Desk unifies customer conversations, knowledge bases, and AI automations for SaaS support teams targeting sub-minute resolution times.",
     "version": "3.4.6",
     "sizeInBytes": 209715200,
-    "platforms": ["web"],
-    "categories": ["productivity"],
+    "platforms": [
+      "web"
+    ],
+    "categories": [
+      "productivity"
+    ],
     "type": "freemium",
     "websiteUrl": "https://auroradesk.app",
     "downloadUrl": "https://auroradesk.app/signup",
@@ -284,14 +385,23 @@
       "heroImage": "https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Modern browser", "Team workspace"],
-      "recommended": ["Slack integration", "OpenAI API key"]
+      "minimum": [
+        "Modern browser",
+        "Team workspace"
+      ],
+      "recommended": [
+        "Slack integration",
+        "OpenAI API key"
+      ]
     },
     "changelog": [
       {
         "version": "3.4.6",
         "date": "2024-11-10T00:00:00.000Z",
-        "highlights": ["Agent co-work", "Knowledge embeddings"]
+        "highlights": [
+          "Agent co-work",
+          "Knowledge embeddings"
+        ]
       }
     ]
   },
@@ -303,8 +413,14 @@
     "description": "Flux Render delivers unbiased GPU rendering queues with collaborative shot review and native USD pipelines for studio teams and agencies.",
     "version": "7.0.1",
     "sizeInBytes": 805306368,
-    "platforms": ["windows", "mac"],
-    "categories": ["multimedia", "design"],
+    "platforms": [
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "multimedia",
+      "design"
+    ],
     "type": "freemium",
     "websiteUrl": "https://fluxrender.com",
     "downloadUrl": "https://fluxrender.com/download",
@@ -326,14 +442,23 @@
       "heroImage": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["8 GB RAM", "Metal or DirectX 12 GPU"],
-      "recommended": ["32 GB RAM", "RTX 3080 or M3 Max"]
+      "minimum": [
+        "8 GB RAM",
+        "Metal or DirectX 12 GPU"
+      ],
+      "recommended": [
+        "32 GB RAM",
+        "RTX 3080 or M3 Max"
+      ]
     },
     "changelog": [
       {
         "version": "7.0.1",
         "date": "2024-10-28T00:00:00.000Z",
-        "highlights": ["ACES color pipeline", "Onion-skin editor"]
+        "highlights": [
+          "ACES color pipeline",
+          "Onion-skin editor"
+        ]
       }
     ]
   },
@@ -345,8 +470,13 @@
     "description": "Pixel Forge pairs diffusion models with non-destructive editing for illustrators building playable artboards and branded asset packs.",
     "version": "1.2.0",
     "sizeInBytes": 314572800,
-    "platforms": ["windows", "mac"],
-    "categories": ["design"],
+    "platforms": [
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "design"
+    ],
     "type": "freemium",
     "websiteUrl": "https://pixelforge.design",
     "downloadUrl": "https://pixelforge.design/download",
@@ -368,14 +498,25 @@
       "heroImage": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Windows 10", "8 GB RAM", "Dedicated GPU"],
-      "recommended": ["Windows 11", "16 GB RAM", "RTX 3060"]
+      "minimum": [
+        "Windows 10",
+        "8 GB RAM",
+        "Dedicated GPU"
+      ],
+      "recommended": [
+        "Windows 11",
+        "16 GB RAM",
+        "RTX 3060"
+      ]
     },
     "changelog": [
       {
         "version": "1.2.0",
         "date": "2024-11-15T00:00:00.000Z",
-        "highlights": ["Prompt history", "Texture baking"]
+        "highlights": [
+          "Prompt history",
+          "Texture baking"
+        ]
       }
     ]
   },
@@ -387,8 +528,14 @@
     "description": "Strata Secure links distributed teams and data centers with intent-based segmentation, identity-aware routing, and continuous policy testing.",
     "version": "6.1.3",
     "sizeInBytes": 268435456,
-    "platforms": ["linux", "windows"],
-    "categories": ["security", "productivity"],
+    "platforms": [
+      "linux",
+      "windows"
+    ],
+    "categories": [
+      "security",
+      "productivity"
+    ],
     "type": "freemium",
     "websiteUrl": "https://stratasecure.com",
     "downloadUrl": "https://stratasecure.com/download",
@@ -410,14 +557,25 @@
       "heroImage": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["2 CPU cores", "4 GB RAM", "Layer 3 switch"],
-      "recommended": ["4 CPU cores", "8 GB RAM", "Hardware acceleration"]
+      "minimum": [
+        "2 CPU cores",
+        "4 GB RAM",
+        "Layer 3 switch"
+      ],
+      "recommended": [
+        "4 CPU cores",
+        "8 GB RAM",
+        "Hardware acceleration"
+      ]
     },
     "changelog": [
       {
         "version": "6.1.3",
         "date": "2024-09-02T00:00:00.000Z",
-        "highlights": ["Policy simulation", "Adaptive failover"]
+        "highlights": [
+          "Policy simulation",
+          "Adaptive failover"
+        ]
       }
     ]
   },
@@ -429,8 +587,13 @@
     "description": "Gridwave Analytics enables hybrid teams to query streaming and historical datasets with SQL-first notebooks, auto-scaling compute, and governance guardrails.",
     "version": "2.3.0",
     "sizeInBytes": 241172480,
-    "platforms": ["web"],
-    "categories": ["productivity", "development"],
+    "platforms": [
+      "web"
+    ],
+    "categories": [
+      "productivity",
+      "development"
+    ],
     "type": "freemium",
     "websiteUrl": "https://gridwave.io",
     "downloadUrl": "https://gridwave.io/signup",
@@ -452,14 +615,23 @@
       "heroImage": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["Modern browser", "Company SSO"],
-      "recommended": ["Snowflake or BigQuery", "Kafka connector"]
+      "minimum": [
+        "Modern browser",
+        "Company SSO"
+      ],
+      "recommended": [
+        "Snowflake or BigQuery",
+        "Kafka connector"
+      ]
     },
     "changelog": [
       {
         "version": "2.3.0",
         "date": "2024-12-01T00:00:00.000Z",
-        "highlights": ["Notebook branching", "Streaming lineage"]
+        "highlights": [
+          "Notebook branching",
+          "Streaming lineage"
+        ]
       }
     ]
   },
@@ -471,8 +643,14 @@
     "description": "Vector Hub powers production AI workloads with PQ/IVF indexing, hybrid search, and automatic model evaluation dashboards for retrieval teams.",
     "version": "1.5.2",
     "sizeInBytes": 255852544,
-    "platforms": ["web", "linux"],
-    "categories": ["development", "productivity"],
+    "platforms": [
+      "web",
+      "linux"
+    ],
+    "categories": [
+      "development",
+      "productivity"
+    ],
     "type": "freemium",
     "websiteUrl": "https://vectorhub.ai",
     "downloadUrl": "https://vectorhub.ai/signup",
@@ -494,56 +672,23 @@
       "heroImage": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80"
     },
     "requirements": {
-      "minimum": ["REST access", "API key"],
-      "recommended": ["Private network", "GPU inference cluster"]
+      "minimum": [
+        "REST access",
+        "API key"
+      ],
+      "recommended": [
+        "Private network",
+        "GPU inference cluster"
+      ]
     },
     "changelog": [
       {
         "version": "1.5.2",
         "date": "2024-11-18T00:00:00.000Z",
-        "highlights": ["Hybrid filters", "New Python SDK"]
-      }
-    ]
-  },
-  {
-    "id": "software-echo-scribe",
-    "slug": "echo-scribe",
-    "name": "Echo Scribe",
-    "summary": "Realtime meeting intelligence with multi-lingual transcripts",
-    "description": "Echo Scribe captures meetings, translates in 30+ languages, and produces action plans integrated with project trackers and CRM workflows.",
-    "version": "2.1.3",
-    "sizeInBytes": 180355072,
-    "platforms": ["windows", "mac"],
-    "categories": ["productivity", "education"],
-    "type": "freemium",
-    "websiteUrl": "https://echoscribe.ai",
-    "downloadUrl": "https://echoscribe.ai/download",
-    "isFeatured": false,
-    "releaseDate": "2024-09-07T00:00:00.000Z",
-    "updatedAt": "2024-12-05T00:00:00.000Z",
-    "createdAt": "2023-05-02T00:00:00.000Z",
-    "stats": {
-      "downloads": 54000,
-      "views": 142000,
-      "rating": 4.3,
-      "votes": 1875
-    },
-    "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=160&q=80",
-      "gallery": [
-        "https://images.unsplash.com/photo-1555618981-8a568eb72aae?auto=format&fit=crop&w=900&q=80"
-      ],
-      "heroImage": "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=1600&q=80"
-    },
-    "requirements": {
-      "minimum": ["Windows 10", "8 GB RAM", "Microphone"],
-      "recommended": ["Windows 11", "16 GB RAM", "Zoom integration"]
-    },
-    "changelog": [
-      {
-        "version": "2.1.3",
-        "date": "2024-12-05T00:00:00.000Z",
-        "highlights": ["Auto task routing", "Arabic transcription"]
+        "highlights": [
+          "Hybrid filters",
+          "New Python SDK"
+        ]
       }
     ]
   }
