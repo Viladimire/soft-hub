@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 
 import { cn } from "@/lib/utils/cn";
 
-import { NavBar } from "@/components/layouts/navbar";
+import { Navbar } from "@/components/layouts/navbar";
 
 type AppShellProps = {
   hero?: ReactNode;
@@ -16,7 +16,7 @@ type AppShellProps = {
 export const AppShell = ({ hero, sidebar, children, className }: AppShellProps) => {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-50">
-      <NavBar />
+      <Navbar />
       {hero ?? null}
       <main
         className={cn(

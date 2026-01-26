@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
 
 import { formatCompactNumber } from "@/lib/utils/format";
 import type { Platform, Software, SoftwareCategory, SoftwareType } from "@/lib/types/software";
@@ -11,9 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const platformOptions: Platform[] = ["windows", "mac", "linux"];
-const categoryOptions: SoftwareCategory[] = ["software", "games"];
+const categoryOptions: SoftwareCategory[] = ["software", "games", "utilities", "operating-systems"];
+const STANDARD_TYPE: SoftwareType = "standard";
 
-const softwareTypes: SoftwareType[] = ["free"];
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
 const DEFAULT_FORM: FormState = {
   id: undefined,
@@ -28,7 +37,7 @@ const DEFAULT_FORM: FormState = {
   releaseDate: new Date().toISOString().slice(0, 10),
   platforms: [],
   categories: [],
-  type: "free",
+  type: STANDARD_TYPE,
   isFeatured: false,
   logoUrl: "",
   heroImage: "",
@@ -84,13 +93,15 @@ type AdminNotification = {
   message: string;
 };
 
-const STORAGE_KEY = "soft-hub-admin-token";
-
 const toFormState = (software: Software): FormState => {
   const sizeInMb = software.sizeInBytes ? (software.sizeInBytes / (1024 * 1024)).toString() : "0";
   const gallery = software.media.gallery.join("\n");
   const minRequirements = software.requirements.minimum?.join("\n") ?? "";
   const recRequirements = software.requirements.recommended?.join("\n") ?? "";
+  const releaseDate = software.releaseDate
+    ? software.releaseDate.slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
+  const heroImage = software.media.heroImage ?? "";
   const changelogJson = software.changelog?.length
     ? JSON.stringify(software.changelog, null, 2)
     : "";
@@ -99,19 +110,19 @@ const toFormState = (software: Software): FormState => {
     id: software.id,
     name: software.name,
     slug: software.slug,
-    summary: software.summary,
+    summary: software.summary ?? "",
     description: software.description,
     version: software.version,
     sizeInMb,
     downloadUrl: software.downloadUrl,
     websiteUrl: software.websiteUrl ?? "",
-    releaseDate: software.releaseDate.slice(0, 10),
+    releaseDate,
     platforms: software.platforms,
     categories: software.categories,
-    type: software.type,
+    type: software.type ?? STANDARD_TYPE,
     isFeatured: software.isFeatured,
     logoUrl: software.media.logoUrl,
-    heroImage: software.media.heroImage ?? "",
+    heroImage,
     gallery,
     statsDownloads: software.stats.downloads.toString(),
     statsViews: software.stats.views.toString(),
@@ -166,7 +177,7 @@ const buildSoftwarePayload = (form: FormState) => {
     releaseDate: form.releaseDate ? new Date(form.releaseDate).toISOString() : now,
     platforms: form.platforms,
     categories: form.categories,
-    type: form.type,
+    type: STANDARD_TYPE,
     isFeatured: form.isFeatured,
     stats: {
       downloads: parseNumber(form.statsDownloads, 0),
@@ -180,7 +191,8 @@ const buildSoftwarePayload = (form: FormState) => {
       gallery: form.gallery
         .split(/\r?\n/)
         .map((line) => line.trim())
-        .filter(Boolean),
+        .filter(Boolean)
+        .slice(0, 3),
     },
     requirements: {
       minimum: form.minRequirements
@@ -198,16 +210,14 @@ const buildSoftwarePayload = (form: FormState) => {
   };
 };
 
-const request = async <T,>(
-  token: string,
-  input: RequestInfo,
-  init: RequestInit = {},
-): Promise<T> => {
+type RequestError = Error & { status?: number };
+
+const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<T> => {
   const response = await fetch(typeof input === "string" ? input : input.toString(), {
+    credentials: "include",
     ...init,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
       ...(init.headers ?? {}),
     },
   });
@@ -215,15 +225,17 @@ const request = async <T,>(
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     const message = errorBody?.message ?? `فشل الطلب (${response.status})`;
-    throw new Error(message);
+    const error = new Error(message) as RequestError;
+    error.status = response.status;
+    throw error;
   }
 
   return response.json() as Promise<T>;
 };
 
 export const SoftwareAdminPanel = () => {
-  const [token, setToken] = useState("");
-  const [tokenInput, setTokenInput] = useState("");
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [dataset, setDataset] = useState<Software[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -231,38 +243,31 @@ export const SoftwareAdminPanel = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [hasEditedSlug, setHasEditedSlug] = useState(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem(STORAGE_KEY);
-    if (savedToken) {
-      setToken(savedToken);
-      setTokenInput(savedToken);
-    }
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!token) {
-      setDataset([]);
-      return;
-    }
-
     const controller = new AbortController();
-    const run = async () => {
+
+    const load = async () => {
       try {
         setLoading(true);
-        const data = await request<AdminDatasetResponse>(
-          token,
-          "/api/admin/software",
-          { signal: controller.signal },
-        );
+        const data = await request<AdminDatasetResponse>('/api/admin/software', { signal: controller.signal });
         setDataset(data.items);
         setError(null);
       } catch (err) {
         if (controller.signal.aborted) {
           return;
         }
-        setError(err instanceof Error ? err.message : "تعذر تحميل البيانات");
+        const message = err instanceof Error ? err.message : "تعذر تحميل البيانات";
+        setError(message);
         setDataset([]);
+        if ((err as RequestError).status === 401) {
+          router.refresh();
+        }
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -270,12 +275,12 @@ export const SoftwareAdminPanel = () => {
       }
     };
 
-    void run();
+    void load();
 
     return () => {
       controller.abort();
     };
-  }, [token]);
+  }, [router]);
 
   const pushNotification = (type: AdminNotification["type"], message: string) => {
     setNotifications((prev) => [...prev, { id: Date.now(), type, message }]);
@@ -284,49 +289,35 @@ export const SoftwareAdminPanel = () => {
     }, 5000);
   };
 
-  const handleApplyToken = () => {
-    const trimmed = tokenInput.trim();
-    if (!trimmed) {
-      pushNotification("error", "الرجاء إدخال المفتاح السري");
-      return;
-    }
-
-    localStorage.setItem(STORAGE_KEY, trimmed);
-    setToken(trimmed);
-    pushNotification("success", "تم حفظ المفتاح بنجاح");
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setToken("");
-    setTokenInput("");
-    setDataset([]);
-    setFormState(DEFAULT_FORM);
-    setIsFormOpen(false);
-  };
-
   const openCreateForm = () => {
     setFormState({ ...DEFAULT_FORM, releaseDate: new Date().toISOString().slice(0, 10) });
     setIsFormOpen(true);
+    setHasEditedSlug(false);
   };
 
   const openEditForm = (software: Software) => {
     setFormState(toFormState(software));
     setIsFormOpen(true);
+    setHasEditedSlug(true);
   };
 
   const closeForm = () => {
     setIsFormOpen(false);
     setFormState(DEFAULT_FORM);
+    setHasEditedSlug(false);
   };
 
   const syncDataset = async () => {
     try {
       setLoading(true);
-      const data = await request<AdminDatasetResponse>(token, "/api/admin/software");
+      const data = await request<AdminDatasetResponse>("/api/admin/software");
       setDataset(data.items);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تحديث القائمة");
+      const message = err instanceof Error ? err.message : "تعذر تحديث القائمة";
+      setError(message);
+      if ((err as RequestError).status === 401) {
+        router.refresh();
+      }
     } finally {
       setLoading(false);
     }
@@ -338,7 +329,7 @@ export const SoftwareAdminPanel = () => {
     try {
       setIsSaving(true);
       const payload = buildSoftwarePayload(formState);
-      await request(token, "/api/admin/software", {
+      await request("/api/admin/software", {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -348,6 +339,9 @@ export const SoftwareAdminPanel = () => {
       await syncDataset();
     } catch (err) {
       pushNotification("error", err instanceof Error ? err.message : "فشل حفظ البرنامج");
+      if ((err as RequestError).status === 401) {
+        router.refresh();
+      }
     } finally {
       setIsSaving(false);
     }
@@ -360,13 +354,16 @@ export const SoftwareAdminPanel = () => {
 
     try {
       setLoading(true);
-      await request(token, `/api/admin/software?slug=${encodeURIComponent(software.slug)}`, {
+      await request(`/api/admin/software?slug=${encodeURIComponent(software.slug)}`, {
         method: "DELETE",
       });
       pushNotification("success", "تم حذف البرنامج");
       await syncDataset();
     } catch (err) {
       pushNotification("error", err instanceof Error ? err.message : "فشل حذف البرنامج");
+      if ((err as RequestError).status === 401) {
+        router.refresh();
+      }
     } finally {
       setLoading(false);
     }
@@ -379,30 +376,11 @@ export const SoftwareAdminPanel = () => {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-3xl font-semibold text-neutral-100">لوحة إدارة البرامج</h1>
-          <p className="text-sm text-neutral-400">
-            تحكم كامل في بيانات الكتالوج المخزنة على GitHub. احرص على إدخال المفتاح السري قبل أي إجراء.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 md:flex-row md:items-center">
-          <Input
-            value={tokenInput}
-            onChange={(event) => setTokenInput(event.target.value)}
-            placeholder="ADMIN_API_SECRET"
-            className="min-w-[260px] bg-neutral-900/80 text-neutral-100"
-            type="password"
-          />
-          <Button onClick={handleApplyToken} className="bg-primary-500 text-white hover:bg-primary-400">
-            حفظ المفتاح
-          </Button>
-          {token && (
-            <Button variant="outline" onClick={handleLogout} className="border-danger-500/60 text-danger-200">
-              تسجيل خروج
-            </Button>
-          )}
-        </div>
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-semibold text-neutral-100">لوحة إدارة البرامج</h1>
+        <p className="text-sm text-neutral-400">
+          تحكم كامل في بيانات الكتالوج المخزن على GitHub. تأكد من أن بياناتك دقيقة قبل الحفظ.
+        </p>
       </header>
 
       {notifications.length > 0 && (
@@ -422,126 +400,115 @@ export const SoftwareAdminPanel = () => {
         </div>
       )}
 
-      {!token && (
-        <Card className="border-dashed border-white/10 bg-neutral-900/60 text-neutral-200">
-          <CardContent className="space-y-2 p-6 text-center text-sm">
-            <p>أدخل المفتاح السري للبدء في إدارة البيانات.</p>
-            <p className="text-neutral-500">سيتم حفظ المفتاح محليًا في المتصفح الحالي فقط.</p>
-          </CardContent>
-        </Card>
-      )}
+      <section className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="bg-neutral-900/60">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-neutral-400">إجمالي البرامج</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold text-neutral-100">{dataset.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-neutral-900/60">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-neutral-400">إجمالي التحميلات</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold text-neutral-100">
+                {formatCompactNumber(totalDownloads, "ar")}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-neutral-900/60">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-neutral-400">آخر تحديث</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl.font-semibold.text-neutral-100">
+                {loading ? "..." : mounted ? new Date().toLocaleString("ar-EG") : "—"}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-      {token && (
-        <section className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="bg-neutral-900/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-neutral-400">إجمالي البرامج</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold text-neutral-100">{dataset.length}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-neutral-900/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-neutral-400">إجمالي التحميلات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold text-neutral-100">
-                  {formatCompactNumber(totalDownloads, "ar")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-neutral-900/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-neutral-400">آخر تحديث</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold text-neutral-100">
-                  {loading ? "..." : new Date().toLocaleString("ar-EG")}
-                </p>
-              </CardContent>
-            </Card>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl.font-semibold.text-neutral-200">قائمة البرامج</h2>
+          <div className="flex gap-2">
+            <Button onClick={openCreateForm} className="bg-primary-500 text-white hover:bg-primary-400">
+              برنامج جديد
+            </Button>
+            <Button variant="outline" onClick={syncDataset} disabled={loading}>
+              تحديث القائمة
+            </Button>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-neutral-200">قائمة البرامج</h2>
-            <div className="flex gap-2">
-              <Button onClick={openCreateForm} className="bg-primary-500 text-white hover:bg-primary-400">
-                برنامج جديد
-              </Button>
-              <Button variant="outline" onClick={syncDataset} disabled={loading}>
-                تحديث القائمة
-              </Button>
-            </div>
+        {error ? (
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+            {error}
           </div>
+        ) : null}
 
-          {error && (
-            <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-              {error}
-            </div>
-          )}
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            {dataset.map((software) => (
-              <Card key={software.id} className="border-white/10 bg-neutral-900/70">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center justify-between text-lg text-neutral-50">
-                    <span>{software.name}</span>
-                    <span className="text-xs font-normal text-neutral-500">{software.slug}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-neutral-300">
-                  <p className="line-clamp-3 text-neutral-400">{software.summary}</p>
-                  <div className="flex flex-wrap gap-2 text-xs text-neutral-400">
-                    {software.platforms.map((platform) => (
-                      <span
-                        key={platform}
-                        className="rounded-full border border-white/10 px-2 py-1 uppercase text-[10px]"
-                      >
-                        {platform}
-                      </span>
-                    ))}
-                    <span className="rounded-full border border-white/10 px-2 py-1 uppercase text-[10px]">
-                      {software.type}
-                    </span>
-                    {software.isFeatured && (
-                      <span className="rounded-full border border-amber-400/60 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-200">
-                        مميز
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-neutral-500">
-                    <span>تحميلات: {software.stats.downloads.toLocaleString("ar-EG")}</span>
-                    <span>تقييم: {software.stats.rating.toFixed(1)} ⭐</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={() => openEditForm(software)}>
-                      تعديل
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-red-500/60 text-red-200"
-                      onClick={() => handleDelete(software)}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {dataset.map((software) => (
+            <Card key={software.id} className="border-white/10 bg-neutral-900/70">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-lg text-neutral-50">
+                  <span>{software.name}</span>
+                  <span className="text-xs font-normal text-neutral-500">{software.slug}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-neutral-300">
+                <p className="line-clamp-3 text-neutral-400">{software.summary}</p>
+                <div className="flex flex-wrap gap-2 text-xs text-neutral-400">
+                  {software.platforms.map((platform) => (
+                    <span
+                      key={platform}
+                      className="rounded-full border border-white/10 px-2 py-1 uppercase text-[10px]"
                     >
-                      حذف
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {dataset.length === 0 && !loading && !error && (
-            <Card className="border-dashed border-white/10 bg-neutral-900/60">
-              <CardContent className="p-6 text-center text-neutral-400">
-                لم يتم العثور على برامج بعد.
+                      {platform}
+                    </span>
+                  ))}
+                  <span className="rounded-full border border-white/10 px-2 py-1 uppercase text-[10px]">
+                    {software.type}
+                  </span>
+                  {software.isFeatured ? (
+                    <span className="rounded-full border border-amber-400/60 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-200">
+                      مميز
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-neutral-500">
+                  <span>تحميلات: {software.stats.downloads.toLocaleString("ar-EG")}</span>
+                  <span>تقييم: {software.stats.rating.toFixed(1)} ⭐</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" onClick={() => openEditForm(software)}>
+                    تعديل
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-red-500/60 text-red-200"
+                    onClick={() => handleDelete(software)}
+                  >
+                    حذف
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-          )}
-        </section>
-      )}
+          ))}
+        </div>
+
+        {dataset.length === 0 && !loading && !error ? (
+          <Card className="border-dashed border-white/10 bg-neutral-900/60">
+            <CardContent className="p-6 text-center text-sm text-neutral-400">
+              لم يتم إضافة أي برنامج بعد.
+            </CardContent>
+          </Card>
+        ) : null}
+      </section>
 
       {isFormOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4">
@@ -562,7 +529,14 @@ export const SoftwareAdminPanel = () => {
                   <Input
                     required
                     value={formState.name}
-                    onChange={(event) => setFormState((state) => ({ ...state, name: event.target.value }))}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setFormState((state) => ({
+                        ...state,
+                        name: value,
+                        ...(hasEditedSlug ? {} : { slug: slugify(value) }),
+                      }));
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -570,7 +544,11 @@ export const SoftwareAdminPanel = () => {
                   <Input
                     required
                     value={formState.slug}
-                    onChange={(event) => setFormState((state) => ({ ...state, slug: event.target.value }))}
+                    onChange={(event) => {
+                      const value = slugify(event.target.value);
+                      setFormState((state) => ({ ...state, slug: value }));
+                      setHasEditedSlug(true);
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -618,21 +596,6 @@ export const SoftwareAdminPanel = () => {
                       setFormState((state) => ({ ...state, releaseDate: event.target.value }))
                     }
                   />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-neutral-300">نوع البرنامج</label>
-                  <div className="flex gap-2">
-                    {softwareTypes.map((softwareType) => (
-                      <Button
-                        key={softwareType}
-                        type="button"
-                        variant={formState.type === softwareType ? "primary" : "outline"}
-                        onClick={() => setFormState((state) => ({ ...state, type: softwareType }))}
-                      >
-                        {softwareType}
-                      </Button>
-                    ))}
-                  </div>
                 </div>
               </section>
 

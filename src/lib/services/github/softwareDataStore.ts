@@ -2,11 +2,8 @@ import { Buffer } from "node:buffer";
 
 import type { Software } from "@/lib/types/software";
 import { invalidateStaticSoftwareCache } from "@/lib/services/staticSoftwareRepository";
+import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 
-const OWNER = process.env.GITHUB_DATA_REPO_OWNER;
-const REPO = process.env.GITHUB_DATA_REPO_NAME;
-const TOKEN = process.env.GITHUB_CONTENT_TOKEN;
-const BRANCH = process.env.GITHUB_DATA_REPO_BRANCH ?? "main";
 const DATA_PATH = process.env.GITHUB_DATA_FILE_PATH ?? "public/data/software/index.json";
 const COMMITTER_NAME = process.env.GITHUB_COMMITTER_NAME ?? "SOFT-HUB Bot";
 const COMMITTER_EMAIL = process.env.GITHUB_COMMITTER_EMAIL ?? "bot@soft-hub.local";
@@ -20,11 +17,24 @@ export class GitHubConfigError extends Error {
   }
 }
 
-const assertConfig = () => {
+type GitHubRuntimeConfig = {
+  owner: string;
+  repo: string;
+  token: string;
+  branch: string;
+};
+
+const resolveGitHubConfig = async (): Promise<GitHubRuntimeConfig> => {
+  const local = await readLocalAdminConfig();
+  const owner = process.env.GITHUB_DATA_REPO_OWNER ?? local.github?.owner;
+  const repo = process.env.GITHUB_DATA_REPO_NAME ?? local.github?.repo;
+  const token = process.env.GITHUB_CONTENT_TOKEN ?? local.github?.token;
+  const branch = process.env.GITHUB_DATA_REPO_BRANCH ?? local.github?.branch ?? "main";
+
   const missing = [
-    ["GITHUB_DATA_REPO_OWNER", OWNER],
-    ["GITHUB_DATA_REPO_NAME", REPO],
-    ["GITHUB_CONTENT_TOKEN", TOKEN],
+    ["GITHUB_DATA_REPO_OWNER", owner],
+    ["GITHUB_DATA_REPO_NAME", repo],
+    ["GITHUB_CONTENT_TOKEN", token],
   ].filter(([, value]) => !value);
 
   if (missing.length) {
@@ -32,6 +42,13 @@ const assertConfig = () => {
       `Missing GitHub configuration values: ${missing.map(([key]) => key).join(", ")}`,
     );
   }
+
+  return {
+    owner: owner as string,
+    repo: repo as string,
+    token: token as string,
+    branch,
+  };
 };
 
 type GitHubContentResponse = {
@@ -41,13 +58,13 @@ type GitHubContentResponse = {
 };
 
 const githubFetch = async (input: string, init?: RequestInit) => {
-  assertConfig();
+  const { token } = await resolveGitHubConfig();
 
   const response = await fetch(input, {
     ...init,
     headers: {
       Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${TOKEN}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
       ...(init?.headers ?? {}),
     },
@@ -71,11 +88,12 @@ const decodeContent = (payload: GitHubContentResponse) => {
   return buffer.toString("utf-8");
 };
 
-const getFileUrl = (path: string) =>
-  `${API_BASE}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}?ref=${BRANCH}`;
+const getFileUrl = (path: string, config: GitHubRuntimeConfig) =>
+  `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeURIComponent(path)}?ref=${config.branch}`;
 
 export const fetchSoftwareDatasetFromGitHub = async (): Promise<{ items: Software[]; sha: string }> => {
-  const payload = (await githubFetch(getFileUrl(DATA_PATH))) as GitHubContentResponse;
+  const config = await resolveGitHubConfig();
+  const payload = (await githubFetch(getFileUrl(DATA_PATH, config))) as GitHubContentResponse;
   const raw = decodeContent(payload);
   const parsed = JSON.parse(raw);
 
@@ -102,7 +120,8 @@ type WriteDatasetOptions = {
 };
 
 const writeDatasetToGitHub = async ({ items, sha, action, slug }: WriteDatasetOptions) => {
-  const url = getFileUrl(DATA_PATH);
+  const config = await resolveGitHubConfig();
+  const url = getFileUrl(DATA_PATH, config);
   const content = Buffer.from(JSON.stringify(items, null, 2)).toString("base64");
   const message = buildCommitMessage(action, slug);
 
@@ -112,7 +131,7 @@ const writeDatasetToGitHub = async ({ items, sha, action, slug }: WriteDatasetOp
       message,
       content,
       sha,
-      branch: BRANCH,
+      branch: config.branch,
       committer: {
         name: COMMITTER_NAME,
         email: COMMITTER_EMAIL,

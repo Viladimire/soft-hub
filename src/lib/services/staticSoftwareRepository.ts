@@ -1,6 +1,6 @@
 import staticSoftwareDataset from "@/lib/data/static-software-dataset.json";
 import type { FilteredSoftwareOptions } from "@/lib/services/softwareService";
-import type { Software, SoftwareCategory } from "@/lib/types/software";
+import type { Software, SoftwareCategory, SoftwareType } from "@/lib/types/software";
 
 const DATA_BASE_ENV = process.env.NEXT_PUBLIC_SOFTWARE_DATA_URL_BASE ?? process.env.NEXT_PUBLIC_DATA_BASE_URL ?? "";
 const DATA_FILENAME = "software/index.json";
@@ -27,8 +27,6 @@ const normalizePlatform = (value: unknown): Software["platforms"][number] | null
   if (raw === "windows" || raw === "win") return "windows";
   if (raw === "mac" || raw === "macos" || raw === "osx") return "mac";
   if (raw === "linux") return "linux";
-  if (raw === "android") return "android";
-  if (raw === "ios" || raw === "iphone" || raw === "ipad") return "ios";
   return null;
 };
 
@@ -73,18 +71,28 @@ const normalizeStats = (value: unknown): Software["stats"] => {
   };
 };
 
-const FALLBACK_HERO_IMAGE = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80";
+const FALLBACK_HERO_IMAGE = "/images/software/atlas-utilities/hero.jpg";
+
+const sanitizeMediaUrl = (value: unknown, fallback: string) => {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return fallback;
+  if (raw.includes("images.unsplash.com")) return fallback;
+  return raw;
+};
 
 const normalizeMedia = (value: unknown): Software["media"] => {
   const record = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-  const gallery = Array.isArray(record.gallery)
+  const galleryRaw = Array.isArray(record.gallery)
     ? record.gallery.filter((item): item is string => typeof item === "string")
     : [];
+  const gallery = galleryRaw
+    .map((item) => sanitizeMediaUrl(item, FALLBACK_HERO_IMAGE))
+    .filter((item, index, array) => item.length > 0 && array.indexOf(item) === index);
 
   return {
-    logoUrl: typeof record.logoUrl === "string" ? record.logoUrl : "",
+    logoUrl: sanitizeMediaUrl(record.logoUrl, ""),
     gallery,
-    heroImage: typeof record.heroImage === "string" ? record.heroImage : FALLBACK_HERO_IMAGE,
+    heroImage: sanitizeMediaUrl(record.heroImage, FALLBACK_HERO_IMAGE),
   };
 };
 
@@ -98,6 +106,24 @@ const normalizeRequirements = (value: unknown): Software["requirements"] => {
     : undefined;
   return { minimum: min, recommended: rec };
 };
+
+const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const normalizeDeveloper = (value: unknown): Software["developer"] => {
+  if (!isPlainRecord(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, unknown] => typeof entry[0] === "string"),
+  );
+};
+
+const normalizeFeatures = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
 
 const normalizeEntry = (entry: unknown): Software => {
   const record = entry && typeof entry === "object" && !Array.isArray(entry) ? (entry as Record<string, unknown>) : {};
@@ -122,6 +148,10 @@ const normalizeEntry = (entry: unknown): Software => {
   const releaseDate = typeof record.releaseDate === "string" ? record.releaseDate : now;
   const updatedAt = typeof record.updatedAt === "string" ? record.updatedAt : releaseDate;
   const createdAt = typeof record.createdAt === "string" ? record.createdAt : releaseDate;
+  const isTrending = Boolean(record.isTrending);
+  const developer = normalizeDeveloper(record.developer);
+  const features = normalizeFeatures(record.features);
+  const type = typeof record.type === "string" ? (record.type as SoftwareType) : "standard";
 
   return {
     id: typeof record.id === "string" ? record.id : slug,
@@ -133,14 +163,17 @@ const normalizeEntry = (entry: unknown): Software => {
     sizeInBytes,
     platforms: platforms.length ? platforms : ["windows"],
     categories,
-    type: "free",
+    type,
     websiteUrl: typeof record.websiteUrl === "string" ? record.websiteUrl : null,
     downloadUrl,
     isFeatured: Boolean(record.isFeatured),
+    isTrending,
     releaseDate,
     updatedAt,
     createdAt,
     stats: normalizeStats(record.stats),
+    developer,
+    features,
     media: normalizeMedia(record.media),
     requirements: normalizeRequirements(record.requirements),
     changelog: Array.isArray(record.changelog)
@@ -204,14 +237,17 @@ export const fetchStaticSoftwareDataset = async (): Promise<Software[]> => {
 const normalize = (value: string) => value.toLowerCase();
 
 const matchesQuery = (candidate: Software, query: string) => {
-  const term = normalize(query);
+  const safeQuery = query ?? "";
+  const term = normalize(safeQuery);
   return [candidate.name, candidate.summary, candidate.description]
-    .filter(Boolean)
+    .filter((field): field is string => typeof field === "string" && field.length > 0)
     .some((field) => normalize(field).includes(term));
 };
 
-const matchesCategory = (candidate: Software, category: string) =>
-  candidate.categories?.includes(category as Software["categories"][number]);
+const matchesCategory = (candidate: Software, category?: string | null) => {
+  if (!category) return true;
+  return candidate.categories.includes(category as Software["categories"][number]);
+};
 
 const matchesPlatforms = (candidate: Software, platforms: string[]) => {
   if (!platforms.length) return true;
@@ -301,16 +337,21 @@ export const getStaticSoftwareStats = async () => {
   const dataset = await fetchStaticSoftwareDataset();
 
   const totalPrograms = dataset.length;
-  const totalDownloads = dataset.reduce((sum, software) => sum + (software.stats?.downloads ?? 0), 0);
-  const platformSet = dataset.reduce((acc, software) => {
-    software.platforms?.forEach((platform) => acc.add(platform));
-    return acc;
-  }, new Set<string>());
+  const totals = dataset.reduce(
+    (acc, software) => {
+      acc.downloads += software.stats?.downloads ?? 0;
+      acc.views += software.stats?.views ?? 0;
+      software.platforms?.forEach((platform) => acc.platforms.add(platform));
+      return acc;
+    },
+    { downloads: 0, views: 0, platforms: new Set<string>() },
+  );
 
   return {
     totalPrograms,
-    totalDownloads,
-    totalPlatforms: platformSet.size,
+    totalDownloads: totals.downloads,
+    totalViews: totals.views,
+    totalPlatforms: totals.platforms.size,
   } as const;
 };
 

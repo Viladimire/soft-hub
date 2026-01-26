@@ -11,8 +11,7 @@ import {
 } from "@/lib/services/github/softwareDataStore";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
 import { softwareSchema } from "@/lib/validations/software.schema";
-
-const adminSecret = process.env.ADMIN_API_SECRET;
+import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
 
 const platformValues = ["windows", "mac", "linux"] as const satisfies readonly Platform[];
 const categoryValues = ["software", "games"] as const satisfies readonly SoftwareCategory[];
@@ -29,17 +28,18 @@ const adminSoftwareSchema = softwareSchema.safeExtend({
     .array(z.enum(categoryValues))
     .min(1, "اختر فئة واحدة على الأقل")
     .transform((value) => value as SoftwareCategory[]),
+  developer: z.record(z.string(), z.unknown()).optional(),
+  features: z.array(z.string()).optional(),
 });
 
 const ensureAuthorized = (request: NextRequest) => {
-  if (!adminSecret) {
-    throw new GitHubConfigError("ADMIN_API_SECRET is not configured");
+  try {
+    getAdminSecretOrThrow();
+  } catch (error) {
+    throw new GitHubConfigError(error instanceof Error ? error.message : "ADMIN_API_SECRET is not configured");
   }
 
-  const header = request.headers.get("authorization");
-  const token = header?.startsWith("Bearer ") ? header.slice(7).trim() : header?.trim();
-
-  if (!token || token !== adminSecret) {
+  if (!isAdminRequestAuthorized(request)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
@@ -72,6 +72,9 @@ const toSoftwareRecord = (payload: AdminSoftwareInput): Software => {
     websiteUrl: payload.websiteUrl ? payload.websiteUrl : null,
     requirements: payload.requirements ?? {},
     changelog: payload.changelog ?? [],
+    isTrending: payload.isTrending ?? false,
+    developer: payload.developer ?? {},
+    features: payload.features ?? [],
   } satisfies Software;
 };
 

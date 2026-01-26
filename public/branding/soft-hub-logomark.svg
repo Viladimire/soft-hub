@@ -1,37 +1,76 @@
 <svg width="176" height="176" viewBox="0 0 176 176" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="logomark_bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(88 88) rotate(90) scale(88)">
-      <stop offset="0" stop-color="#12142A" />
-      <stop offset="1" stop-color="#050716" />
+    <radialGradient id="hub_bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(88 72) rotate(90) scale(104)">
+      <stop offset="0" stop-color="#0B1220" />
+      <stop offset="1" stop-color="#050714" />
     </radialGradient>
-    <linearGradient id="logomark_rim" x1="28" y1="24" x2="150" y2="152" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#4CCBFF" />
-      <stop offset="0.45" stop-color="#7B66FF" />
-      <stop offset="1" stop-color="#FF7AC7" />
+    <linearGradient id="hub_rim" x1="22" y1="20" x2="156" y2="156" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EE7FF" />
+      <stop offset="0.46" stop-color="#7C7CFF" />
+      <stop offset="1" stop-color="#FF78C8" />
     </linearGradient>
-    <linearGradient id="logomark_s" x1="48" y1="52" x2="132" y2="132" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#F9F8FF" />
-      <stop offset="1" stop-color="#C6CBF7" />
+    <linearGradient id="hub_core" x1="52" y1="52" x2="124" y2="124" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FAFF" />
+      <stop offset="1" stop-color="#C7D2FE" />
     </linearGradient>
-    <filter id="logomark_glow" x="-20" y="-20" width="216" height="216" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="16" result="blur" />
+    <filter id="hub_glow" x="-20" y="-20" width="216" height="216" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="14" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
   </defs>
-  <g filter="url(#logomark_glow)">
-    <rect x="20" y="20" width="136" height="136" rx="40" fill="url(#logomark_bg)" />
-    <rect x="24" y="24" width="128" height="128" rx="36" stroke="url(#logomark_rim)" stroke-width="2" />
+
+  <g filter="url(#hub_glow)">
+    <rect x="20" y="20" width="136" height="136" rx="40" fill="url(#hub_bg)" />
+    <rect x="24" y="24" width="128" height="128" rx="36" stroke="url(#hub_rim)" stroke-width="2" />
+
     <path
-      d="M118.4 58.4C118.4 69.4549 110.057 77.1654 95.9134 82.8136L81.221 88.5583C72.2526 92.0367 68.2102 95.6817 68.2102 101.418C68.2102 106.579 72.7329 111.342 82.2626 111.342C89.6061 111.342 96.9004 108.401 103.357 102.785L115.178 114.606C105.922 123.862 94.1209 128.78 80.9429 128.78C59.1859 128.78 44.8 116.767 44.8 99.0819C44.8 83.5261 53.5084 74.1955 70.7964 67.2704L87.017 60.9649C94.841 57.7923 98.4037 54.4392 98.4037 49.8135C98.4037 43.5489 92.9885 39.6667 83.9376 39.6667C74.3601 39.6667 64.745 43.6887 56.684 51.7496L45.0411 40.1066C55.5179 28.736 69.2669 22 86.4774 22C107.995 22 118.4 35.468 118.4 48.7428V58.4Z"
-      fill="url(#logomark_s)"
+      d="M58 112C58 101.402 66.402 93 77 93H99C109.598 93 118 101.402 118 112"
+      stroke="url(#hub_rim)"
+      stroke-width="6"
+      stroke-linecap="round"
+      opacity="0.7"
+    />
+
+    <circle cx="88" cy="78" r="20" fill="url(#hub_core)" />
+    <circle cx="88" cy="78" r="11" fill="#0B1220" opacity="0.85" />
+    <circle cx="88" cy="78" r="5" fill="#FFFFFF" opacity="0.95" />
+
+    <path
+      d="M88 36C103.48 36 116.6 45.003 122.8 58.05"
+      stroke="url(#hub_rim)"
+      stroke-width="5"
+      stroke-linecap="round"
+      opacity="0.85"
     />
     <path
-      d="M130.5 60C137.404 60 143 54.4036 143 47.5C143 40.5964 137.404 35 130.5 35C123.596 35 118 40.5964 118 47.5C118 54.4036 123.596 60 130.5 60Z"
-      fill="#78D1FF"
-      fill-opacity="0.28"
+      d="M53.2 58.05C59.4 45.003 72.52 36 88 36"
+      stroke="url(#hub_rim)"
+      stroke-width="5"
+      stroke-linecap="round"
+      opacity="0.55"
+    />
+
+    <circle cx="52" cy="62" r="7" fill="#6EE7FF" opacity="0.75" />
+    <circle cx="124" cy="62" r="7" fill="#7C7CFF" opacity="0.75" />
+    <circle cx="88" cy="128" r="7" fill="#FF78C8" opacity="0.75" />
+
+    <path
+      d="M88 78V100"
+      stroke="#FFFFFF"
+      stroke-width="5"
+      stroke-linecap="round"
+      opacity="0.9"
+    />
+    <path
+      d="M78 94L88 104L98 94"
+      stroke="#FFFFFF"
+      stroke-width="5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity="0.9"
     />
   </g>
 </svg>

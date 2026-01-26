@@ -32,9 +32,19 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+scripts/deploy.secrets.env
 
 # vercel
 .vercel
+
+# local artifacts and data dumps
+scripts/templates/*.tmp
+scripts/test-images.ts
+supabase/.branches
+supabase/.temp
+supabase/.cache
+src/lib/data/static-collections-dataset.json
+/.local/
 
 # typescript
 *.tsbuildinfo

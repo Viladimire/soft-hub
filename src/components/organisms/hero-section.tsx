@@ -6,14 +6,17 @@ import type { LucideIcon } from "lucide-react";
 import {
   Apple,
   ArrowRight,
+  Cpu,
   Flame,
   Film,
+  Gamepad2,
   Layers,
   Lock,
   Monitor,
   MonitorSmartphone,
   Search,
   Sparkles,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,12 +33,56 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+type CategoryAccent = {
+  container: string;
+  glow: string;
+  iconBg: string;
+  Icon: LucideIcon;
+};
+
+const CATEGORY_ACCENTS: Record<string, CategoryAccent> = {
+  software: {
+    container: "bg-gradient-to-br from-primary-500/18 via-blue-500/12 to-sky-500/18 border-primary-300/40",
+    glow: "bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.35),transparent_62%)]",
+    iconBg: "bg-gradient-to-br from-primary-500/45 via-blue-500/30 to-sky-400/30",
+    Icon: Monitor,
+  },
+  games: {
+    container: "bg-gradient-to-br from-fuchsia-500/24 via-purple-500/14 to-violet-500/20 border-fuchsia-300/45",
+    glow: "bg-[radial-gradient(circle_at_top,rgba(192,38,211,0.35),transparent_62%)]",
+    iconBg: "bg-gradient-to-br from-fuchsia-500/45 via-purple-500/30 to-violet-400/30",
+    Icon: Gamepad2,
+  },
+  utilities: {
+    container: "bg-gradient-to-br from-emerald-500/22 via-teal-500/14 to-lime-500/18 border-emerald-300/45",
+    glow: "bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.35),transparent_62%)]",
+    iconBg: "bg-gradient-to-br from-emerald-500/45 via-teal-500/30 to-lime-400/30",
+    Icon: Wrench,
+  },
+  "operating-systems": {
+    container: "bg-gradient-to-br from-amber-500/22 via-orange-500/14 to-yellow-500/18 border-amber-300/45",
+    glow: "bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.32),transparent_62%)]",
+    iconBg: "bg-gradient-to-br.from-amber-500/45 via-orange-500/30 to-yellow-400/30",
+    Icon: Cpu,
+  },
+  default: {
+    container: "bg-white/8 border-white/15",
+    glow: "bg-[radial-gradient(circle_at_top,rgba(148,163,184,0.25),transparent_62%)]",
+    iconBg: "bg-white/12",
+    Icon: Sparkles,
+  },
+};
+
 const textContainerVariants = {
-  hidden: {},
+  hidden: { opacity: 0, y: 24 },
   visible: {
+    opacity: 1,
+    y: 0,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
+      staggerChildren: 0.12,
+      delayChildren: 0.16,
+      duration: 0.55,
+      ease: "easeOut",
     },
   },
 } as const;
@@ -46,6 +93,15 @@ const fadeUpVariants = {
     opacity: 1,
     y: 0,
     transition: { duration: 0.65, ease: "easeOut" },
+  },
+} as const;
+
+const buttonGroupVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut", staggerChildren: 0.08 },
   },
 } as const;
 
@@ -192,15 +248,15 @@ export const HeroSection = () => {
         "bg-[radial-gradient(circle_at_top,rgba(0,102,255,0.75),rgba(0,102,255,0.1))]",
     },
     {
-      label: t("stats.experts"),
-      value: "100%",
+      label: t("stats.downloads"),
+      value: statsTotals.totalDownloads,
       Icon: Layers,
       accentClass:
         "bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.7),rgba(124,58,237,0.1))]",
     },
     {
       label: t("stats.platforms"),
-      value: "24/7",
+      value: statsTotals.totalPlatforms,
       Icon: MonitorSmartphone,
       accentClass:
         "bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.7),rgba(16,185,129,0.1))]",
@@ -239,12 +295,14 @@ export const HeroSection = () => {
       "from-emerald-400/35 via-teal-400/20 to-blue-500/25",
     ];
 
-    const toFeatured = (items: Array<{ id: string; slug: string; name: string; summary: string; platforms: string[] }>) =>
+    const toFeatured = (
+      items: Array<{ id: string; slug: string; name: string; summary: string | null; description?: string | null; platforms: string[] }>,
+    ) =>
       items.slice(0, 3).map((item, index) => ({
         id: item.id,
         slug: item.slug,
         title: item.name,
-        description: item.summary,
+        description: item.summary ?? item.description ?? "",
         platforms: item.platforms,
         gradient: gradients[index % gradients.length],
       }));
@@ -348,11 +406,24 @@ export const HeroSection = () => {
   return (
     <section ref={sectionRef} className="relative overflow-hidden py-20" style={{ position: "relative" }}>
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(17,24,39,0.95),rgba(2,6,23,0.85))]" />
-        <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_20%_20%,rgba(51,65,255,0.22),transparent),radial-gradient(110%_110%_at_80%_30%,rgba(13,148,136,0.18),transparent),radial-gradient(90%_90%_at_50%_90%,rgba(244,114,182,0.16),transparent)]" />
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+            backgroundSize: ["120%", "150%", "120%"],
+          }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at top left, rgba(17,24,39,0.95), rgba(2,6,23,0.85)), " +
+              "radial-gradient(120% 120% at 20% 20%, rgba(59,130,246,0.24), transparent), " +
+              "radial-gradient(140% 140% at 80% 30%, rgba(45,212,191,0.18), transparent), " +
+              "radial-gradient(110% 110% at 50% 80%, rgba(236,72,153,0.16), transparent)",
+          }}
+        />
         <div
           aria-hidden="true"
-          className="absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(112deg,rgba(255,255,255,0.05)1px,transparent_1px),linear-gradient(-65deg,rgba(255,255,255,0.04)1px,transparent_1px)] [background-size:180px_140px]"
+          className="absolute inset-0 opacity-15 mix-blend-screen [background-image:linear-gradient(112deg,rgba(255,255,255,0.05)1px,transparent_1px),linear-gradient(-65deg,rgba(255,255,255,0.04)1px,transparent_1px)] [background-size:180px_140px]"
         />
 
         <motion.div style={{ y: blueParallax }} className="absolute left-[10%] top-[14%] h-64 w-64">
@@ -414,8 +485,8 @@ export const HeroSection = () => {
             <motion.p className="max-w-2xl text-base text-neutral-200/90 sm:text-lg">{t("description")}</motion.p>
           </motion.div>
 
-          <motion.div variants={fadeUpVariants} className="w-full space-y-5">
-            <div className="group relative isolate flex w-full items-center gap-3 overflow-hidden rounded-[26px] border border-white/15 bg-white/[0.06] px-6 py-5 text-sm text-white shadow-[0_30px_70px_rgba(30,64,175,0.35)] backdrop-blur-2xl transition duration-300 focus-within:shadow-[0_35px_85px_rgba(79,70,229,0.5)] focus-within:ring-4 focus-within:ring-indigo-400/40 sm:text-base">
+          <motion.div variants={fadeUpVariants} className="w-full space-y-6">
+            <div className="group relative isolate flex w-full items-center gap-3 overflow-hidden rounded-[30px] border border-white/12 bg-white/[0.08] px-8 py-6 text-base text-white shadow-[0_32px_82px_rgba(25,39,89,0.45)] backdrop-blur-2xl transition duration-300 focus-within:shadow-[0_48px_110px_rgba(79,70,229,0.6)] focus-within:ring-2 focus-within:ring-primary-300/60 sm:text-lg">
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/25 via-purple-500/25 to-sky-400/25 text-indigo-100 shadow-[0_12px_32px_rgba(59,130,246,0.35)]">
                 <Search className="h-5 w-5" />
               </span>
@@ -428,20 +499,23 @@ export const HeroSection = () => {
                     submitSearch(homeSearch);
                   }
                 }}
-                placeholder={t("search.placeholder")}
-                className="h-full flex-1 border-none bg-transparent text-base text-white placeholder:text-neutral-300 focus:outline-none sm:text-lg"
+                placeholder={t("search.placeholderDetailed") ?? t("search.placeholder")}
+                className="h-full flex-1 rounded-none border-none bg-transparent text-base text-white/90 placeholder:text-neutral-300/80 focus:outline-none focus-visible:outline-none sm:text-lg"
                 aria-label={t("search.placeholder")}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
               />
               <button
                 type="button"
                 onClick={() => submitSearch(homeSearch)}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-indigo-400/30 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-400 px-6 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(76,29,149,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(76,29,149,0.45)]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-indigo-400/40 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-400 px-7 py-2.5 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_20px_44px_rgba(76,29,149,0.35)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_62px_rgba(76,29,149,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-200"
               >
                 {t("search.cta")}
                 <ArrowRight className="h-4 w-4" />
               </button>
-              <span className="pointer-events-none absolute inset-0 rounded-[26px] opacity-0 transition duration-300 group-hover:opacity-80" aria-hidden="true">
-                <span className="absolute inset-0 rounded-[26px] bg-[radial-gradient(circle_at_top,rgba(79,70,229,0.38),transparent_60%)]" />
+              <span className="pointer-events-none absolute inset-0 rounded-[30px] opacity-0 transition duration-300 group-hover:opacity-70" aria-hidden="true">
+                <span className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_top,rgba(79,70,229,0.45),transparent_60%)]" />
               </span>
             </div>
 
@@ -450,7 +524,7 @@ export const HeroSection = () => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut", delay: 0.12 }}
-                className="flex flex-wrap items-center gap-2"
+                className="flex flex-wrap items-center gap-2.5"
               >
                 {searchChips.map((chip, index) => (
                   <motion.button
@@ -462,7 +536,7 @@ export const HeroSection = () => {
                       setHomeSearch(chip);
                       submitSearch(chip);
                     }}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-100 transition hover:border-white/40 hover:bg-white/15"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/6 px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-100 transition hover:border-white/45 hover:bg-white/20"
                     style={{ animationDelay: `${index * 40}ms` }}
                   >
                     <Flame className="h-3.5 w-3.5 text-primary-200" />
@@ -472,39 +546,48 @@ export const HeroSection = () => {
               </motion.div>
             ) : null}
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
-              <Button
-                variant="primary"
-                asChild
-                className="group relative w-full overflow-hidden rounded-full border border-white/15 bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_0_34px_rgba(67,56,202,0.55)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_52px_rgba(37,99,235,0.65)] sm:w-auto"
-              >
-                <Link href={`/${locale}/software`} className="relative flex items-center justify-center gap-3">
-                  <span>{t("cta.primary")}</span>
-                  <motion.span
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20"
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.span>
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition duration-300 group-hover:opacity-60 group-hover:animate-glow-pulse"
-                  >
-                    <span className="absolute inset-0 rounded-full bg-[linear-gradient(120deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.55)_48%,rgba(255,255,255,0)_100%)] group-hover:animate-shimmer" />
-                  </span>
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full rounded-full border border-white/20 px-8 py-3 text-sm text-neutral-100 transition-all duration-300 hover:border-white/40 hover:bg-white/10 sm:w-auto"
-                asChild
-              >
-                <Link href={`/${locale}/collections`} className="flex items-center justify-center gap-2">
-                  {t("cta.secondary")}
-                </Link>
-              </Button>
-            </div>
+            <motion.div
+              variants={buttonGroupVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5"
+            >
+              <motion.div variants={buttonGroupVariants}>
+                <Button
+                  variant="primary"
+                  asChild
+                  className="group relative w-full overflow-hidden rounded-full border border-white/15 bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_0_34px_rgba(67,56,202,0.55)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_52px_rgba(37,99,235,0.65)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 sm:w-auto"
+                >
+                  <Link href={`/${locale}/software`} className="relative flex items-center justify-center gap-3">
+                    <span>{t("cta.primary")}</span>
+                    <motion.span
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20"
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </motion.span>
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition duration-300 group-hover:opacity-60 group-hover:animate-glow-pulse"
+                    >
+                      <span className="absolute inset-0 rounded-full bg-[linear-gradient(120deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.55)_48%,rgba(255,255,255,0)_100%)] group-hover:animate-shimmer" />
+                    </span>
+                  </Link>
+                </Button>
+              </motion.div>
+              <motion.div variants={buttonGroupVariants}>
+                <Button
+                  variant="ghost"
+                  className="w-full rounded-full border border-white/20 px-8 py-3 text-sm text-neutral-100 transition-all duration-300 hover:border-white/40 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 sm:w-auto"
+                  asChild
+                >
+                  <Link href={`/${locale}/collections`} className="flex items-center justify-center gap-2">
+                    {t("cta.secondary")}
+                  </Link>
+                </Button>
+              </motion.div>
+            </motion.div>
           </motion.div>
           <motion.div
             initial="hidden"
@@ -630,34 +713,48 @@ export const HeroSection = () => {
               <CardContent className="relative space-y-4 p-6">
                 <div className="flex items-center justify-between gap-3">
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-white">{t("categories.title") || "Discover categories"}</p>
-                    <p className="text-xs leading-5 text-neutral-300 line-clamp-2">{t("categories.subtitle") || "Find the right toolkit for your next project."}</p>
+                    <p className="text-sm font-semibold text-white">{t("categories.title")}</p>
+                    <p className="text-xs leading-5 text-neutral-300 line-clamp-2">{t("categories.subtitle")}</p>
                   </div>
                   <Badge className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-200">
-                    {t("categories.recommendedSoon") || "New"}
+                    {t("categories.badge")}
                   </Badge>
                 </div>
                 <div className="space-y-3">
                   {featuredHighlights.map((category) => (
-                    <motion.button
-                      key={category.id}
-                      type="button"
-                      whileHover={{ y: -3 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => {
-                        router.push(`/${locale}/software?category=${encodeURIComponent(category.id)}`);
-                      }}
-                      className="group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-white/12 bg-white/5 px-4 py-3 text-left transition duration-300 hover:border-white/40 hover:bg-white/10"
-                    >
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white shadow-[0_12px_30px_rgba(15,23,42,0.45)]">
-                        <Sparkles className="h-5 w-5" />
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">{category.label}</p>
-                        <p className="text-xs text-neutral-300 line-clamp-1">{category.description}</p>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-neutral-200 opacity-70 transition group-hover:translate-x-1" />
-                    </motion.button>
+                    (() => {
+                      const accent = CATEGORY_ACCENTS[category.id] ?? CATEGORY_ACCENTS.default;
+                      const AccentIcon = accent.Icon;
+                      return (
+                      <motion.button
+                        key={category.id}
+                        type="button"
+                        whileHover={{ y: -3 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          router.push(`/${locale}/software?category=${encodeURIComponent(category.id)}`);
+                        }}
+                        className={`group relative flex w/full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition duration-300 hover:-translate-y-1 hover:border-white/45 ${accent.container}`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100 ${accent.glow}`}
+                        />
+                        <motion.span
+                          animate={{ scale: [1, 1.08, 1], rotate: [0, 3, -3, 0] }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 1.5 }}
+                          className={`flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-[0_12px_30px_rgba(15,23,42,0.45)] ${accent.iconBg}`}
+                        >
+                          <AccentIcon className="h-5 w-5" />
+                        </motion.span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-white">{category.label}</p>
+                          <p className="text-xs text-neutral-300 line-clamp-1">{category.description}</p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-neutral-200 opacity-70 transition group-hover:translate-x-1" />
+                      </motion.button>
+                      );
+                    })()
                   ))}
                 </div>
               </CardContent>

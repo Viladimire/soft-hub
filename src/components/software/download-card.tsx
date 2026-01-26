@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { Download, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import type { Software } from "@/lib/types/software";
 import { formatBytes, formatReleaseDate } from "@/lib/utils/format";
-import { incrementDownloads } from "@/lib/services/analyticsService";
+import { trackDownload } from "@/lib/services/analyticsService";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const DownloadCard = ({ software, locale }: { software: Software; locale: string }) => {
+  const t = useTranslations("pages.softwareDetail.downloadCard");
+
   return (
     <Card className="border-white/10 bg-white/5 lg:sticky lg:top-24">
       <CardContent className="space-y-4 p-4 sm:p-6">
@@ -19,32 +22,35 @@ export const DownloadCard = ({ software, locale }: { software: Software; locale:
           <Link
             href={software.downloadUrl}
             onClick={() => {
-              void incrementDownloads(software.id);
+              void trackDownload(software.id, {
+                slug: software.slug,
+                source: "software-detail",
+              });
             }}
           >
             <Download className="h-4 w-4" />
-            Download now
+            {t("primaryCta")}
           </Link>
         </Button>
 
         <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
           <div className="flex items-center justify-between text-neutral-200">
-            <span className="text-xs text-neutral-400">Version</span>
+            <span className="text-xs text-neutral-400">{t("stats.version")}</span>
             <span className="font-semibold text-white">{software.version}</span>
           </div>
           <div className="flex items-center justify-between text-neutral-200">
-            <span className="text-xs text-neutral-400">Size</span>
+            <span className="text-xs text-neutral-400">{t("stats.size")}</span>
             <span className="font-semibold text-white">{formatBytes(software.sizeInBytes)}</span>
           </div>
           <div className="flex items-center justify-between text-neutral-200">
-            <span className="text-xs text-neutral-400">Updated</span>
+            <span className="text-xs text-neutral-400">{t("stats.updated")}</span>
             <span className="font-semibold text-white">{formatReleaseDate(software.updatedAt, locale)}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 rounded-2xl border border-emerald-300/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">
           <ShieldCheck className="h-4 w-4" />
-          <span>Verified download link</span>
+          <span>{t("verified")}</span>
         </div>
 
         <div className="flex flex-wrap gap-2">

@@ -1,4 +1,4 @@
-export type Platform = "windows" | "mac" | "linux" | "android" | "ios";
+export type Platform = "windows" | "mac" | "linux" | "android" | "ios" | "web";
 
 export type SoftwareCategory =
   | "software"
@@ -13,31 +13,34 @@ export type SoftwareCategory =
 
 export type ReleaseStatus = "draft" | "published" | "archived";
 
-export type SoftwareType = "free";
+export type SoftwareType = "standard";
 
 export type Software = {
   id: string;
   slug: string;
   name: string;
-  summary: string;
+  summary: string | null;
   description: string;
   version: string;
-  sizeInBytes: number;
+  sizeInBytes: number | null;
   platforms: Platform[];
   categories: SoftwareCategory[];
   type: SoftwareType;
   websiteUrl?: string | null;
   downloadUrl: string;
   isFeatured: boolean;
-  releaseDate: string;
-  updatedAt: string;
+  isTrending: boolean;
+  releaseDate: string | null;
   createdAt: string;
+  updatedAt: string;
   stats: {
     downloads: number;
     views: number;
     rating: number;
     votes: number;
   };
+  developer: Record<string, unknown>;
+  features: string[];
   media: {
     logoUrl: string;
     gallery: string[];

@@ -1,3 +1,4 @@
+
 -- Seed data for the "software" table
 -- Each entry covers diverse categories, platforms, and includes featured/trending programs.
 -- Run via scripts/seed-supabase.mjs or paste into the Supabase SQL editor.

@@ -12,8 +12,8 @@ export type FiltersSnapshot = {
   searchQuery: string;
   selectedCategory: string | null;
   selectedPlatforms: string[];
-  selectedTypes: string[];
   sortBy: FilterSortOption;
+  totalFilters: number;
 };
 
 const DEFAULT_SORT: FilterSortOption = "latest";
@@ -50,15 +50,14 @@ const computeSnapshotFromParams = (params: URLSearchParams): FiltersSnapshot => 
   const searchQuery = params.get("query")?.trim() ?? "";
   const selectedCategory = params.get("category")?.trim() || null;
   const selectedPlatforms = parseCommaSeparated(params.get("platforms") ?? params.get("platform"));
-  const selectedTypes = parseCommaSeparated(params.get("types"));
   const sortBy = parseSort(params.get("sort"));
 
   return {
     searchQuery,
     selectedCategory,
     selectedPlatforms,
-    selectedTypes,
     sortBy,
+    totalFilters: 0,
   };
 };
 
@@ -86,7 +85,6 @@ export const useFilters = () => {
       queryCount +
       categoryCount +
       snapshot.selectedPlatforms.length +
-      snapshot.selectedTypes.length +
       (snapshot.sortBy !== DEFAULT_SORT ? 1 : 0)
     );
   }, [snapshot]);
@@ -142,20 +140,8 @@ export const useFilters = () => {
   );
 
   const toggleType = useCallback(
-    (type: string) => {
-      updateParams((params) => {
-        const current = parseCommaSeparated(params.get("types"));
-        const exists = current.includes(type);
-        const next = exists ? current.filter((item) => item !== type) : [...current, type];
-
-        if (next.length === 0) {
-          params.delete("types");
-        } else {
-          params.set("types", serializeCommaSeparated(next));
-        }
-      });
-    },
-    [updateParams],
+    () => undefined,
+    [],
   );
 
   const setSearch = useCallback(
@@ -193,13 +179,20 @@ export const useFilters = () => {
       params.delete("query");
       params.delete("category");
       params.delete("platforms");
-      params.delete("types");
       params.delete("sort");
     });
   }, [updateParams]);
 
+  const snapshotWithTotals = useMemo(
+    () => ({
+      ...snapshot,
+      totalFilters: activeFilters,
+    }),
+    [activeFilters, snapshot],
+  );
+
   return {
-    snapshot,
+    snapshot: snapshotWithTotals,
     setCategory,
     togglePlatform,
     toggleType,

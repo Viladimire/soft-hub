@@ -1,34 +1,58 @@
 <svg width="360" height="92" viewBox="0 0 360 92" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="wordmark_fill" x1="36" y1="10" x2="324" y2="82" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#78D1FF" />
-      <stop offset="0.45" stop-color="#7E6BFF" />
-      <stop offset="1" stop-color="#FF7EC6" />
+    <linearGradient id="wm_fill" x1="18" y1="18" x2="342" y2="74" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EE7FF" />
+      <stop offset="0.46" stop-color="#7C7CFF" />
+      <stop offset="1" stop-color="#FF78C8" />
     </linearGradient>
-    <linearGradient id="wordmark_accent" x1="60" y1="74" x2="300" y2="74" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#78D1FF" stop-opacity="0" />
-      <stop offset="0.18" stop-color="#78D1FF" stop-opacity="0.4" />
-      <stop offset="0.5" stop-color="#7E6BFF" stop-opacity="0.55" />
-      <stop offset="0.82" stop-color="#FF7EC6" stop-opacity="0.4" />
-      <stop offset="1" stop-color="#FF7EC6" stop-opacity="0" />
+    <linearGradient id="wm_accent" x1="24" y1="78" x2="336" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EE7FF" stop-opacity="0" />
+      <stop offset="0.18" stop-color="#6EE7FF" stop-opacity="0.45" />
+      <stop offset="0.5" stop-color="#7C7CFF" stop-opacity="0.6" />
+      <stop offset="0.82" stop-color="#FF78C8" stop-opacity="0.45" />
+      <stop offset="1" stop-color="#FF78C8" stop-opacity="0" />
     </linearGradient>
-    <filter id="wordmark_glow" x="-20" y="-20" width="400" height="160" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="8" result="blur" />
+    <filter id="wm_glow" x="-30" y="-30" width="420" height="180" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="9" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
   </defs>
-  <g filter="url(#wordmark_glow)">
-    <path d="M40.158 62C28.014 62 19 52.988 19 39.982C19 27.05 27.936 18 40.544 18C48.486 18 54.852 21.348 58.38 27.188L49.896 31.406C47.34 27.828 43.842 25.936 39.762 25.936C33.492 25.936 29.214 30.372 29.214 39.888C29.214 49.308 33.87 53.828 40.806 53.828C45.39 53.828 48.72 51.652 51.39 47.676L59.874 52.1C55.17 58.148 48.438 62 40.158 62Z" fill="url(#wordmark_fill)" />
-    <path d="M64.392 60.2V19.8H74.592V60.2H64.392Z" fill="url(#wordmark_fill)" />
-    <path d="M84.048 60.2V19.8H94.14V32.288H108.116V19.8H118.208V60.2H108.116V40.172H94.14V60.2H84.048Z" fill="url(#wordmark_fill)" />
-    <path d="M132.214 60.2L117.43 19.8H128.726L137.422 46.22L145.782 19.8H156.742L142.486 60.2H132.214Z" fill="url(#wordmark_fill)" />
-    <path d="M167.714 60.2V19.8H196.314V28.52H178.002V35.36H194.314V43.76H178.002V51.48H197.214V60.2H167.714Z" fill="url(#wordmark_fill)" />
-    <path d="M203.214 60.2V19.8H214.374L227.994 39.652V19.8H238.454V60.2H227.294L213.674 40.348V60.2H203.214Z" fill="url(#wordmark_fill)" />
-    <path d="M246.21 60.2V19.8H274.81V28.52H256.498V35.36H272.81V43.76H256.498V51.48H276.178V60.2H246.21Z" fill="url(#wordmark_fill)" />
-    <path d="M284.964 60.2V19.8H309.54C324.18 19.8 330.54 27.192 330.54 39.676C330.54 52.376 324.084 60.2 307.5 60.2H284.964ZM295.38 51.676H306.948C315.036 51.676 319.14 48.26 319.14 39.908C319.14 31.812 315.12 28.52 306.756 28.52H295.38V51.676Z" fill="url(#wordmark_fill)" />
+
+  <g filter="url(#wm_glow)">
+    <path
+      d="M54.04 62.4C41.62 62.4 32.5 54.2 32.5 41.12C32.5 28.1 41.86 19.6 55.02 19.6C63.42 19.6 70.04 23.2 73.52 29.42L64.54 33.88C62.36 30.66 59.4 28.96 55.08 28.96C48.5 28.96 44.08 33.7 44.08 41.04C44.08 48.32 48.64 53.02 55.36 53.02C60 53.02 63.5 50.94 66.14 47.36L75.24 51.84C70.66 58.28 63.3 62.4 54.04 62.4Z"
+      fill="url(#wm_fill)"
+    />
+    <path d="M86.8 61V21H98.12V61H86.8Z" fill="url(#wm_fill)" />
+    <path
+      d="M112.3 61V21H123.54V33.22H139.64V21H150.88V61H139.64V42.26H123.54V61H112.3Z"
+      fill="url(#wm_fill)"
+    />
+    <path
+      d="M168.14 61L153.28 21H165.42L173.8 45.38L182.02 21H193.78L179.32 61H168.14Z"
+      fill="url(#wm_fill)"
+    />
+    <path
+      d="M205.6 61V21H234.9V30.14H216.88V36.48H232.62V45.24H216.88V51.86H235.84V61H205.6Z"
+      fill="url(#wm_fill)"
+    />
+    <path
+      d="M250.16 61V21H261.74L274.5 39.54V21H285.42V61H273.84L261.08 42.46V61H250.16Z"
+      fill="url(#wm_fill)"
+    />
+    <path
+      d="M300.02 61V21H329.22V30.14H311.3V36.48H326.94V45.24H311.3V51.86H330.1V61H300.02Z"
+      fill="url(#wm_fill)"
+    />
+    <path
+      d="M157.5 41.7H200.1V49.1H157.5V41.7Z"
+      fill="#FFFFFF"
+      opacity="0.24"
+    />
   </g>
-  <rect x="60" y="70" width="240" height="6" rx="3" fill="url(#wordmark_accent)" />
+
+  <rect x="24" y="76" width="312" height="6" rx="3" fill="url(#wm_accent)" />
 </svg>

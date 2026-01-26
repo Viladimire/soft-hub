@@ -35,7 +35,7 @@ export const ResultsCounter = ({ total, isInitialLoading = false, isUpdating = f
       statuses.push(t("status.loading"));
     }
 
-    if (!isInitialLoading && isUpdating) {
+    if (!isInitialLoading && isUpdating && total > 0) {
       statuses.push(t("status.updating"));
     }
 

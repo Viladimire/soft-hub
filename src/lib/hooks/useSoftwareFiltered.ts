@@ -18,13 +18,12 @@ type SoftwareQueryPage = SoftwareListResponse & {
 
 const sanitizeFilters = (snapshot: ReturnType<typeof useFilters>["snapshot"]): Omit<FilteredSoftwareOptions, "page"> => {
   const platforms = [...snapshot.selectedPlatforms].sort();
-  const types = [...snapshot.selectedTypes].sort();
 
   return {
     query: snapshot.searchQuery || undefined,
     category: snapshot.selectedCategory || undefined,
     platforms: platforms.length ? platforms : undefined,
-    types: types.length ? types : undefined,
+    types: undefined,
     sortBy: snapshot.sortBy,
     perPage: 24,
   };
@@ -75,34 +74,13 @@ export const useSoftwareFiltered = () => {
       try {
         const response = await fetchFilteredSoftware({ ...filters, page }, supabase);
 
-        if (page === 1 && response.items.length === 0) {
-          const fallbackResponse = await queryStaticSoftware({ ...filters, page, perPage });
-          return {
-            ...fallbackResponse,
-            usedFallback: true,
-            source: "fallback",
-            originError: "Supabase dataset is empty",
-          } satisfies SoftwareQueryPage;
-        }
-
         return {
           ...response,
           usedFallback: false,
           source: "supabase",
         } satisfies SoftwareQueryPage;
       } catch (error) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Falling back to static dataset after Supabase error", error);
-        }
-
-        const fallbackResponse = await queryStaticSoftware({ ...filters, page, perPage });
-
-        return {
-          ...fallbackResponse,
-          usedFallback: true,
-          source: "fallback",
-          originError: error instanceof Error ? error.message : String(error),
-        } satisfies SoftwareQueryPage;
+        throw error instanceof Error ? error : new Error(String(error));
       }
     },
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Apple,
@@ -13,14 +13,11 @@ import {
   Film,
   Filter,
   Gauge,
-  Loader2,
   Monitor,
-  MonitorSmartphone,
   Package,
   RefreshCw,
   Search,
   ShieldCheck,
-  Smartphone,
   Terminal,
   Wrench,
   X,
@@ -28,60 +25,44 @@ import {
 import { useTranslations } from "next-intl";
 
 import { platformOptions } from "@/lib/data/software";
+import { useFilters, type FilterSortOption } from "@/lib/hooks/useFilters";
 import { cn } from "@/lib/utils/cn";
-
-import { useFilters } from "@/lib/hooks/useFilters";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-type RawLabelEntry = string | { label?: string; description?: string };
-
-type CategoryConfig = {
+type CategoryDefinition = {
   id: string;
   value: string | null;
-  label: string;
-  description?: string;
   icon: LucideIcon;
-  gradientClass: string;
-  ringClass: string;
+  label: string;
 };
 
-type PlatformConfig = {
+type PlatformDefinition = {
   id: string;
-  label: string;
   icon: LucideIcon;
-  gradientClass: string;
-  delay: number;
+  label: string;
 };
 
-const platformIconMap: Record<string, LucideIcon> = {
+const CATEGORY_DEFINITIONS: Array<{ id: string; value: string | null; icon: LucideIcon }> = [
+  { id: "all", value: null, icon: Package },
+  { id: "software", value: "software", icon: Package },
+  { id: "games", value: "games", icon: Gauge },
+  { id: "operating-systems", value: "operating-systems", icon: Cpu },
+  { id: "multimedia", value: "multimedia", icon: Film },
+  { id: "utilities", value: "utilities", icon: Wrench },
+  { id: "development", value: "development", icon: Code2 },
+  { id: "security", value: "security", icon: ShieldCheck },
+  { id: "productivity", value: "productivity", icon: BarChart3 },
+  { id: "education", value: "education", icon: BookOpen },
+];
+
+const PLATFORM_ICON_MAP: Record<string, LucideIcon> = {
   windows: Monitor,
   mac: Apple,
   linux: Terminal,
-  android: MonitorSmartphone,
-  ios: Smartphone,
-};
-
-const platformGradientMap: Record<string, string> = {
-  windows: "bg-gradient-to-r from-blue-500/20 via-blue-400/15 to-blue-500/10",
-  mac: "bg-gradient-to-r from-neutral-100/30 via-neutral-200/10 to-slate-200/10",
-  linux: "bg-gradient-to-r from-emerald-400/20 via-lime-400/15 to-emerald-400/10",
-  android: "bg-gradient-to-r from-green-500/25 via-lime-400/20 to-green-500/25",
-  ios: "bg-gradient-to-r from-slate-200/40 via-neutral-200/20 to-slate-300/30",
-};
-
-const resolveLabel = (entry: RawLabelEntry | undefined, fallback: string) => {
-  if (typeof entry === "string") return entry;
-  if (entry?.label) return entry.label;
-  return fallback;
-};
-
-const resolveDescription = (entry: RawLabelEntry | undefined, fallback?: string) => {
-  if (typeof entry === "object" && entry?.description) return entry.description;
-  return fallback;
 };
 
 export const FiltersPanel = () => {
@@ -92,428 +73,194 @@ export const FiltersPanel = () => {
     togglePlatform,
     setSearch,
     resetFilters,
+    setSortBy,
     activeFilters,
     hasActiveFilters,
     direction,
   } = useFilters();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [pendingKey, setPendingKey] = useState<string | null>(null);
-  const pendingTimeoutRef = useRef<number | null>(null);
-  const isEditingSearchRef = useRef(false);
 
-  const { searchQuery, selectedCategory, selectedPlatforms } = snapshot;
-
-  const [searchInput, setSearchInput] = useState(searchQuery);
-
-  useEffect(() => {
-    if (isEditingSearchRef.current) return;
-    if (searchQuery === searchInput) return;
-    const timeout = window.setTimeout(() => {
-      setSearchInput(searchQuery);
-    }, 0);
-
-    return () => window.clearTimeout(timeout);
-  }, [searchInput, searchQuery]);
-
-  useEffect(() => {
-    return () => {
-      if (pendingTimeoutRef.current) {
-        window.clearTimeout(pendingTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const readRaw = <T,>(key: string, fallback: T): T => {
-    try {
-      return t.raw(key) as T;
-    } catch {
-      return fallback;
-    }
-  };
-
-  const runWithPending = (key: string, updater: () => void) => {
-    if (pendingTimeoutRef.current) {
-      window.clearTimeout(pendingTimeoutRef.current);
-    }
-
-    setPendingKey(key);
-    updater();
-
-    pendingTimeoutRef.current = window.setTimeout(() => {
-      setPendingKey(null);
-    }, 420);
-  };
-
-  const isPending = (key: string) => pendingKey === key;
-
-  const handleReset = () => {
-    runWithPending("reset", () => {
-      resetFilters();
-    });
-  };
-
-  const rawCategoryEntries = readRaw<Record<string, RawLabelEntry>>("categoryPills", {});
-  const rawPlatformEntries = readRaw<Record<string, RawLabelEntry>>("platformOptions", {});
-
-  const categoryPills: CategoryConfig[] = useMemo(() => {
-    const config: Array<Omit<CategoryConfig, "label" | "description"> & { fallbackLabel: string; fallbackDescription?: string }> = [
-      {
-        id: "all",
-        value: null,
-        icon: Package,
-        gradientClass:
-          "bg-gradient-to-br from-slate-500/25 via-slate-400/15 to-slate-600/25",
-        ringClass: "ring-slate-300/70",
-        fallbackLabel: "All software",
-        fallbackDescription: "Show everything",
-      },
-      {
-        id: "software",
-        value: "software",
-        icon: Package,
-        gradientClass:
-          "bg-gradient-to-br from-primary-500/30 via-blue-500/20 to-primary-400/25",
-        ringClass: "ring-primary-300/70",
-        fallbackLabel: "Software",
-        fallbackDescription: "Free apps for desktop",
-      },
-      {
-        id: "games",
-        value: "games",
-        icon: Gauge,
-        gradientClass:
-          "bg-gradient-to-br from-emerald-500/30 via-teal-400/20 to-emerald-400/25",
-        ringClass: "ring-emerald-200/70",
-        fallbackLabel: "Games",
-        fallbackDescription: "Free PC games",
-      },
-      {
-        id: "operating-systems",
-        value: "operating-systems",
-        icon: Cpu,
-        gradientClass:
-          "bg-gradient-to-br from-sky-500/30 via-cyan-400/20 to-blue-500/25",
-        ringClass: "ring-sky-300/70",
-        fallbackLabel: "Operating systems",
-        fallbackDescription: "Desktop OS distributions",
-      },
-      {
-        id: "multimedia",
-        value: "multimedia",
-        icon: Film,
-        gradientClass:
-          "bg-gradient-to-br from-fuchsia-500/30 via-purple-400/20 to-fuchsia-400/25",
-        ringClass: "ring-fuchsia-300/70",
-        fallbackLabel: "Multimedia",
-        fallbackDescription: "Media and creativity tools",
-      },
-      {
-        id: "utilities",
-        value: "utilities",
-        icon: Wrench,
-        gradientClass:
-          "bg-gradient-to-br from-amber-500/25 via-amber-400/20 to-amber-500/25",
-        ringClass: "ring-amber-200/70",
-        fallbackLabel: "Utilities",
-        fallbackDescription: "Power tools and optimizers",
-      },
-      {
-        id: "development",
-        value: "development",
-        icon: Code2,
-        gradientClass:
-          "bg-gradient-to-br from-indigo-500/30 via-sky-500/20 to-indigo-500/25",
-        ringClass: "ring-indigo-300/70",
-        fallbackLabel: "Development",
-        fallbackDescription: "Build and deployment tooling",
-      },
-      {
-        id: "security",
-        value: "security",
-        icon: ShieldCheck,
-        gradientClass:
-          "bg-gradient-to-br from-rose-500/30 via-rose-400/20 to-rose-500/25",
-        ringClass: "ring-rose-300/70",
-        fallbackLabel: "Security",
-        fallbackDescription: "Protect endpoints and data",
-      },
-      {
-        id: "productivity",
-        value: "productivity",
-        icon: BarChart3,
-        gradientClass:
-          "bg-gradient-to-br from-emerald-500/30 via-emerald-400/20 to-emerald-500/25",
-        ringClass: "ring-emerald-300/70",
-        fallbackLabel: "Productivity",
-        fallbackDescription: "Organise work and teams",
-      },
-      {
-        id: "education",
-        value: "education",
-        icon: BookOpen,
-        gradientClass:
-          "bg-gradient-to-br from-violet-500/30 via-violet-400/20 to-violet-500/25",
-        ringClass: "ring-violet-300/70",
-        fallbackLabel: "Education",
-        fallbackDescription: "Learning and study assistants",
-      },
-    ];
-
-    return config.map((item) => {
-      const entry = rawCategoryEntries[item.id];
+  const categories = useMemo<CategoryDefinition[]>(() => {
+    return CATEGORY_DEFINITIONS.map((definition) => {
+      const rawLabel = t.raw(`categoryPills.${definition.id}`);
       return {
-        id: item.id,
-        value: item.value,
-        label: resolveLabel(entry, item.fallbackLabel),
-        description: resolveDescription(entry, item.fallbackDescription),
-        icon: item.icon,
-        gradientClass: item.gradientClass,
-        ringClass: item.ringClass,
-      } satisfies CategoryConfig;
+        ...definition,
+        label: typeof rawLabel === "string" ? rawLabel : definition.id,
+      };
     });
-  }, [rawCategoryEntries]);
+  }, [t]);
 
-  const platformPills: PlatformConfig[] = platformOptions.map((option, index) => {
-    const entry = rawPlatformEntries[option.id];
-    return {
-      id: option.id,
-      label: resolveLabel(entry, option.label),
-      icon: platformIconMap[option.id] ?? Monitor,
-      gradientClass: platformGradientMap[option.id] ?? "bg-gradient-to-r from-slate-500/20 via-slate-400/15 to-slate-500/10",
-      delay: index * 0.04,
-    } satisfies PlatformConfig;
-  });
+  const platforms = useMemo<PlatformDefinition[]>(() => {
+    return platformOptions.map((option) => {
+      const rawLabel = t.raw(`platformOptions.${option.id}`);
+      return {
+        id: option.id,
+        icon: PLATFORM_ICON_MAP[option.id] ?? Monitor,
+        label: typeof rawLabel === "string" ? rawLabel : option.label,
+      };
+    });
+  }, [t]);
+
+  const sortOptions = useMemo(
+    () => [
+      { value: "latest" as FilterSortOption, label: t("sortOptions.latest") },
+      { value: "popular" as FilterSortOption, label: t("sortOptions.popular") },
+      { value: "name" as FilterSortOption, label: t("sortOptions.name") },
+    ],
+    [t]
+  );
+
+  const platformSummary = snapshot.selectedPlatforms.length
+    ? snapshot.selectedPlatforms
+        .map((platform) => platforms.find((item) => item.id === platform)?.label ?? platform)
+        .join(" · ")
+    : t("platformAll");
 
   return (
-    <Card
-      dir={direction}
-      className="relative overflow-hidden border border-white/10 bg-neutral-950/70 text-sm shadow-[0_10px_40px_rgba(15,23,42,0.45)]"
-    >
+    <Card dir={direction} className="border border-white/10 bg-neutral-950/70 text-sm">
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold text-neutral-50">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-500/15 text-primary-100">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-neutral-100">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-500/20 text-primary-100">
               <Filter className="h-4 w-4" />
             </span>
             {t("title")}
           </CardTitle>
           {hasActiveFilters ? (
-            <Badge className="flex items-center gap-1 rounded-full border border-primary-400/30 bg-primary-500/15 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-primary-100">
+            <Badge className="flex items-center gap-1 rounded-full border border-primary-400/30 bg-primary-500/15 px-3 py-1 text-[11px] uppercase tracking-wide text-primary-100">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              {t("activeFilters", { count: activeFilters })}
+              {t("activeSummary", { count: activeFilters })}
             </Badge>
           ) : null}
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 rounded-full border border-white/10 text-neutral-300 transition duration-300 hover:border-white/40 hover:bg-white/10 hover:text-white active:scale-95"
-            onClick={() => setIsCollapsed((prev) => !prev)}
-            aria-label={isCollapsed ? t("expand") : t("collapse")}
-          >
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 transition-transform duration-300",
-                isCollapsed ? "-rotate-90" : "rotate-0",
-              )}
-            />
-          </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className={cn(
-              "group h-9 w-9 rounded-full border border-white/10 text-neutral-300 transition duration-300 hover:border-rose-400/50 hover:bg-rose-500/10 hover:text-rose-200 active:scale-95",
-              isPending("reset") && "animate-pulse border-rose-400/70 bg-rose-500/10 text-rose-100",
-            )}
-            onClick={handleReset}
-            aria-label={t("reset")}
-            disabled={!hasActiveFilters}
-          >
-            <X className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-full border border-white/10 text-neutral-300 transition hover:border-white/40 hover:bg-white/10 hover:text-white"
+          onClick={() => {
+            resetFilters();
+          }}
+          disabled={!hasActiveFilters && !snapshot.searchQuery}
+          aria-label={t("reset")}
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
       </CardHeader>
-      <CardContent
-        className={cn(
-          "space-y-8 transition-all duration-300",
-          isCollapsed ? "pointer-events-none -translate-y-3 opacity-0" : "opacity-100",
-        )}
-      >
-        <Badge className="w-fit rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-200">
-          {t("freeBadge")}
-        </Badge>
+      <CardContent className="space-y-8">
         <section className="space-y-2">
-          <header className="flex items-center justify-between text-xs uppercase text-neutral-400">
-            <span>{t("searchLabel")}</span>
-            {searchQuery ? (
-              <button
+          <label htmlFor="filters-search" className="text-xs uppercase tracking-wide text-neutral-400">
+            {t("searchLabel")}
+          </label>
+          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
+            <Search className="h-4 w-4 text-neutral-400" />
+            <Input
+              id="filters-search"
+              type="search"
+              value={snapshot.searchQuery}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="border-0 bg-transparent text-sm text-white focus-visible:ring-0"
+            />
+            {snapshot.searchQuery ? (
+              <Button
                 type="button"
-                className="text-[10px] font-medium uppercase text-primary-200 transition hover:text-primary-100"
-                onClick={() => {
-                  setSearchInput("");
-                  setSearch("");
-                }}
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-full border border-white/15 text-neutral-300 hover:border-white/35 hover:bg-white/10 hover:text-white"
+                onClick={() => setSearch("")}
+                aria-label={t("reset")}
               >
-                {t("clear")}
-              </button>
+                <X className="h-3.5 w-3.5" />
+              </Button>
             ) : null}
-          </header>
-          <Input
-            placeholder={t("searchPlaceholder")}
-            leadingIcon={<Search className="h-4 w-4" />}
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                setSearch(searchInput);
-              }
-            }}
-            onFocus={() => {
-              isEditingSearchRef.current = true;
-            }}
-            onBlur={() => {
-              isEditingSearchRef.current = false;
-            }}
-            className="h-14 rounded-2xl border-white/15 bg-white/10 text-base text-neutral-100 placeholder:text-neutral-400 focus-visible:border-primary-400/60 focus-visible:ring-4 focus-visible:ring-primary-400/30"
-          />
+          </div>
         </section>
 
-        <section className="space-y-4">
-          <header className="flex items-center justify-between text-xs uppercase tracking-wide text-neutral-400">
-            <span>{t("categoriesLabel")}</span>
-          </header>
+        <section className="space-y-3">
+          <p className="text-xs uppercase tracking-wide text-neutral-400">{t("categoriesLabel")}</p>
           <div className="grid gap-3 sm:grid-cols-3">
-            {categoryPills.map((pill, index) => {
-              const isActive = pill.value === selectedCategory || (!pill.value && !selectedCategory);
-              const key = `category-${pill.id}`;
-              const pending = isPending(key);
+            {categories.map((category) => {
+              const isActive = category.value === snapshot.selectedCategory || (!category.value && !snapshot.selectedCategory);
 
               return (
                 <button
-                  key={pill.id}
+                  key={category.id}
                   type="button"
-                  onClick={() =>
-                    runWithPending(key, () => {
-                      setCategory(pill.value);
-                    })
-                  }
+                  onClick={() => setCategory(category.value)}
                   aria-pressed={isActive}
                   className={cn(
-                    "group relative overflow-hidden rounded-2xl border border-white/12 px-4 py-4 text-left transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:scale-95",
-                    "flex flex-col gap-3",
+                    "flex flex-col gap-2 rounded-2xl border px-4 py-4 text-left transition",
                     isActive
-                      ? cn(
-                          "bg-white/8 shadow-[0_18px_45px_rgba(59,130,246,0.22)]",
-                          pill.ringClass,
-                          "ring-2",
-                        )
-                      : "hover:border-white/40 hover:bg-white/10",
+                      ? "border-primary-400/60 bg-primary-500/10 text-white"
+                      : "border-white/10 bg-white/5 text-neutral-200 hover:border-white/25 hover:bg-white/10",
                   )}
-                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "pointer-events-none absolute inset-0 opacity-0 transition duration-300",
-                      pill.gradientClass,
-                      isActive ? "opacity-80" : "group-hover:opacity-70",
-                    )}
-                  />
-                  <div className="relative z-10 flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900/60 text-white shadow-[0_12px_25px_rgba(15,23,42,0.45)]">
-                      <pill.icon className="h-5 w-5" />
-                    </span>
-                    <div className="flex flex-1 flex-col">
-                      <span className="text-sm font-semibold text-white">{pill.label}</span>
-                      {pill.description ? (
-                        <span className="text-xs text-neutral-300">{pill.description}</span>
-                      ) : null}
-                    </div>
-                    <span className="relative h-5 w-5">
-                      <Loader2
-                        className={cn(
-                          "absolute inset-0 h-5 w-5 text-primary-100 transition-opacity duration-200",
-                          pending ? "opacity-100 animate-spin" : "opacity-0",
-                        )}
-                      />
-                      <CheckCircle2
-                        className={cn(
-                          "absolute inset-0 h-5 w-5 text-emerald-200 transition-all duration-300",
-                          isActive && !pending ? "scale-100 opacity-100" : "scale-75 opacity-0",
-                        )}
-                      />
-                    </span>
-                  </div>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900/60 text-white">
+                    <category.icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-sm font-semibold text-white">{category.label}</span>
                 </button>
               );
             })}
           </div>
         </section>
 
-        <section className="space-y-4">
-          <header className="flex items-center justify-between text-xs uppercase tracking-wide text-neutral-400">
-            <span>{t("platformLabel")}</span>
-            <span className="rounded-full bg-primary-500/10 px-3 py-1 text-[11px] font-semibold text-primary-100">
-              {selectedPlatforms.length}
-            </span>
-          </header>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {platformPills.map((pill) => {
-              const isActive = selectedPlatforms.includes(pill.id);
-              const key = `platform-${pill.id}`;
-              const pending = isPending(key);
+        <section className="space-y-3">
+          <p className="text-xs uppercase tracking-wide text-neutral-400">{t("platformLabel")}</p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {platforms.map((platform) => {
+              const isActive = snapshot.selectedPlatforms.includes(platform.id);
 
               return (
                 <button
-                  key={pill.id}
+                  key={platform.id}
                   type="button"
-                  onClick={() =>
-                    runWithPending(key, () => {
-                      togglePlatform(pill.id);
-                    })
-                  }
+                  onClick={() => togglePlatform(platform.id)}
                   aria-pressed={isActive}
                   className={cn(
-                    "group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/12 px-4 py-4 text-left transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:scale-95",
+                    "flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition",
                     isActive
-                      ? "bg-white/10 shadow-[0_18px_45px_rgba(59,130,246,0.22)] ring-2 ring-primary-300/70"
-                      : "hover:border-white/35 hover:bg-white/10",
-                    "animate-rise",
+                      ? "border-primary-400/60 bg-primary-500/10 text-white"
+                      : "border-white/10 bg-white/5 text-neutral-200 hover:border-white/25 hover:bg-white/10",
                   )}
-                  style={{ animationDelay: `${pill.delay}s` }}
                 >
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "pointer-events-none absolute inset-0 opacity-0 transition duration-300",
-                      pill.gradientClass,
-                      isActive ? "opacity-80" : "group-hover:opacity-60",
-                    )}
-                  />
-                  <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900/60 text-white">
-                    <pill.icon className="h-5 w-5" />
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900/60 text-white">
+                    <platform.icon className="h-4 w-4" />
                   </span>
-                  <div className="relative z-10 flex flex-1 flex-col">
-                    <span className="text-sm font-semibold text-white">{pill.label}</span>
-                    <span className="text-xs text-neutral-300">{t("platformHint")}</span>
-                  </div>
-                  <span className="relative z-10 h-5 w-5">
-                    <Loader2
-                      className={cn(
-                        "absolute inset-0 h-5 w-5 text-primary-100 transition-opacity duration-200",
-                        pending ? "opacity-100 animate-spin" : "opacity-0",
-                      )}
-                    />
-                    <CheckCircle2
-                      className={cn(
-                        "absolute inset-0 h-5 w-5 text-emerald-200 transition-all duration-300",
-                        isActive && !pending ? "scale-100 opacity-100" : "scale-75 opacity-0",
-                      )}
-                    />
-                  </span>
+                  <span className="flex-1 text-sm font-semibold text-white">{platform.label}</span>
+                  {isActive ? <CheckCircle2 className="h-4 w-4 text-primary-200" /> : <ChevronDown className="h-4 w-4 rotate-[-90deg] text-neutral-400" />}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-neutral-400">
+            <span className="font-semibold text-white/80">{t("platformLabel")}:</span> {platformSummary}
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <header className="flex items-center justify-between text-xs uppercase tracking-wide text-neutral-400">
+            <span>{t("sortLabel")}</span>
+          </header>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {sortOptions.map((option) => {
+              const isActive = snapshot.sortBy === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSortBy(option.value)}
+                  aria-pressed={isActive}
+                  className={cn(
+                    "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition",
+                    isActive
+                      ? "border-primary-400/40 bg-primary-500/10 text-white"
+                      : "border-white/12 bg-white/5 text-neutral-300 hover:border-white/30",
+                  )}
+                >
+                  <span>{option.label}</span>
+                  {isActive ? <CheckCircle2 className="h-4 w-4 text-primary-200" /> : <ChevronDown className="h-4 w-4 rotate-[-90deg] text-neutral-400" />}
                 </button>
               );
             })}
@@ -531,7 +278,10 @@ export const FiltersPanel = () => {
               size="sm"
               variant="secondary"
               className="rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs text-neutral-100 transition hover:border-white/40 hover:bg-white/20"
-              onClick={handleReset}
+              onClick={() => {
+                setSearch("");
+                resetFilters();
+              }}
             >
               <RefreshCw className="mr-1 h-3.5 w-3.5" />
               {t("reset")}
@@ -542,3 +292,5 @@ export const FiltersPanel = () => {
     </Card>
   );
 };
+
+export default FiltersPanel;

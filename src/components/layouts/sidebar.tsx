@@ -86,13 +86,7 @@ export const SideBar = () => {
     { label: string; description: string }
   >;
 
-  const trendingEmptyMessage = (() => {
-    try {
-      return t("trending.empty");
-    } catch {
-      return locale.startsWith("ar") ? "لا توجد برامج رائجة حالياً" : "No trending software right now";
-    }
-  })();
+  const trendingEmptyMessage = t("trending.empty");
 
   return (
     <aside className="space-y-6">
@@ -144,12 +138,12 @@ export const SideBar = () => {
       </Card>
       <Card className="glass-card border-dashed border-white/15 bg-neutral-950/50 text-center">
         <CardContent className="space-y-4 py-6">
-          <h3 className="text-sm font-semibold text-neutral-50">{t("submit.title")}</h3>
-          <p className="text-xs text-neutral-400">{t("submit.description")}</p>
+          <h3 className="text-sm font-semibold text-neutral-50">{t("request.title")}</h3>
+          <p className="text-xs text-neutral-400">{t("request.description")}</p>
           <Button variant="primary" className="w-full gap-2" asChild>
-            <Link href={`/${locale}/submit`}>
+            <Link href={`/${locale}/request`}>
               <PlusCircle className="h-4 w-4" />
-              {t("submit.cta")}
+              {t("request.cta")}
             </Link>
           </Button>
         </CardContent>

@@ -1,34 +1,63 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Geist, Geist_Mono } from "next/font/google";
 import { getMessages } from "next-intl/server";
 
 import { Providers } from "@/components/providers/Providers";
 import { PageTransition } from "@/components/animations/PageTransition";
-import { defaultLocale, rtlLocales, supportedLocales } from "@/i18n/locales";
+import { defaultLocale, supportedLocales } from "@/i18n/locales";
 
-import "@/app/globals.css";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: rawLocale } = await params;
+  const locale = rawLocale ?? defaultLocale;
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
+  const languages = Object.fromEntries(
+    supportedLocales.map((value) => [value, new URL(`/${value}`, SITE_URL).toString()]),
+  );
 
-export const metadata: Metadata = {
-  title: {
-    default: "SOFT-HUB",
-    template: "%s | SOFT-HUB",
-  },
-  description:
-    "SOFT-HUB is a global platform for discovering, evaluating, and downloading professional software across platforms.",
-};
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: "SOFT-HUB",
+      template: "%s | SOFT-HUB",
+    },
+    description:
+      "SOFT-HUB is a global platform for discovering, evaluating, and downloading professional software across platforms.",
+    alternates: {
+      canonical: new URL(`/${locale}`, SITE_URL).toString(),
+      languages,
+    },
+    openGraph: {
+      type: "website",
+      siteName: "SOFT-HUB",
+      url: new URL(`/${locale}`, SITE_URL).toString(),
+      locale,
+      title: "SOFT-HUB",
+      description:
+        "SOFT-HUB is a global platform for discovering, evaluating, and downloading professional software across platforms.",
+      images: [
+        {
+          url: new URL("/branding/soft-hub-logomark.svg", SITE_URL).toString(),
+          width: 176,
+          height: 176,
+          alt: "SOFT-HUB",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "SOFT-HUB",
+      description:
+        "SOFT-HUB is a global platform for discovering, evaluating, and downloading professional software across platforms.",
+      images: [new URL("/branding/soft-hub-logomark.svg", SITE_URL).toString()],
+    },
+  } satisfies Metadata;
+}
 
 export function generateStaticParams() {
   return supportedLocales.map((locale) => ({ locale }));
@@ -49,15 +78,10 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages({ locale });
-  const dir = rtlLocales.has(locale) ? "rtl" : "ltr";
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning data-scroll-behavior="smooth">
-      <body className={`${geistSans.variable} ${geistMono.variable} bg-neutral-950 antialiased`}>
-        <Providers locale={locale} messages={messages}>
-          <PageTransition>{children}</PageTransition>
-        </Providers>
-      </body>
-    </html>
+    <Providers locale={locale} messages={messages}>
+      <PageTransition>{children}</PageTransition>
+    </Providers>
   );
 }

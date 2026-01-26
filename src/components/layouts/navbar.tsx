@@ -2,237 +2,172 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { AlignLeft, ArrowUpRight, Film, MonitorSmartphone, Moon, Search, Sun } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Globe } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { supportedLocales } from "@/i18n/locales";
+
+import ThemeToggle from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils/cn";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+type NavLink = {
+  href: string;
+  label: string;
+};
 
-import { SearchBar } from "@/components/molecules/search-bar";
+const getLocaleLabel = (locale: string) => {
+  switch (locale) {
+    case "ar":
+      return "العربية";
+    case "fr":
+      return "Français";
+    case "es":
+      return "Español";
+    case "de":
+      return "Deutsch";
+    case "tr":
+      return "Türkçe";
+    case "ru":
+      return "Русский";
+    case "zh":
+      return "中文";
+    case "ja":
+      return "日本語";
+    case "hi":
+      return "हिन्दी";
+    default:
+      return "English";
+  }
+};
 
-export const NavBar = () => {
-  const t = useTranslations("nav");
+const LanguageSwitcher = ({ locale, onChange }: { locale: string; onChange: (nextLocale: string) => void }) => {
+  const options = useMemo(
+    () =>
+      supportedLocales.map((value) => ({
+        value,
+        label: getLocaleLabel(value),
+      })),
+    [],
+  );
+
+  return (
+    <label className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-neutral-100 transition hover:border-white/25 hover:bg-white/15 lg:flex">
+      <Globe className="h-3.5 w-3.5 text-primary-200" />
+      <select
+        value={locale}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-[110px] bg-transparent text-xs outline-none"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value} className="bg-neutral-950 text-neutral-100">
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+};
+
+const DesktopNavLinks = ({ pathname, links }: { pathname: string; links: NavLink[] }) => (
+  <nav className="hidden items-center gap-1 xl:flex">
+    {links.map((link) => {
+      const isActive = pathname === link.href;
+      return (
+        <Link
+          key={link.href}
+          href={link.href}
+          className={cn(
+            "rounded-full px-4 py-2 text-sm transition-colors",
+            "hover:bg-white/10 hover:text-white",
+            isActive ? "bg-white/15 text-white" : "text-neutral-300",
+          )}
+        >
+          {link.label}
+        </Link>
+      );
+    })}
+  </nav>
+);
+
+export const Navbar = () => {
+  const dictionary = useTranslations("nav");
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [brandMarkErrored, setBrandMarkErrored] = useState(false);
-  const [wordmarkErrored, setWordmarkErrored] = useState(false);
 
-  const gamesLabel = t("games.label");
-  const filmsLabel = t("films.label");
+  const navLinks = useMemo<NavLink[]>(
+    () => [
+      { href: `/${locale}`, label: dictionary("links.home") },
+      { href: `/${locale}/software`, label: dictionary("links.software") },
+      { href: `/${locale}/collections`, label: dictionary("links.collections") },
+      { href: `/${locale}/insights`, label: dictionary("links.insights") },
+    ],
+    [dictionary, locale],
+  );
 
-  const navLinks = [
-    { href: `/${locale}`, label: t("links.home") },
-    { href: `/${locale}/software`, label: t("links.software") },
-    { href: `/${locale}/collections`, label: t("links.collections") },
-    { href: `/${locale}/insights`, label: t("links.insights") },
-  ];
+  const handleLocaleChange = (nextLocale: string) => {
+    if (!nextLocale || nextLocale === locale) return;
 
-  const themeOptions = Object.entries(t.raw("themeOptions") as Record<string, string>);
-  const recentKeywords = Object.values(t.raw("search.recentKeywords") as Record<string, string>);
+    const segments = pathname.split("/");
+    if (segments.length < 2) {
+      router.replace(`/${nextLocale}`);
+      return;
+    }
+
+    const currentLocale = segments[1];
+    if (supportedLocales.includes(currentLocale as (typeof supportedLocales)[number])) {
+      segments[1] = nextLocale;
+    } else {
+      segments.splice(1, 0, nextLocale);
+    }
+
+    const nextPath = segments.join("/") || `/${nextLocale}`;
+    const query = searchParams.toString();
+    router.replace(`${nextPath}${query ? `?${query}` : ""}`);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/70 backdrop-blur-xl">
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-        <div className="flex items-center gap-6">
-          <Link href={`/${locale}`} className="group inline-flex items-center gap-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-3xl border border-white/15 bg-white/5 shadow-[0_14px_36px_rgba(59,130,246,0.38)] transition duration-300 group-hover:shadow-[0_24px_60px_rgba(99,102,241,0.5)]">
-              {brandMarkErrored ? (
-                <span className="text-sm font-semibold text-white">SH</span>
-              ) : (
-                <Image
-                  src="/branding/soft-hub-logomark.svg"
-                  alt="SOFT-HUB logomark"
-                  width={32}
-                  height={32}
-                  className="h-8 w-8"
-                  priority
-                  onError={() => setBrandMarkErrored(true)}
-                />
-              )}
-            </div>
-            <div className="flex flex-col">
-              {wordmarkErrored ? (
-                <span className="text-xl font-semibold uppercase tracking-[0.28em] text-white">SOFT-HUB</span>
-              ) : (
-                <Image
-                  src="/branding/soft-hub-wordmark.svg"
-                  alt="SOFT-HUB wordmark"
-                  width={140}
-                  height={24}
-                  className="h-6 w-auto"
-                  priority
-                  onError={() => setWordmarkErrored(true)}
-                />
-              )}
-              <span className="mt-1 text-[12px] text-neutral-300 transition duration-300 group-hover:text-neutral-100">
-                {t("brandSubtitle")}
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6">
+        <Link href={`/${locale}`} className="group inline-flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-3xl border border-white/15 bg-white/5 shadow-[0_14px_36px_rgba(59,130,246,0.38)] transition duration-300 group-hover:shadow-[0_24px_60px_rgba(99,102,241,0.5)]">
+            {brandMarkErrored ? (
+              <span className="text-sm font-semibold text-white">SH</span>
+            ) : (
+              <Image
+                src="/branding/soft-hub-logomark.svg"
+                alt="SOFT-HUB logomark"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+                priority
+                onError={() => setBrandMarkErrored(true)}
+              />
+            )}
+          </div>
+          <div className="hidden flex-col sm:flex">
+            <span className="text-lg font-semibold uppercase tracking-[0.22em] text-white">
+              <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-rose-300 bg-clip-text text-transparent">
+                {dictionary("brandTitle")}
               </span>
-            </div>
-          </Link>
-          <Tabs defaultValue="windows" className="hidden md:block">
-            <TabsList className="bg-transparent">
-              <TabsTrigger value="windows" startIcon={<MonitorSmartphone className="h-3.5 w-3.5" />}> {t("tabs.windows")} </TabsTrigger>
-              <TabsTrigger value="mac" startIcon={<Moon className="h-3.5 w-3.5" />}> {t("tabs.mac")} </TabsTrigger>
-              <TabsTrigger value="linux" startIcon={<MonitorSmartphone className="h-3.5 w-3.5 rotate-90" />}> {t("tabs.linux")} </TabsTrigger>
-            </TabsList>
-          </Tabs>
+            </span>
+            <span className="mt-1 text-[12px] text-neutral-300 transition duration-300 group-hover:text-neutral-100">
+              {dictionary("brandSubtitle")}
+            </span>
+          </div>
+        </Link>
+
+        <div className="hidden flex-1 justify-center xl:flex">
+          <DesktopNavLinks pathname={pathname} links={navLinks} />
         </div>
 
-        <nav className="hidden items-center gap-2 lg:flex">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  "hover:bg-neutral-900/70 hover:text-neutral-100",
-                  isActive ? "bg-neutral-900/80 text-neutral-50" : "text-neutral-400",
-                )}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-
-          <a
-            href="#games"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-900/70 hover:text-neutral-100"
-          >
-            {gamesLabel}
-          </a>
-
-          <Link
-            href={`/${locale}/films`}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-900/70 hover:text-neutral-100"
-          >
-            <Film className="h-4 w-4" />
-            {filmsLabel}
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Dialog>
-            <div className="flex items-center gap-2">
-              <DialogTrigger asChild>
-                <Button variant="ghost" className="hidden items-center gap-2 px-3 py-2 text-sm text-neutral-300 lg:flex">
-                  <Search className="h-4 w-4" />
-                  {t("search.openButton")}
-                </Button>
-              </DialogTrigger>
-              <DialogTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full border border-white/10 text-neutral-200 hover:text-white lg:hidden"
-                  aria-label={t("search.openButton")}
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-            </div>
-            <DialogContent className="max-w-2xl space-y-4 border-white/5 bg-neutral-950/90">
-              <DialogHeader className="text-start">
-                <DialogTitle className="text-lg font-semibold text-white">{t("search.openButton")}</DialogTitle>
-                <DialogDescription className="text-sm text-neutral-300">
-                  {t("search.recentTitle")}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex flex-col gap-3">
-                <SearchBar />
-                <Select defaultValue="system">
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder={t("search.themePlaceholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {themeOptions.map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2 text-sm text-neutral-300">
-                <p className="text-xs uppercase text-neutral-500">{t("search.recentTitle")}</p>
-                <div className="grid gap-2">
-                  {recentKeywords.map((keyword) => (
-                    <button
-                      key={keyword}
-                      type="button"
-                      className="inline-flex items-center justify-between rounded-lg border border-white/10 px-3 py-2 text-left text-sm text-neutral-200 transition hover:border-primary-400/60 hover:bg-primary-500/10"
-                    >
-                      <span>{keyword}</span>
-                      <ArrowUpRight className="h-4 w-4 text-neutral-500" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu">
-                <AlignLeft className="h-5 w-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-sm space-y-4 border-white/5 bg-neutral-950/90">
-              <DialogHeader className="text-start">
-                <DialogTitle className="text-sm font-semibold uppercase tracking-wide text-neutral-300">
-                  Menu
-                </DialogTitle>
-                <DialogDescription className="text-xs text-neutral-500">
-                  استعرض الروابط والاختصارات المتاحة في SOFT-HUB.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-2">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-neutral-100 transition hover:border-white/20 hover:bg-white/10"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                <a
-                  href="#games"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-neutral-100 transition hover:border-white/20 hover:bg-white/10"
-                >
-                  {gamesLabel}
-                </a>
-                <Link
-                  href={`/${locale}/films`}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-neutral-100 transition hover:border-white/20 hover:bg-white/10"
-                >
-                  {filmsLabel}
-                </Link>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Button variant="ghost" size="icon" className="hidden text-neutral-300 lg:inline-flex">
-            <Sun className="h-4 w-4" />
-          </Button>
-          <Button variant="primary" className="hidden gap-2 lg:inline-flex" asChild>
-            <Link href={`/${locale}/submit`}>{t("actions.submit")}</Link>
-          </Button>
+        <div className="ml-auto flex items-center gap-3">
+          <LanguageSwitcher locale={locale} onChange={handleLocaleChange} />
+          <ThemeToggle />
         </div>
       </div>
     </header>

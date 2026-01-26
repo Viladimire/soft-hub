@@ -9,13 +9,13 @@ export const featuredCategories: Array<{
   {
     id: "software",
     label: "Software",
-    description: "Free software library for Windows, macOS, and Linux",
+    description: "Curated software library for Windows, macOS, and Linux",
     icon: "package",
   },
   {
     id: "games",
     label: "Games",
-    description: "Free games for PC",
+    description: "Desktop games and experiences",
     icon: "gamepad-2",
   },
   {
@@ -71,12 +71,6 @@ export const platformOptions: SoftwareFilterOption[] = [
   { id: "windows", label: "Windows" },
   { id: "mac", label: "macOS" },
   { id: "linux", label: "Linux" },
-  { id: "android", label: "Android" },
-  { id: "ios", label: "iOS" },
-];
-
-export const pricingOptions: Array<{ id: SoftwareType; label: string; chip: string }> = [
-  { id: "free", label: "Completely free", chip: "Free" },
 ];
 
 export const topPlatforms: Array<{ id: Platform; label: string; description: string }> = [
@@ -107,10 +101,11 @@ const createSoftware = (partial: Partial<Software>): Software => ({
   sizeInBytes: partial.sizeInBytes ?? 250 * 1024 * 1024,
   platforms: partial.platforms ?? ["windows"],
   categories: partial.categories ?? ["software"],
-  type: partial.type ?? "free",
+  type: partial.type ?? "standard",
   websiteUrl: partial.websiteUrl ?? null,
   downloadUrl: partial.downloadUrl ?? "https://example.com/download",
   isFeatured: partial.isFeatured ?? false,
+  isTrending: partial.isTrending ?? false,
   releaseDate: partial.releaseDate ?? new Date().toISOString(),
   updatedAt: partial.updatedAt ?? new Date().toISOString(),
   createdAt: partial.createdAt ?? new Date().toISOString(),
@@ -120,13 +115,12 @@ const createSoftware = (partial: Partial<Software>): Software => ({
     rating: 0,
     votes: 0,
   },
+  developer: partial.developer ?? {},
+  features: partial.features ?? [],
   media: partial.media ?? {
-    logoUrl: "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=120&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1523473827534-86c5be8377aa?auto=format&fit=crop&w=600&q=80",
-    ],
-    heroImage:
-      "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80",
+    logoUrl: "/images/software/atlas-utilities/gallery-1.jpg",
+    gallery: ["/images/software/atlas-utilities/gallery-1.jpg"],
+    heroImage: "/images/software/atlas-utilities/hero.jpg",
   },
   requirements: partial.requirements ?? {
     minimum: ["4GB RAM", "Intel Core i3", "500MB Storage"],
@@ -152,7 +146,7 @@ export const mockSoftwares: Software[] = [
     sizeInBytes: 512 * 1024 * 1024,
     platforms: ["windows", "mac"],
     categories: ["software"],
-    type: "free",
+    type: "standard",
     isFeatured: true,
     stats: {
       downloads: 89200,
@@ -171,7 +165,7 @@ export const mockSoftwares: Software[] = [
     sizeInBytes: 320 * 1024 * 1024,
     platforms: ["windows", "mac", "linux"],
     categories: ["software"],
-    type: "free",
+    type: "standard",
     isFeatured: true,
     stats: {
       downloads: 154000,
@@ -190,7 +184,7 @@ export const mockSoftwares: Software[] = [
     sizeInBytes: 280 * 1024 * 1024,
     platforms: ["windows", "linux"],
     categories: ["software"],
-    type: "free",
+    type: "standard",
     stats: {
       downloads: 189000,
       views: 410000,
@@ -208,7 +202,7 @@ export const mockSoftwares: Software[] = [
     sizeInBytes: 190 * 1024 * 1024,
     platforms: ["mac"],
     categories: ["software"],
-    type: "free",
+    type: "standard",
     stats: {
       downloads: 72000,
       views: 130000,
@@ -226,7 +220,7 @@ export const mockSoftwares: Software[] = [
     sizeInBytes: 640 * 1024 * 1024,
     platforms: ["windows", "linux"],
     categories: ["games"],
-    type: "free",
+    type: "standard",
     stats: {
       downloads: 45000,
       views: 96000,
