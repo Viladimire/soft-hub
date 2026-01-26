@@ -31,8 +31,18 @@ const configSchema = z.object({
 
 export type LocalAdminConfig = z.infer<typeof configSchema>;
 
-const CONFIG_DIR = path.join(process.cwd(), ".local");
-const CONFIG_PATH = path.join(CONFIG_DIR, "soft-hub-admin-config.json");
+const resolveConfigPath = () => {
+  const configuredPath = process.env.LOCAL_ADMIN_CONFIG_PATH;
+  if (configuredPath && configuredPath.trim()) {
+    const trimmed = configuredPath.trim();
+    return path.isAbsolute(trimmed) ? trimmed : path.join(process.cwd(), trimmed);
+  }
+
+  return path.join(process.cwd(), ".local", "soft-hub-admin-config.json");
+};
+
+const CONFIG_PATH = resolveConfigPath();
+const CONFIG_DIR = path.dirname(CONFIG_PATH);
 
 export const getLocalAdminConfigPath = () => CONFIG_PATH;
 
