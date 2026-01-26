@@ -37,7 +37,8 @@ export const GET = async (request: NextRequest) => {
   }
 
   const config = await readLocalAdminConfig();
-  return NextResponse.json({ config, path: getLocalAdminConfigPath() });
+  const path = process.env.VERCEL ? "supabase:public.admin_config" : getLocalAdminConfigPath();
+  return NextResponse.json({ config, path });
 };
 
 export const PUT = async (request: NextRequest) => {
