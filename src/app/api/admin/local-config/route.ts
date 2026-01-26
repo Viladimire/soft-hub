@@ -51,6 +51,30 @@ export const PUT = async (request: NextRequest) => {
     const config = await mergeLocalAdminConfig(body);
     return NextResponse.json({ config });
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error ?? "");
+
+    if (process.env.VERCEL) {
+      if (message.includes("Supabase URL is missing") || message.includes("Supabase service role key") || message.includes("anon key")) {
+        return NextResponse.json(
+          {
+            message:
+              "Supabase غير مُجهّز على السيرفر. تأكد من وجود NEXT_PUBLIC_SUPABASE_URL و NEXT_PUBLIC_SUPABASE_ANON_KEY (ويُفضّل SUPABASE_SERVICE_ROLE_KEY) في Vercel ثم أعد النشر.",
+          },
+          { status: 501 },
+        );
+      }
+
+      if (message.includes("admin_config") || message.includes("42P01") || message.includes("does not exist")) {
+        return NextResponse.json(
+          {
+            message:
+              "تخزين إعدادات الأدمن على Supabase غير مُفعّل بعد. شغّل migrations: 005_admin_config.sql (وبعدها أعد تحميل الصفحة).",
+          },
+          { status: 503 },
+        );
+      }
+    }
+
     if (error instanceof Error && error.message === "LOCAL_ADMIN_CONFIG_NOT_WRITABLE") {
       return NextResponse.json(
         {
