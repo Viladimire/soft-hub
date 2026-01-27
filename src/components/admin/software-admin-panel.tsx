@@ -239,6 +239,7 @@ export const SoftwareAdminPanel = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formState, setFormState] = useState<FormState>(DEFAULT_FORM);
+  const [previousSlug, setPreviousSlug] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
@@ -292,18 +293,21 @@ export const SoftwareAdminPanel = () => {
     setFormState({ ...DEFAULT_FORM, releaseDate: new Date().toISOString().slice(0, 10) });
     setIsFormOpen(true);
     setHasEditedSlug(false);
+    setPreviousSlug(null);
   };
 
   const openEditForm = (software: Software) => {
     setFormState(toFormState(software));
     setIsFormOpen(true);
     setHasEditedSlug(true);
+    setPreviousSlug(software.slug);
   };
 
   const closeForm = () => {
     setIsFormOpen(false);
     setFormState(DEFAULT_FORM);
     setHasEditedSlug(false);
+    setPreviousSlug(null);
   };
 
   const syncDataset = async () => {
@@ -330,7 +334,7 @@ export const SoftwareAdminPanel = () => {
       const payload = buildSoftwarePayload(formState);
       await request("/api/admin/software", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, previousSlug: previousSlug ?? undefined }),
       });
 
       pushNotification("success", "تم حفظ البرنامج بنجاح");
