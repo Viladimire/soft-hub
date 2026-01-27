@@ -4,35 +4,120 @@ import { resolve } from "node:path";
 import { Client } from "pg";
 
 const envPath = resolve(process.cwd(), ".env.local");
+const localAdminConfigPath = resolve(process.cwd(), ".local", "soft-hub-admin-config.json");
 
-if (!existsSync(envPath)) {
-  console.error("❌ ملف .env.local غير موجود. أضف بيانات Supabase DB أولاً.");
-  process.exit(1);
-}
+const parseEnvFile = (path) => {
+  if (!existsSync(path)) return {};
+  return readFileSync(path, "utf-8")
+    .split(/\r?\n/)
+    .reduce((acc, line) => {
+      if (!line || line.trim().startsWith("#")) return acc;
+      const [key, ...rest] = line.split("=");
+      if (!key) return acc;
 
-const env = readFileSync(envPath, "utf-8")
-  .split(/\r?\n/)
-  .reduce((acc, line) => {
-    if (!line || line.trim().startsWith("#")) return acc;
-    const [key, ...rest] = line.split("=");
-    if (!key) return acc;
-    acc[key.trim()] = rest.join("=").trim();
-    return acc;
-  }, {});
+      const rawValue = rest.join("=").trim();
+      const unquoted =
+        (rawValue.startsWith('"') && rawValue.endsWith('"')) || (rawValue.startsWith("'") && rawValue.endsWith("'"))
+          ? rawValue.slice(1, -1)
+          : rawValue;
 
-const host = env.SUPABASE_DB_HOST;
+      // If a user accidentally appended another KEY=VALUE on the same line, keep only the first token.
+      acc[key.trim()] = unquoted.split(/\s+/)[0]?.trim() ?? "";
+      return acc;
+    }, {});
+};
+
+const readLocalAdminConfig = () => {
+  if (!existsSync(localAdminConfigPath)) return {};
+  try {
+    const raw = readFileSync(localAdminConfigPath, "utf-8");
+
+    const objects = [];
+    let depth = 0;
+    let start = -1;
+    for (let i = 0; i < raw.length; i += 1) {
+      const ch = raw[i];
+      if (ch === "{") {
+        if (depth === 0) start = i;
+        depth += 1;
+      } else if (ch === "}") {
+        depth -= 1;
+        if (depth === 0 && start >= 0) {
+          const chunk = raw.slice(start, i + 1);
+          try {
+            objects.push(JSON.parse(chunk));
+          } catch {
+            // ignore invalid chunks
+          }
+          start = -1;
+        }
+      }
+    }
+
+    if (!objects.length) {
+      return {};
+    }
+
+    const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+    const deepMerge = (base, extra) => {
+      if (!isObject(base) || !isObject(extra)) return base;
+      const out = { ...base };
+      for (const key of Object.keys(extra)) {
+        const nextVal = extra[key];
+        if (isObject(out[key]) && isObject(nextVal)) {
+          out[key] = deepMerge(out[key], nextVal);
+        } else if (typeof nextVal !== "undefined") {
+          out[key] = nextVal;
+        }
+      }
+      return out;
+    };
+
+    return objects.reduce((acc, obj) => deepMerge(acc, obj), {});
+  } catch {
+    return {};
+  }
+};
+
+const env = parseEnvFile(envPath);
+const localAdminConfig = readLocalAdminConfig();
+
+const inferDbHostFromUrl = (url) => {
+  if (typeof url !== "string" || !url) return "";
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname;
+    const match = hostname.match(/^([a-z0-9-]+)\.supabase\.co$/i);
+    if (!match) return "";
+    return `db.${match[1]}.supabase.co`;
+  } catch {
+    return "";
+  }
+};
+
+const host =
+  env.SUPABASE_DB_HOST ||
+  localAdminConfig?.supabase?.dbHost ||
+  inferDbHostFromUrl(env.NEXT_PUBLIC_SUPABASE_URL || localAdminConfig?.supabase?.url);
+const portRaw = env.SUPABASE_DB_PORT || localAdminConfig?.supabase?.dbPort;
+const port = typeof portRaw === "string" && portRaw.trim() ? Number(portRaw.trim()) : 5432;
 const database = env.SUPABASE_DB_NAME ?? "postgres";
 const user = env.SUPABASE_DB_USER ?? "postgres";
-const password = env.SUPABASE_DB_PASSWORD;
+const password = env.SUPABASE_DB_PASSWORD || localAdminConfig?.supabase?.dbPassword;
 
 if (!host || !password) {
   console.error(
-    "❌ قيم قاعدة البيانات غير متوفرة. حدّث .env.local بالقيم SUPABASE_DB_HOST و SUPABASE_DB_PASSWORD (واختياريًا SUPABASE_DB_USER و SUPABASE_DB_NAME).",
+    "❌ قيم قاعدة البيانات غير متوفرة. أضف SUPABASE_DB_PASSWORD في .env.local (أو local config: supabase.dbPassword). ويمكن تحديد SUPABASE_DB_HOST يدويًا أو سيُستنتج من NEXT_PUBLIC_SUPABASE_URL.",
   );
   process.exit(1);
 }
 
-const connectionString = `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:5432/${encodeURIComponent(database)}`;
+if (Number.isNaN(port) || port <= 0) {
+  console.error("❌ SUPABASE_DB_PORT غير صالح.");
+  process.exit(1);
+}
+
+const connectionString = `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${encodeURIComponent(database)}`;
 
 const client = new Client({
   connectionString,
@@ -73,7 +158,17 @@ const applyMigration = async (filePath) => {
     }
     console.log("\n✅ All requested migrations applied.");
   } catch (error) {
-    console.error("\n❌ Failed to apply migrations:", error?.message ?? error);
+    const message = error?.message ?? String(error);
+    if (String(message).includes("getaddrinfo") || String(message).includes("ENOTFOUND") || String(message).includes("ENOENT")) {
+      console.error(
+        "\n❌ فشل الاتصال بقاعدة البيانات (DNS/Host). غالبًا تحتاج تستخدم Database Host/Port من Supabase Dashboard (Connection string / Pooler). حدّث SUPABASE_DB_HOST و SUPABASE_DB_PORT ثم أعد تشغيل السكربت.",
+      );
+      console.error("\nDetails:", message);
+      process.exitCode = 1;
+      return;
+    }
+
+    console.error("\n❌ Failed to apply migrations:", message);
     process.exitCode = 1;
   } finally {
     await client.end();
