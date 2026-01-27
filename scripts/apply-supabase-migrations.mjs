@@ -82,6 +82,16 @@ const readLocalAdminConfig = () => {
 const env = parseEnvFile(envPath);
 const localAdminConfig = readLocalAdminConfig();
 
+// Prefer explicit process env overrides (useful since .env.local is gitignored)
+const runtimeEnv = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  SUPABASE_DB_HOST: process.env.SUPABASE_DB_HOST,
+  SUPABASE_DB_PORT: process.env.SUPABASE_DB_PORT,
+  SUPABASE_DB_USER: process.env.SUPABASE_DB_USER,
+  SUPABASE_DB_NAME: process.env.SUPABASE_DB_NAME,
+  SUPABASE_DB_PASSWORD: process.env.SUPABASE_DB_PASSWORD,
+};
+
 const inferDbHostFromUrl = (url) => {
   if (typeof url !== "string" || !url) return "";
   try {
@@ -96,14 +106,15 @@ const inferDbHostFromUrl = (url) => {
 };
 
 const host =
+  runtimeEnv.SUPABASE_DB_HOST ||
   env.SUPABASE_DB_HOST ||
   localAdminConfig?.supabase?.dbHost ||
-  inferDbHostFromUrl(env.NEXT_PUBLIC_SUPABASE_URL || localAdminConfig?.supabase?.url);
-const portRaw = env.SUPABASE_DB_PORT || localAdminConfig?.supabase?.dbPort;
+  inferDbHostFromUrl(runtimeEnv.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || localAdminConfig?.supabase?.url);
+const portRaw = runtimeEnv.SUPABASE_DB_PORT || env.SUPABASE_DB_PORT || localAdminConfig?.supabase?.dbPort;
 const port = typeof portRaw === "string" && portRaw.trim() ? Number(portRaw.trim()) : 5432;
-const database = env.SUPABASE_DB_NAME ?? "postgres";
-const user = env.SUPABASE_DB_USER ?? "postgres";
-const password = env.SUPABASE_DB_PASSWORD || localAdminConfig?.supabase?.dbPassword;
+const database = runtimeEnv.SUPABASE_DB_NAME || env.SUPABASE_DB_NAME || "postgres";
+const user = runtimeEnv.SUPABASE_DB_USER || env.SUPABASE_DB_USER || "postgres";
+const password = runtimeEnv.SUPABASE_DB_PASSWORD || env.SUPABASE_DB_PASSWORD || localAdminConfig?.supabase?.dbPassword;
 
 if (!host || !password) {
   console.error(
@@ -128,7 +139,7 @@ const client = new Client({
 
 const migrations = [
   resolve(process.cwd(), "supabase", "migrations", "005_admin_config.sql"),
-  resolve(process.cwd(), "supabase", "migrations", "002_analytics.sql"),
+  resolve(process.cwd(), "supabase", "migrations", "006_analytics_fix.sql"),
 ];
 
 const applyMigration = async (filePath) => {

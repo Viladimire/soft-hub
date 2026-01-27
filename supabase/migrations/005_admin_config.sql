@@ -5,14 +5,30 @@ create table if not exists public.admin_config (
   constraint admin_config_singleton check (id = 1)
 );
 
+create or replace function public.is_admin() returns boolean
+language sql
+stable
+as $$
+  select coalesce(auth.jwt() ->> 'role', '') = 'admin';
+$$;
+
+create or replace function public.is_service_role() returns boolean
+language sql
+stable
+as $$
+  select coalesce(auth.jwt() ->> 'role', '') = 'service_role';
+$$;
+
 alter table public.admin_config enable row level security;
 
-create policy if not exists "admin_config_admin_read"
+drop policy if exists "admin_config_admin_read" on public.admin_config;
+create policy "admin_config_admin_read"
   on public.admin_config
   for select
   using (public.is_admin() or public.is_service_role());
 
-create policy if not exists "admin_config_admin_write"
+drop policy if exists "admin_config_admin_write" on public.admin_config;
+create policy "admin_config_admin_write"
   on public.admin_config
   for all
   to authenticated
