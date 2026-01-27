@@ -13,7 +13,8 @@ import { SoftwareAdminPanel } from "@/components/admin/software-admin-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ADMIN_SESSION_COOKIE_NAME, isValidAdminSessionValue } from "@/lib/auth/admin-session";
 import { fetchCollectionsDatasetFromGitHub } from "@/lib/services/github/collectionsDataStore";
-import { fetchSoftwareDatasetFromGitHub } from "@/lib/services/github/softwareDataStore";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchSoftwareStats } from "@/lib/services/softwareService";
 import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 
 export const metadata: Metadata = {
@@ -75,16 +76,17 @@ export default async function AdminPage() {
   let softwareViews = 0;
   let collectionsCount = 0;
 
-  if (githubConfigured) {
-    try {
-      const { items } = await fetchSoftwareDatasetFromGitHub();
-      softwareCount = items.length;
-      softwareDownloads = items.reduce((total, item) => total + (item.stats?.downloads ?? 0), 0);
-      softwareViews = items.reduce((total, item) => total + (item.stats?.views ?? 0), 0);
-    } catch (error) {
-      console.error("Failed to load software dataset for admin dashboard", error);
-    }
+  try {
+    const supabase = createSupabaseServerClient();
+    const stats = await fetchSoftwareStats(supabase);
+    softwareCount = stats.totalPrograms;
+    softwareDownloads = stats.totalDownloads;
+    softwareViews = stats.totalViews;
+  } catch (error) {
+    console.error("Failed to load software stats for admin dashboard", error);
+  }
 
+  if (githubConfigured) {
     try {
       const { items } = await fetchCollectionsDatasetFromGitHub();
       collectionsCount = items.length;
@@ -161,7 +163,7 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold text-white">{softwareCount}</p>
-              <p className="mt-1 text-xs text-neutral-500">إجمالي العناصر المخزنة في GitHub</p>
+              <p className="mt-1 text-xs text-neutral-500">إجمالي العناصر المخزنة في قاعدة البيانات (Supabase)</p>
             </CardContent>
           </Card>
           <Card className="border-white/10 bg-neutral-900/80">

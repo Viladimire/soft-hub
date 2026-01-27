@@ -9,6 +9,7 @@ import {
   GitHubConfigError,
   saveSoftwareToGitHub,
 } from "@/lib/services/github/softwareDataStore";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
 import { softwareSchema } from "@/lib/validations/software.schema";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
@@ -78,6 +79,84 @@ const toSoftwareRecord = (payload: AdminSoftwareInput): Software => {
   } satisfies Software;
 };
 
+const upsertSoftwareToSupabase = async (software: Software) => {
+  const supabase = createSupabaseServerClient();
+
+  const releaseDate = software.releaseDate ? software.releaseDate.slice(0, 10) : null;
+
+  const { error } = await supabase
+    .from("software")
+    .upsert(
+      {
+        slug: software.slug,
+        name: software.name,
+        summary: software.summary ?? null,
+        description: software.description,
+        version: software.version,
+        size_in_bytes: software.sizeInBytes ?? null,
+        platforms: software.platforms,
+        categories: software.categories,
+        type: software.type,
+        website_url: software.websiteUrl ?? null,
+        download_url: software.downloadUrl,
+        developer: (software.developer ?? {}) as any,
+        features: software.features ?? [],
+        is_featured: software.isFeatured ?? false,
+        is_trending: software.isTrending ?? false,
+        release_date: releaseDate,
+        stats: (software.stats ?? {}) as any,
+        media: (software.media ?? {}) as any,
+        requirements: (software.requirements ?? null) as any,
+        changelog: (software.changelog ?? null) as any,
+      },
+      { onConflict: "slug" },
+    );
+
+  if (error) {
+    throw error;
+  }
+};
+
+const deleteSoftwareFromSupabase = async (slug: string) => {
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from("software").delete().eq("slug", slug);
+  if (error) {
+    throw error;
+  }
+};
+
+const syncGitHubDatasetToSupabase = async () => {
+  const { items } = await fetchSoftwareDatasetFromGitHub();
+  const supabase = createSupabaseServerClient();
+
+  const before = await supabase.from("software").select("slug", { count: "exact" });
+  const beforeCount = before.count ?? 0;
+
+  for (const item of items) {
+    await upsertSoftwareToSupabase(item);
+  }
+
+  const slugs = items.map((item) => item.slug);
+  const existing = await supabase.from("software").select("slug");
+  const existingSlugs = (existing.data ?? []).map((row) => (row as any).slug as string).filter(Boolean);
+  const toDelete = existingSlugs.filter((slug) => !slugs.includes(slug));
+
+  if (toDelete.length) {
+    const { error } = await supabase.from("software").delete().in("slug", toDelete);
+    if (error) throw error;
+  }
+
+  const after = await supabase.from("software").select("slug", { count: "exact" });
+  const afterCount = after.count ?? 0;
+
+  return {
+    beforeCount,
+    githubCount: items.length,
+    afterCount,
+    deleted: toDelete.length,
+  };
+};
+
 export const GET = async (request: NextRequest) => {
   const unauthorized = ensureAuthorized(request);
   if (unauthorized) {
@@ -101,8 +180,23 @@ export const POST = async (request: NextRequest) => {
   try {
     const payload = await request.json();
     const software = adminSoftwareSchema.parse(payload);
-    const result = await saveSoftwareToGitHub(toSoftwareRecord(software));
-    return NextResponse.json({ item: result }, { status: 201 });
+    const record = toSoftwareRecord(software);
+    const result = await saveSoftwareToGitHub(record);
+
+    try {
+      const sync = await syncGitHubDatasetToSupabase();
+      return NextResponse.json({ item: result, sync }, { status: 201 });
+    } catch (syncError) {
+      console.error("Supabase sync failed after GitHub save", syncError);
+      return NextResponse.json(
+        {
+          message:
+            "تم حفظ التعديل على GitHub لكن فشل مزامنته إلى Supabase. هذا قد يسبب اختلافًا في العدد مؤقتًا بين الموقع والأدمن.",
+          item: result,
+        },
+        { status: 502 },
+      );
+    }
   } catch (error) {
     return handleError(error, "Failed to create or update software entry");
   }
@@ -124,7 +218,27 @@ export const DELETE = async (request: NextRequest) => {
   try {
     const { slug: validatedSlug } = deleteSchema.parse({ slug });
     const removed = await deleteSoftwareFromGitHub(validatedSlug);
-    return NextResponse.json({ item: removed });
+
+    try {
+      await deleteSoftwareFromSupabase(validatedSlug);
+    } catch (syncError) {
+      console.error("Supabase delete failed after GitHub delete", syncError);
+    }
+
+    try {
+      const sync = await syncGitHubDatasetToSupabase();
+      return NextResponse.json({ item: removed, sync });
+    } catch (syncError) {
+      console.error("Supabase full sync failed after GitHub delete", syncError);
+      return NextResponse.json(
+        {
+          message:
+            "تم حذف العنصر من GitHub لكن فشل مزامنته إلى Supabase. هذا قد يسبب اختلافًا في العدد مؤقتًا بين الموقع والأدمن.",
+          item: removed,
+        },
+        { status: 502 },
+      );
+    }
   } catch (error) {
     return handleError(error, "Failed to delete software entry");
   }
