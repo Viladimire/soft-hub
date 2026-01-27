@@ -93,6 +93,36 @@ const writeConfigToSupabase = async (next: LocalAdminConfig) => {
   return validated;
 };
 
+const readConfigFromEnv = (): LocalAdminConfig => {
+  return configSchema.parse({
+    github: {
+      owner: process.env.GITHUB_DATA_REPO_OWNER,
+      repo: process.env.GITHUB_DATA_REPO_NAME,
+      token: process.env.GITHUB_CONTENT_TOKEN,
+      branch: process.env.GITHUB_DATA_REPO_BRANCH,
+      repoUrl: process.env.GITHUB_DATA_REPO_URL,
+    },
+    supabase: {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    },
+    vercel: {
+      token: process.env.VERCEL_TOKEN,
+      projectId: process.env.VERCEL_PROJECT_ID,
+      teamId: process.env.VERCEL_TEAM_ID,
+      deployHookUrl: process.env.VERCEL_DEPLOY_HOOK_URL,
+    },
+  });
+};
+
+const mergeConfigs = (base: LocalAdminConfig, fallback: LocalAdminConfig): LocalAdminConfig =>
+  configSchema.parse({
+    github: { ...fallback.github, ...base.github },
+    supabase: { ...fallback.supabase, ...base.supabase },
+    vercel: { ...fallback.vercel, ...base.vercel },
+  });
+
 const resolveConfigPath = () => {
   const configuredPath = process.env.LOCAL_ADMIN_CONFIG_PATH;
   if (configuredPath && configuredPath.trim()) {
@@ -118,9 +148,11 @@ const ensureDir = async () => {
 export const readLocalAdminConfig = async (): Promise<LocalAdminConfig> => {
   if (process.env.VERCEL) {
     try {
-      return await readConfigFromSupabase();
+      const fromSupabase = await readConfigFromSupabase();
+      const fromEnv = readConfigFromEnv();
+      return mergeConfigs(fromSupabase, fromEnv);
     } catch {
-      return {};
+      return readConfigFromEnv();
     }
   }
 
