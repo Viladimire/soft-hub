@@ -14,8 +14,18 @@ import type { Platform, Software, SoftwareCategory } from "@/lib/types/software"
 import { softwareSchema } from "@/lib/validations/software.schema";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
 
-const platformValues = ["windows", "mac", "linux"] as const satisfies readonly Platform[];
-const categoryValues = ["software", "games"] as const satisfies readonly SoftwareCategory[];
+const platformValues = ["windows", "mac", "linux", "android", "ios", "web"] as const satisfies readonly Platform[];
+const categoryValues = [
+  "software",
+  "games",
+  "operating-systems",
+  "multimedia",
+  "utilities",
+  "development",
+  "security",
+  "productivity",
+  "education",
+] as const satisfies readonly SoftwareCategory[];
 
 const adminSoftwareSchema = softwareSchema.safeExtend({
   id: z.string().uuid().optional(),

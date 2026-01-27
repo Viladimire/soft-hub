@@ -11,8 +11,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const platformOptions: Platform[] = ["windows", "mac", "linux"];
-const categoryOptions: SoftwareCategory[] = ["software", "games", "utilities", "operating-systems"];
+const platformOptions: Platform[] = ["windows", "mac", "linux", "android", "ios", "web"];
+const categoryOptions: SoftwareCategory[] = [
+  "software",
+  "games",
+  "operating-systems",
+  "multimedia",
+  "utilities",
+  "development",
+  "security",
+  "productivity",
+  "education",
+];
 const STANDARD_TYPE: SoftwareType = "standard";
 
 const slugify = (value: string) =>
