@@ -62,7 +62,7 @@ const CATEGORY_ACCENTS: Record<string, CategoryAccent> = {
   "operating-systems": {
     container: "bg-gradient-to-br from-amber-500/22 via-orange-500/14 to-yellow-500/18 border-amber-300/45",
     glow: "bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.32),transparent_62%)]",
-    iconBg: "bg-gradient-to-br.from-amber-500/45 via-orange-500/30 to-yellow-400/30",
+    iconBg: "bg-gradient-to-br from-amber-500/45 via-orange-500/30 to-yellow-400/30",
     Icon: Cpu,
   },
   default: {
@@ -734,7 +734,7 @@ export const HeroSection = () => {
                         onClick={() => {
                           router.push(`/${locale}/software?category=${encodeURIComponent(category.id)}`);
                         }}
-                        className={`group relative flex w/full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition duration-300 hover:-translate-y-1 hover:border-white/45 ${accent.container}`}
+                        className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition duration-300 hover:-translate-y-1 hover:border-white/45 ${accent.container}`}
                       >
                         <span
                           aria-hidden="true"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from typing import Dict, Iterable, Optional
 from urllib.error import HTTPError
@@ -10,7 +11,6 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 API_BASE = "https://api.vercel.com"
-DEFAULT_TOKEN = "ejf8XJgL7JYzca2DKftShIDZ"
 DEFAULT_PROJECT_SLUG = "soft-hub"
 KEEP_COUNT = 1
 
@@ -106,7 +106,9 @@ def delete_deployment(
 
 
 def main() -> int:
-    token = DEFAULT_TOKEN
+    token = os.environ.get("VERCEL_TOKEN")
+    if not token:
+        raise RuntimeError("Missing Vercel token. Set VERCEL_TOKEN in your environment.")
     project_slug = DEFAULT_PROJECT_SLUG
 
     team_id = resolve_default_team(token)

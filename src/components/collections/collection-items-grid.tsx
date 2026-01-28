@@ -39,7 +39,7 @@ const buildHighlight = (item: CollectionItem, t: CollectionTranslate): string =>
     return item.software.summary;
   }
 
-  return t("collectionDetail.missingSoftware");
+  return t("missingSoftware");
 };
 
 export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGridProps) => {
@@ -50,9 +50,9 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h2 className="text-2xl font-semibold text-white sm:text-3xl">{t("collectionDetail.programsHeading")}</h2>
+        <h2 className="text-2xl font-semibold text-white sm:text-3xl">{t("programsHeading")}</h2>
         <p className="text-sm text-neutral-400">
-          {t("collectionDetail.description")}
+          {t("description")}
         </p>
       </header>
 
@@ -99,13 +99,13 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                   {software ? (
                     <dl className="grid grid-cols-2 gap-3 text-xs text-neutral-400">
                       <div>
-                        <dt className="uppercase tracking-wide text-neutral-500">{t("collectionDetail.platformsLabel")}</dt>
+                        <dt className="uppercase tracking-wide text-neutral-500">{t("platformsLabel")}</dt>
                         <dd className="text-neutral-200">
-                          {software.platforms.length ? software.platforms.join("، ") : t("collectionDetail.missingSoftware")}
+                          {software.platforms.length ? software.platforms.join("، ") : t("missingSoftware")}
                         </dd>
                       </div>
                       <div>
-                        <dt className="uppercase tracking-wide text-neutral-500">{t("collectionDetail.updatedLabel")}</dt>
+                        <dt className="uppercase tracking-wide text-neutral-500">{t("updatedLabel")}</dt>
                         <dd className="text-neutral-200">{releaseDate ?? ""}</dd>
                       </div>
                     </dl>
@@ -125,18 +125,18 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                     {href ? (
                       <Button asChild variant="primary" className="text-sm">
                         <Link href={href} prefetch>
-                          {t("collectionDetail.exploreButton")}
+                          {t("exploreButton")}
                         </Link>
                       </Button>
                     ) : (
                       <Button variant="ghost" className="text-sm" disabled>
-                        {t("collectionDetail.backLink")}
+                        {t("backLink")}
                       </Button>
                     )}
                     {software?.downloadUrl ? (
                       <Button asChild variant="ghost" className="text-sm">
                         <Link href={software.downloadUrl} target="_blank" rel="noopener">
-                          {t("collectionDetail.downloadButton")}
+                          {t("downloadButton")}
                         </Link>
                       </Button>
                     ) : null}

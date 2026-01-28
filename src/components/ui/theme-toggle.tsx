@@ -2,22 +2,19 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 
 const ICON_SIZE = "h-4 w-4";
 
 export const ThemeToggle = () => {
-  const [mounted, setMounted] = useState(false);
   const { resolvedTheme, systemTheme, setTheme } = useTheme();
 
-  const effectiveTheme = resolvedTheme ?? systemTheme ?? "light";
-  const isDark = effectiveTheme === "dark";
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isDark = useMemo(() => {
+    const effectiveTheme = resolvedTheme ?? systemTheme ?? "light";
+    return effectiveTheme === "dark";
+  }, [resolvedTheme, systemTheme]);
 
   const handleToggle = () => {
     setTheme(isDark ? "light" : "dark");
@@ -27,12 +24,12 @@ export const ThemeToggle = () => {
       type="button"
       variant="ghost"
       size="icon"
-      aria-label={mounted ? (isDark ? "Switch to light mode" : "Switch to dark mode") : "Toggle theme"}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className="h-9 w-9 rounded-full border border-white/10 text-neutral-100 transition hover:border-white/30 hover:bg-white/10"
       onClick={handleToggle}
-      disabled={!mounted}
+      suppressHydrationWarning
     >
-      {mounted && isDark ? <Sun className={ICON_SIZE} /> : <Moon className={ICON_SIZE} />}
+      <span suppressHydrationWarning>{isDark ? <Sun className={ICON_SIZE} /> : <Moon className={ICON_SIZE} />}</span>
     </Button>
   );
 };

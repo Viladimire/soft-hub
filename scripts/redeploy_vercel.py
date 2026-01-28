@@ -14,7 +14,6 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 API_BASE = "https://api.vercel.com"
-DEFAULT_VERCEL_TOKEN = "ejf8XJgL7JYzca2DKftShIDZ"
 
 
 def build_url(path: str, params: Optional[Dict[str, str]] = None) -> str:
@@ -137,7 +136,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     args = parser.parse_args(argv)
 
-    token = args.token or os.environ.get("VERCEL_TOKEN") or DEFAULT_VERCEL_TOKEN
+    token = args.token or os.environ.get("VERCEL_TOKEN")
     if not token:
         print("❌ Missing Vercel token. Provide --token or set VERCEL_TOKEN.", file=sys.stderr)
         return 1

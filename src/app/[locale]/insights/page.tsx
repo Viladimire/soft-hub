@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { AppShell } from "@/components/layouts/app-shell";
 import { SideBar } from "@/components/layouts/sidebar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComingSoonHero, type ComingSoonFeature } from "@/components/templates/coming-soon-hero";
 

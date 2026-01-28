@@ -2,8 +2,16 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { fetchSoftwareDatasetFromGitHub, GitHubConfigError } from "@/lib/services/github/softwareDataStore";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
+import type { Json } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Software } from "@/lib/types/software";
+
+const getSlugFromRow = (row: unknown): string | null => {
+  if (!row || typeof row !== "object") return null;
+  if (!("slug" in row)) return null;
+  const slug = (row as { slug?: unknown }).slug;
+  return typeof slug === "string" && slug.trim() ? slug : null;
+};
 
 const ensureAuthorized = (request: NextRequest) => {
   try {
@@ -39,15 +47,15 @@ const upsertSoftwareToSupabase = async (software: Software) => {
         type: software.type,
         website_url: software.websiteUrl ?? null,
         download_url: software.downloadUrl,
-        developer: (software.developer ?? {}) as any,
+        developer: (software.developer ?? {}) as unknown as Json,
         features: software.features ?? [],
         is_featured: software.isFeatured ?? false,
         is_trending: software.isTrending ?? false,
         release_date: releaseDate,
-        stats: (software.stats ?? {}) as any,
-        media: (software.media ?? {}) as any,
-        requirements: (software.requirements ?? null) as any,
-        changelog: (software.changelog ?? null) as any,
+        stats: (software.stats ?? {}) as unknown as Json,
+        media: (software.media ?? {}) as unknown as Json,
+        requirements: (software.requirements ?? null) as unknown as Json,
+        changelog: (software.changelog ?? null) as unknown as Json,
       },
       { onConflict: "slug" },
     );
@@ -71,10 +79,9 @@ export const POST = async (request: NextRequest) => {
       await upsertSoftwareToSupabase(item);
     }
 
-    // Mirror delete: remove rows not present in GitHub dataset
     const slugs = items.map((item) => item.slug);
     const existing = await supabase.from("software").select("slug");
-    const existingSlugs = (existing.data ?? []).map((row) => (row as any).slug as string).filter(Boolean);
+    const existingSlugs = (existing.data ?? []).map(getSlugFromRow).filter((slug): slug is string => Boolean(slug));
 
     const toDelete = existingSlugs.filter((slug) => !slugs.includes(slug));
     if (toDelete.length) {

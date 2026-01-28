@@ -6,6 +6,20 @@ import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admi
 import { getAnalyticsTotals, getPopularSoftware, getTrendingSoftware } from "@/lib/services/analytics.server";
 import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 
+const isErrorWithCode = (value: unknown): value is { code?: unknown; message?: unknown } =>
+  value !== null && typeof value === "object" && ("code" in value || "message" in value);
+
+const getErrorCode = (value: unknown): string | undefined => {
+  if (!isErrorWithCode(value)) return undefined;
+  return typeof value.code === "string" ? value.code : undefined;
+};
+
+const getErrorMessage = (value: unknown): string => {
+  if (value instanceof Error && typeof value.message === "string") return value.message;
+  if (isErrorWithCode(value) && typeof value.message === "string") return value.message;
+  return String(value ?? "");
+};
+
 const ensureAuthorized = (request: NextRequest) => {
   try {
     getAdminSecretOrThrow();
@@ -55,9 +69,9 @@ export const GET = async (request: NextRequest) => {
         (result): result is PromiseRejectedResult => result.status === "rejected",
       );
 
-      const reason = (rejected as PromiseRejectedResult | undefined)?.reason as any;
-      const code = reason?.code as string | undefined;
-      const message = typeof reason?.message === "string" ? reason.message : String(reason ?? "");
+      const reason = (rejected as PromiseRejectedResult | undefined)?.reason;
+      const code = getErrorCode(reason);
+      const message = getErrorMessage(reason);
 
       if (code === "PGRST202" || message.includes("schema cache") || message.includes("Could not find the function")) {
         return NextResponse.json({ message: "Supabase analytics is not initialized" }, { status: 503 });
@@ -73,7 +87,7 @@ export const GET = async (request: NextRequest) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load analytics";
-    const code = (error as any)?.code as string | undefined;
+    const code = getErrorCode(error);
     if (code === "PGRST202" || message.includes("schema cache") || message.includes("Could not find the function")) {
       return NextResponse.json({ message: "Supabase analytics is not initialized" }, { status: 503 });
     }

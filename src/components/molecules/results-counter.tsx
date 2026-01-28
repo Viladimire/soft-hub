@@ -40,7 +40,7 @@ export const ResultsCounter = ({ total, isInitialLoading = false, isUpdating = f
     }
 
     return statuses;
-  }, [isInitialLoading, isUpdating, t]);
+  }, [isInitialLoading, isUpdating, t, total]);
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">

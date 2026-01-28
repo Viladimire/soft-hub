@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Download, Monitor, Star } from "lucide-react";
@@ -46,7 +47,7 @@ const SoftwareCardImage = ({
         src={heroImage}
         alt={alt}
         fill
-        className="object-cover"
+        className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         sizes="(max-width: 768px) 100vw, 33vw"
         loading="lazy"
         onError={onError}
@@ -105,18 +106,40 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
   const logoImage = !logoErrored ? software.media.logoUrl : null;
 
   return (
-    <article
+    <motion.article
+      whileHover={{ y: -12, rotateX: 3.5, rotateY: -3.5 }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
       className={cn(
-        "flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/80 shadow-[0_18px_45px_rgba(15,23,42,0.35)]",
+        "group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-white/0 backdrop-blur-xl",
+        "shadow-[0_18px_45px_rgba(15,23,42,0.35)] transition-all duration-300 hover:border-white/20 hover:shadow-[0_28px_70px_rgba(79,70,229,0.28)]",
         className,
       )}
     >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition duration-300 group-hover:opacity-100"
+      >
+        <span className="absolute inset-[-2px] rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 opacity-70 blur-[14px]" />
+        <span className="absolute inset-0 rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 opacity-60 animate-border-gradient" />
+      </span>
+
       <SoftwareCardImage
         heroImage={heroImage}
         alt={software.name}
         fallbackIcon={<Monitor className="h-10 w-10 text-white/70" />}
         onError={() => setHeroErrored(true)}
       />
+
+      <div className="pointer-events-none absolute left-4 right-4 top-4 flex items-center justify-between gap-3 opacity-0 transition duration-300 group-hover:opacity-100">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
+          <Download className="h-3.5 w-3.5 text-indigo-200" />
+          {downloads}
+        </span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
+          <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-200" />
+          {software.stats.rating.toFixed(1)}
+        </span>
+      </div>
 
       <div className="flex flex-1 flex-col gap-6 p-6">
         <header className="flex items-start gap-4">
@@ -206,7 +229,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
               <Button
                 variant="ghost"
                 asChild
-                className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-wide text-white hover:-translate-y-0.5"
+                className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-wide text-white transition-all duration-200 hover:-translate-y-1 hover:bg-white/15"
               >
                 <Link href={detailHref}>
                   {t("viewDetails")}
@@ -218,12 +241,12 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
               <Button
                 variant="primary"
                 asChild
-                className="rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(79,70,229,0.45)] hover:-translate-y-0.5"
+                className="group/button rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(79,70,229,0.45)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(236,72,153,0.35)]"
               >
                 <Link href={software.downloadUrl}>
                   {t("downloadNow")}
                   <span className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-                    <Download className="h-3.5 w-3.5" />
+                    <Download className="h-3.5 w-3.5 transition group-hover/button:animate-bounce" />
                   </span>
                 </Link>
               </Button>
@@ -231,6 +254,6 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
           </footer>
         ) : null}
       </div>
-    </article>
+    </motion.article>
   );
 };

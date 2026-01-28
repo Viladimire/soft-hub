@@ -10,6 +10,7 @@ import {
   saveSoftwareToGitHub,
 } from "@/lib/services/github/softwareDataStore";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/supabase/database.types";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
 import { softwareSchema } from "@/lib/validations/software.schema";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
@@ -110,15 +111,15 @@ const upsertSoftwareToSupabase = async (software: Software) => {
         type: software.type,
         website_url: software.websiteUrl ?? null,
         download_url: software.downloadUrl,
-        developer: (software.developer ?? {}) as any,
+        developer: (software.developer ?? {}) as unknown as Json,
         features: software.features ?? [],
         is_featured: software.isFeatured ?? false,
         is_trending: software.isTrending ?? false,
         release_date: releaseDate,
-        stats: (software.stats ?? {}) as any,
-        media: (software.media ?? {}) as any,
-        requirements: (software.requirements ?? null) as any,
-        changelog: (software.changelog ?? null) as any,
+        stats: (software.stats ?? {}) as unknown as Json,
+        media: (software.media ?? {}) as unknown as Json,
+        requirements: (software.requirements ?? null) as unknown as Json,
+        changelog: (software.changelog ?? null) as unknown as Json,
       },
       { onConflict: "slug" },
     );

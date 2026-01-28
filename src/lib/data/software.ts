@@ -1,4 +1,4 @@
-import type { Platform, Software, SoftwareCategory, SoftwareType } from "@/lib/types/software";
+import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
 
 export const featuredCategories: Array<{
   id: SoftwareCategory;

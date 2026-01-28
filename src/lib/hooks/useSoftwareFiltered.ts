@@ -68,7 +68,14 @@ export const useSoftwareFiltered = () => {
       }
 
       if (!supabase) {
-        throw new Error("Supabase client is not available in the browser context.");
+        const response = await queryStaticSoftware({ ...filters, page, perPage });
+
+        return {
+          ...response,
+          usedFallback: true,
+          source: "fallback",
+          originError: "Supabase client not ready. Using fallback dataset.",
+        } satisfies SoftwareQueryPage;
       }
 
       try {

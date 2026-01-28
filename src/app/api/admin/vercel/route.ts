@@ -40,7 +40,7 @@ export const GET = async (request: NextRequest) => {
       cache: "no-store",
     });
 
-    const payload = (await response.json().catch(() => null)) as any;
+    const payload: unknown = await response.json().catch(() => null);
     if (!response.ok) {
       return NextResponse.json(
         {
@@ -52,7 +52,10 @@ export const GET = async (request: NextRequest) => {
       );
     }
 
-    const deployments = (payload?.deployments ?? []) as VercelDeployment[];
+    const deployments =
+      payload && typeof payload === "object" && "deployments" in payload && Array.isArray((payload as { deployments?: unknown }).deployments)
+        ? (((payload as { deployments?: unknown }).deployments ?? []) as VercelDeployment[])
+        : [];
     const latest = deployments[0];
 
     if (!latest?.url) {

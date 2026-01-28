@@ -207,7 +207,14 @@ export const RequestsAdminPanel = () => {
     }
   };
 
-  const statusLabel = useMemo(() => Object.fromEntries(statusOptions.map((s) => [s.value, s.label])), [] as unknown as Array<[SoftwareRequestStatus, string]>);
+  const statusLabel = useMemo(
+    () =>
+      Object.fromEntries(statusOptions.map((s) => [s.value, s.label])) as Record<
+        SoftwareRequestStatus,
+        string
+      >,
+    [],
+  );
 
   return (
     <div className="space-y-6">

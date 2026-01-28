@@ -78,6 +78,16 @@ export const EmptyState = ({
         className,
       )}
     >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-0 -z-10 opacity-70",
+          variant === "error"
+            ? "bg-[radial-gradient(circle_at_top,rgba(244,63,94,0.18),transparent_60%)]"
+            : "bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.16),transparent_60%)]",
+        )}
+      />
+
       <motion.span
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -88,8 +98,8 @@ export const EmptyState = ({
         )}
       >
         <motion.span
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ y: [0, -8, 0], rotate: [0, 6, -6, 0] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         >
           <Icon className="h-9 w-9" />
         </motion.span>
@@ -105,10 +115,10 @@ export const EmptyState = ({
           type="button"
           variant={variant === "error" ? "secondary" : "ghost"}
           className={cn(
-            "rounded-full border border-white/15 px-6 py-2 text-sm transition hover:translate-y-[-2px]",
+            "rounded-full border border-white/15 px-6 py-2 text-sm transition-all duration-200 hover:-translate-y-1",
             variant === "error"
               ? "bg-white/15 text-white shadow-[0_12px_24px_rgba(225,29,72,0.25)] hover:bg-white/20"
-              : "bg-white/10 text-neutral-100 hover:bg-white/16",
+              : "bg-white/10 text-neutral-100 hover:bg-white/16 hover:shadow-[0_18px_44px_rgba(99,102,241,0.18)]",
           )}
           onClick={onAction}
           disabled={actionDisabled}

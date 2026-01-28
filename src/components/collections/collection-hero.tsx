@@ -1,5 +1,6 @@
 import type { Collection } from "@/lib/types/collection";
 import { cn } from "@/lib/utils/cn";
+import Image from "next/image";
 
 const FALLBACK_COVER = "/images/software/atlas-utilities/hero.jpg";
 
@@ -86,10 +87,12 @@ export const CollectionHero = ({ collection, labels }: CollectionHeroProps) => {
         </div>
 
         <div className="relative h-60 overflow-hidden rounded-3xl border border-white/10 bg-black/20">
-          <img
+          <Image
             src={collection.coverImageUrl ?? FALLBACK_COVER}
             alt={collection.title}
-            className="h-full w-full object-cover object-center"
+            fill
+            className="object-cover object-center"
+            sizes="(max-width: 768px) 100vw, 280px"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/40" />
           <div className="absolute inset-x-0 bottom-0 p-4 text-xs text-white/80">

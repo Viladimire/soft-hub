@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from typing import Dict, Optional
 from urllib.error import HTTPError
@@ -16,7 +17,6 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 API_BASE = "https://api.vercel.com"
-DEFAULT_TOKEN = "ejf8XJgL7JYzca2DKftShIDZ"
 DEFAULT_PROJECT_SLUG = "soft-hub"
 PRODUCTION_ALIAS = "soft-hub-alpha.vercel.app"
 
@@ -142,11 +142,14 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--project", default=DEFAULT_PROJECT_SLUG, help="Vercel project slug")
     parser.add_argument("--deployment-id", help="Optional deployment id to promote")
     parser.add_argument("--alias", default=PRODUCTION_ALIAS, help="Alias/domain to assign")
-    parser.add_argument("--token", default=DEFAULT_TOKEN, help="Vercel access token")
+    parser.add_argument("--token", help="Vercel access token (defaults to VERCEL_TOKEN env)")
     parser.add_argument("--team-id", help="Optional team id override")
     args = parser.parse_args(argv)
 
-    token = args.token
+    token = args.token or os.environ.get("VERCEL_TOKEN")
+    if not token:
+        print("❌ Missing Vercel token. Provide --token or set VERCEL_TOKEN.", file=sys.stderr)
+        return 1
     team_id = args.team_id or resolve_default_team(token)
 
     if team_id:

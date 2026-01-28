@@ -50,24 +50,47 @@ export const SettingsAdminPanel = () => {
           return;
         }
 
-        const payload = (await response.json()) as { config?: any; path?: string };
-        const cfg = payload?.config ?? {};
+        const payload = (await response.json()) as { config?: unknown; path?: string };
+        const cfg = (payload && typeof payload === "object" && "config" in payload
+          ? (payload as { config?: unknown }).config
+          : undefined) as
+          | {
+              github?: {
+                owner?: string;
+                repo?: string;
+                token?: string;
+                branch?: string;
+                repoUrl?: string;
+              };
+              supabase?: {
+                url?: string;
+                anonKey?: string;
+                serviceRoleKey?: string;
+              };
+              vercel?: {
+                token?: string;
+                projectId?: string;
+                teamId?: string;
+                deployHookUrl?: string;
+              };
+            }
+          | undefined;
         setConfigPath(payload?.path ?? "");
 
         setLocalConfig((prev) => ({
           ...prev,
-          githubOwner: cfg.github?.owner ?? "",
-          githubRepo: cfg.github?.repo ?? "",
-          githubToken: cfg.github?.token ?? "",
-          githubBranch: cfg.github?.branch ?? "main",
-          githubRepoUrl: cfg.github?.repoUrl ?? "",
-          supabaseUrl: cfg.supabase?.url ?? "",
-          supabaseAnonKey: cfg.supabase?.anonKey ?? "",
-          supabaseServiceRoleKey: cfg.supabase?.serviceRoleKey ?? "",
-          vercelToken: cfg.vercel?.token ?? "",
-          vercelProjectId: cfg.vercel?.projectId ?? "",
-          vercelTeamId: cfg.vercel?.teamId ?? "",
-          vercelDeployHookUrl: cfg.vercel?.deployHookUrl ?? "",
+          githubOwner: cfg?.github?.owner ?? "",
+          githubRepo: cfg?.github?.repo ?? "",
+          githubToken: cfg?.github?.token ?? "",
+          githubBranch: cfg?.github?.branch ?? "main",
+          githubRepoUrl: cfg?.github?.repoUrl ?? "",
+          supabaseUrl: cfg?.supabase?.url ?? "",
+          supabaseAnonKey: cfg?.supabase?.anonKey ?? "",
+          supabaseServiceRoleKey: cfg?.supabase?.serviceRoleKey ?? "",
+          vercelToken: cfg?.vercel?.token ?? "",
+          vercelProjectId: cfg?.vercel?.projectId ?? "",
+          vercelTeamId: cfg?.vercel?.teamId ?? "",
+          vercelDeployHookUrl: cfg?.vercel?.deployHookUrl ?? "",
         }));
 
         setConfigStatus("idle");
@@ -452,9 +475,9 @@ export const SettingsAdminPanel = () => {
             </span>
           </div>
           <p className="text-xs text-neutral-400">
-            إذا ظهر "غير مُجهّز" فهذا يعني أن متغيرات Supabase غير متاحة للسيرفر (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).
+            إذا ظهر &quot;غير مُجهّز&quot; فهذا يعني أن متغيرات Supabase غير متاحة للسيرفر (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).
             <br />
-            إذا ظهر "غير مُفعّل" فهذا يعني أن Supabase موجود لكن وظائف التحليلات (migrations) لم تُطبّق بعد.
+            إذا ظهر &quot;غير مُفعّل&quot; فهذا يعني أن Supabase موجود لكن وظائف التحليلات (migrations) لم تُطبّق بعد.
           </p>
         </CardContent>
       </Card>

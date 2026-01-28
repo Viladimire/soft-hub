@@ -69,7 +69,7 @@ const readConfigFromSupabase = async (): Promise<LocalAdminConfig> => {
     throw error;
   }
 
-  const raw = (data as any)?.config ?? {};
+  const raw = (data && typeof data === "object" && "config" in data ? (data as { config?: unknown }).config : undefined) ?? {};
   return configSchema.parse(raw);
 };
 

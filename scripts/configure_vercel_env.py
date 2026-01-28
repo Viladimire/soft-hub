@@ -192,6 +192,12 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     token = args.token or os.environ.get("VERCEL_TOKEN")
     if not token:
+        try:
+            env_values = load_env_file(args.env_file)
+            token = env_values.get("VERCEL_TOKEN")
+        except Exception:
+            token = None
+    if not token:
         print("❌ Missing Vercel token. Provide --token or set VERCEL_TOKEN.", file=sys.stderr)
         return 1
 

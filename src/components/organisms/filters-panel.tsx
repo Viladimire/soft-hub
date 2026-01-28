@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
   Apple,
@@ -46,6 +47,11 @@ type PlatformDefinition = {
   label: string;
 };
 
+type PillAccent = {
+  active: string;
+  inactive: string;
+};
+
 const CATEGORY_DEFINITIONS: Array<{ id: string; value: string | null; icon: LucideIcon }> = [
   { id: "all", value: null, icon: Package },
   { id: "software", value: "software", icon: Package },
@@ -63,6 +69,95 @@ const PLATFORM_ICON_MAP: Record<string, LucideIcon> = {
   windows: Monitor,
   mac: Apple,
   linux: Terminal,
+};
+
+const CATEGORY_PILL_ACCENTS: Record<string, PillAccent> = {
+  all: {
+    active:
+      "bg-gradient-to-r from-slate-700/60 via-slate-600/40 to-slate-500/40 ring-2 ring-white/20 shadow-[0_18px_50px_rgba(15,23,42,0.45)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/25",
+  },
+  software: {
+    active:
+      "bg-gradient-to-r from-blue-600/70 via-indigo-500/45 to-cyan-500/45 ring-2 ring-blue-400/40 shadow-[0_18px_50px_rgba(59,130,246,0.25)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-blue-400/25",
+  },
+  games: {
+    active:
+      "bg-gradient-to-r from-fuchsia-600/70 via-purple-500/45 to-violet-500/45 ring-2 ring-fuchsia-300/35 shadow-[0_18px_50px_rgba(192,38,211,0.22)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-fuchsia-300/25",
+  },
+  utilities: {
+    active:
+      "bg-gradient-to-r from-emerald-600/65 via-teal-500/40 to-lime-500/40 ring-2 ring-emerald-300/35 shadow-[0_18px_50px_rgba(16,185,129,0.18)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-emerald-300/25",
+  },
+  "operating-systems": {
+    active:
+      "bg-gradient-to-r from-amber-500/70 via-orange-500/45 to-yellow-500/45 ring-2 ring-amber-200/35 shadow-[0_18px_50px_rgba(245,158,11,0.2)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-amber-300/25",
+  },
+  multimedia: {
+    active:
+      "bg-gradient-to-r from-sky-600/65 via-cyan-500/40 to-blue-500/40 ring-2 ring-sky-300/30 shadow-[0_18px_50px_rgba(56,189,248,0.18)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-sky-300/25",
+  },
+  development: {
+    active:
+      "bg-gradient-to-r from-indigo-600/70 via-blue-500/45 to-sky-500/45 ring-2 ring-indigo-300/35 shadow-[0_18px_50px_rgba(99,102,241,0.2)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-indigo-300/25",
+  },
+  security: {
+    active:
+      "bg-gradient-to-r from-rose-600/65 via-pink-500/40 to-fuchsia-500/40 ring-2 ring-rose-200/30 shadow-[0_18px_50px_rgba(244,63,94,0.18)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-rose-300/25",
+  },
+  productivity: {
+    active:
+      "bg-gradient-to-r from-purple-600/65 via-indigo-500/40 to-slate-500/35 ring-2 ring-purple-200/25 shadow-[0_18px_50px_rgba(124,58,237,0.18)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-purple-300/25",
+  },
+  education: {
+    active:
+      "bg-gradient-to-r from-teal-600/60 via-emerald-500/40 to-cyan-500/35 ring-2 ring-emerald-200/25 shadow-[0_18px_50px_rgba(20,184,166,0.16)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-emerald-300/25",
+  },
+};
+
+const PLATFORM_PILL_ACCENTS: Record<string, PillAccent> = {
+  windows: {
+    active:
+      "bg-gradient-to-r from-indigo-600/70 via-blue-500/45 to-sky-500/45 ring-2 ring-indigo-300/35 shadow-[0_18px_50px_rgba(99,102,241,0.2)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-indigo-300/25",
+  },
+  mac: {
+    active:
+      "bg-gradient-to-r from-slate-700/60 via-zinc-600/40 to-slate-500/35 ring-2 ring-white/20 shadow-[0_18px_50px_rgba(15,23,42,0.4)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/25",
+  },
+  linux: {
+    active:
+      "bg-gradient-to-r from-emerald-600/60 via-teal-500/40 to-cyan-500/35 ring-2 ring-emerald-200/25 shadow-[0_18px_50px_rgba(16,185,129,0.16)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-emerald-300/25",
+  },
+};
+
+const SORT_PILL_ACCENTS: Record<string, PillAccent> = {
+  latest: {
+    active:
+      "bg-gradient-to-r from-indigo-600/70 via-purple-500/45 to-rose-500/40 ring-2 ring-indigo-300/30 shadow-[0_18px_50px_rgba(99,102,241,0.2)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/25",
+  },
+  popular: {
+    active:
+      "bg-gradient-to-r from-amber-500/70 via-orange-500/45 to-rose-500/35 ring-2 ring-amber-200/25 shadow-[0_18px_50px_rgba(245,158,11,0.18)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-amber-300/25",
+  },
+  name: {
+    active:
+      "bg-gradient-to-r from-sky-600/60 via-cyan-500/40 to-emerald-500/35 ring-2 ring-sky-200/25 shadow-[0_18px_50px_rgba(56,189,248,0.16)]",
+    inactive: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-sky-300/25",
+  },
 };
 
 export const FiltersPanel = () => {
@@ -178,28 +273,35 @@ export const FiltersPanel = () => {
 
         <section className="space-y-3">
           <p className="text-xs uppercase tracking-wide text-neutral-400">{t("categoriesLabel")}</p>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-wrap gap-2">
             {categories.map((category) => {
               const isActive = category.value === snapshot.selectedCategory || (!category.value && !snapshot.selectedCategory);
 
+              const accent = CATEGORY_PILL_ACCENTS[category.id] ?? CATEGORY_PILL_ACCENTS.all;
+
               return (
-                <button
+                <motion.button
                   key={category.id}
                   type="button"
+                  whileHover={{ y: -3, scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => setCategory(category.value)}
                   aria-pressed={isActive}
                   className={cn(
-                    "flex flex-col gap-2 rounded-2xl border px-4 py-4 text-left transition",
-                    isActive
-                      ? "border-primary-400/60 bg-primary-500/10 text-white"
-                      : "border-white/10 bg-white/5 text-neutral-200 hover:border-white/25 hover:bg-white/10",
+                    "group inline-flex items-center gap-2 rounded-full border px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-white transition",
+                    isActive ? accent.active : accent.inactive,
                   )}
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900/60 text-white">
-                    <category.icon className="h-5 w-5" />
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-neutral-950/40 backdrop-blur-xl transition",
+                      isActive ? "bg-white/15" : "bg-neutral-950/30 group-hover:bg-white/10",
+                    )}
+                  >
+                    <category.icon className={cn("h-4 w-4 transition", isActive ? "text-white" : "text-white/85")} />
                   </span>
-                  <span className="text-sm font-semibold text-white">{category.label}</span>
-                </button>
+                  <span className="text-[11px]">{category.label}</span>
+                </motion.button>
               );
             })}
           </div>
@@ -207,29 +309,40 @@ export const FiltersPanel = () => {
 
         <section className="space-y-3">
           <p className="text-xs uppercase tracking-wide text-neutral-400">{t("platformLabel")}</p>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-wrap gap-2">
             {platforms.map((platform) => {
               const isActive = snapshot.selectedPlatforms.includes(platform.id);
 
+              const accent = PLATFORM_PILL_ACCENTS[platform.id] ?? PLATFORM_PILL_ACCENTS.windows;
+
               return (
-                <button
+                <motion.button
                   key={platform.id}
                   type="button"
+                  whileHover={{ y: -3, scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => togglePlatform(platform.id)}
                   aria-pressed={isActive}
                   className={cn(
-                    "flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition",
-                    isActive
-                      ? "border-primary-400/60 bg-primary-500/10 text-white"
-                      : "border-white/10 bg-white/5 text-neutral-200 hover:border-white/25 hover:bg-white/10",
+                    "group inline-flex items-center gap-2 rounded-full border px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-white transition",
+                    isActive ? accent.active : accent.inactive,
                   )}
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900/60 text-white">
-                    <platform.icon className="h-4 w-4" />
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-neutral-950/40 backdrop-blur-xl transition",
+                      isActive ? "bg-white/15" : "bg-neutral-950/30 group-hover:bg-white/10",
+                    )}
+                  >
+                    <platform.icon className={cn("h-4 w-4 transition", isActive ? "text-white" : "text-white/85")} />
                   </span>
-                  <span className="flex-1 text-sm font-semibold text-white">{platform.label}</span>
-                  {isActive ? <CheckCircle2 className="h-4 w-4 text-primary-200" /> : <ChevronDown className="h-4 w-4 rotate-[-90deg] text-neutral-400" />}
-                </button>
+                  <span className="text-[11px]">{platform.label}</span>
+                  {isActive ? (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 rotate-[-90deg] text-white/60" />
+                  )}
+                </motion.button>
               );
             })}
           </div>
@@ -242,26 +355,32 @@ export const FiltersPanel = () => {
           <header className="flex items-center justify-between text-xs uppercase tracking-wide text-neutral-400">
             <span>{t("sortLabel")}</span>
           </header>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-wrap gap-2">
             {sortOptions.map((option) => {
               const isActive = snapshot.sortBy === option.value;
 
+              const accent = SORT_PILL_ACCENTS[option.value] ?? SORT_PILL_ACCENTS.latest;
+
               return (
-                <button
+                <motion.button
                   key={option.value}
                   type="button"
+                  whileHover={{ y: -3, scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => setSortBy(option.value)}
                   aria-pressed={isActive}
                   className={cn(
-                    "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition",
-                    isActive
-                      ? "border-primary-400/40 bg-primary-500/10 text-white"
-                      : "border-white/12 bg-white/5 text-neutral-300 hover:border-white/30",
+                    "group inline-flex items-center gap-2 rounded-full border px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-white transition",
+                    isActive ? accent.active : accent.inactive,
                   )}
                 >
-                  <span>{option.label}</span>
-                  {isActive ? <CheckCircle2 className="h-4 w-4 text-primary-200" /> : <ChevronDown className="h-4 w-4 rotate-[-90deg] text-neutral-400" />}
-                </button>
+                  <span className="text-[11px]">{option.label}</span>
+                  {isActive ? (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 rotate-[-90deg] text-white/60" />
+                  )}
+                </motion.button>
               );
             })}
           </div>

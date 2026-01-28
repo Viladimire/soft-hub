@@ -18,6 +18,7 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "dist/**",
     "node_modules/**",
+    "scripts/test-images.ts",
   ]),
 ]);
 

@@ -1,5 +1,5 @@
 import staticCollectionsDataset from "@/lib/data/static-collections-dataset.json";
-import { fetchStaticSoftwareDataset, getStaticSoftwareBySlug } from "@/lib/services/staticSoftwareRepository";
+import { fetchStaticSoftwareDataset } from "@/lib/services/staticSoftwareRepository";
 import type { Collection, CollectionItem, CollectionSummary } from "@/lib/types/collection";
 
 const COLLECTIONS_DATA_BASE = process.env.NEXT_PUBLIC_COLLECTIONS_DATA_URL_BASE ?? process.env.NEXT_PUBLIC_DATA_BASE_URL ?? "";
