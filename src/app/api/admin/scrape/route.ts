@@ -12,6 +12,14 @@ type ScrapeResult = {
   summary: string;
   description: string;
   websiteUrl: string;
+  version?: string;
+  releaseDate?: string;
+  downloads?: number;
+  developer?: string;
+  requirements?: {
+    minimum: string[];
+    recommended: string[];
+  };
   logoUrl: string;
   heroImage: string;
   screenshots: string[];
@@ -82,6 +90,66 @@ const uniqueUrls = (items: string[]) => Array.from(new Set(items.map((v) => v.tr
 
 const stripTags = (value: string) => value.replace(/<[^>]*>/g, " ");
 
+const htmlToTextLines = (html: string) => {
+  const withBreaks = html
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|tr|h\d)\s*>/gi, "\n")
+    .replace(/<\/(td|th)\s*>/gi, "\n")
+    .replace(/<\/(table)\s*>/gi, "\n");
+
+  return normalizeText(stripTags(withBreaks))
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+};
+
+const pickValueAfterLabel = (lines: string[], label: string) => {
+  const labelLower = label.toLowerCase();
+  for (let i = 0; i < lines.length; i += 1) {
+    const current = lines[i];
+    if (current.toLowerCase() === labelLower) {
+      return lines[i + 1] ?? "";
+    }
+    if (current.toLowerCase().startsWith(`${labelLower}:`)) {
+      return current.slice(label.length + 1).trim();
+    }
+  }
+  return "";
+};
+
+const extractRequirementsBlock = (lines: string[]) => {
+  const anchors = [
+    "technical details and system requirements",
+    "system requirements",
+    "technical details",
+  ];
+  const startIndex = lines.findIndex((line) => anchors.some((a) => line.toLowerCase().includes(a)));
+  if (startIndex < 0) {
+    return { minimum: [], recommended: [] };
+  }
+
+  const slice = lines.slice(startIndex + 1, startIndex + 40);
+  const stopIndex = slice.findIndex((line) => /^(download|related|more|screenshots?)\b/i.test(line));
+  const block = (stopIndex >= 0 ? slice.slice(0, stopIndex) : slice)
+    .map((line) => line.replace(/^[-•\u2022\s]+/, "").trim())
+    .filter((line) => line.length >= 3);
+
+  const minimum: string[] = [];
+  const recommended: string[] = [];
+  for (const line of block) {
+    if (/recommended/i.test(line)) {
+      recommended.push(line);
+    } else {
+      minimum.push(line);
+    }
+  }
+
+  return {
+    minimum: uniqueUrls(minimum).slice(0, 16),
+    recommended: uniqueUrls(recommended).slice(0, 16),
+  };
+};
+
 const extractFirstParagraph = (html: string) => {
   const match = html.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
   if (!match) return "";
@@ -130,6 +198,17 @@ const scoreHeroCandidate = (url: string) => {
   let score = 0;
   if (lower.includes("hero") || lower.includes("banner") || lower.includes("cover")) score += 6;
   if (lower.includes("og")) score += 2;
+  if (lower.includes("logo") || lower.includes("icon") || lower.includes("favicon")) score -= 6;
+  return score;
+};
+
+const scoreScreenshotCandidate = (url: string) => {
+  const lower = url.toLowerCase();
+  let score = 0;
+  if (lower.includes("screenshot") || lower.includes("screen")) score += 8;
+  if (lower.includes("gallery")) score += 4;
+  if (lower.includes("flickr")) score += 2;
+  if (lower.includes("spacer") || lower.includes("placeholder")) score -= 10;
   if (lower.includes("logo") || lower.includes("icon") || lower.includes("favicon")) score -= 6;
   return score;
 };
@@ -320,6 +399,8 @@ const fetchHtml = async (url: URL) => {
 };
 
 const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
+  const lines = htmlToTextLines(html);
+
   const ogTitle = extractMeta(html, { attr: "property", value: "og:title" });
   const ogDesc = extractMeta(html, { attr: "property", value: "og:description" });
   const ogImage =
@@ -368,19 +449,41 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
 
   const imgCandidates = extractImgSources(html).map((u) => resolveUrl(baseUrl, u));
 
-  const screenshots = uniqueUrls([
+  const screenshotPool = uniqueUrls([
     ...heroCandidates,
     ...imgCandidates,
   ])
     .filter(Boolean)
-    .filter(isLikelyImage)
-    .slice(0, 6);
+    .filter(isLikelyImage);
+
+  const scoredScreenshots = screenshotPool
+    .map((url) => ({ url, score: scoreScreenshotCandidate(url) }))
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.url);
+
+  const screenshots = uniqueUrls([
+    ...scoredScreenshots,
+  ]).slice(0, 6);
+
+  const version = pickValueAfterLabel(lines, "Version") || pickValueAfterLabel(lines, "File name");
+  const releaseDate = pickValueAfterLabel(lines, "Release Date");
+  const developer = pickValueAfterLabel(lines, "Created by");
+  const downloadsRaw = pickValueAfterLabel(lines, "Total Downloads");
+  const downloads = downloadsRaw ? Number(String(downloadsRaw).replace(/[^0-9]/g, "")) : 0;
+
+  const requirements = extractRequirementsBlock(lines);
 
   return {
     name,
     summary,
     description,
     websiteUrl: baseUrl.toString(),
+    version: clampText(version, 40) || undefined,
+    releaseDate: clampText(releaseDate, 40) || undefined,
+    downloads: downloads > 0 ? downloads : undefined,
+    developer: clampText(developer, 80) || undefined,
+    requirements:
+      requirements.minimum.length || requirements.recommended.length ? requirements : undefined,
     logoUrl: pickBest(logoCandidates, scoreLogoCandidate) || pickFirst(logoCandidates),
     heroImage: pickBest(heroCandidates, scoreHeroCandidate) || pickFirst(heroCandidates),
     screenshots: uniqueUrls([

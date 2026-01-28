@@ -155,6 +155,14 @@ type ScrapeResponse = {
   summary: string;
   description: string;
   websiteUrl: string;
+  version?: string;
+  releaseDate?: string;
+  downloads?: number;
+  developer?: string;
+  requirements?: {
+    minimum: string[];
+    recommended: string[];
+  };
   logoUrl: string;
   heroImage: string;
   screenshots: string[];
@@ -993,11 +1001,43 @@ export const SoftwareAdminPanel = () => {
         const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "");
         const nextHeroImage = normalizeImageUrl(data.heroImage ?? "");
 
+        const nextDownloads =
+          parseNumber(state.statsDownloads, 0) > 0
+            ? state.statsDownloads
+            : typeof data.downloads === "number" && Number.isFinite(data.downloads) && data.downloads > 0
+              ? String(Math.floor(data.downloads))
+              : state.statsDownloads;
+
+        const nextDeveloperJson = state.developerJson.trim()
+          ? state.developerJson
+          : data.developer?.trim()
+            ? JSON.stringify({ name: data.developer.trim(), source: "scrape" }, null, 2)
+            : state.developerJson;
+
+        const nextMinReq = state.minRequirements.trim()
+          ? state.minRequirements
+          : data.requirements?.minimum?.length
+            ? data.requirements.minimum.join("\n")
+            : state.minRequirements;
+
+        const nextRecReq = state.recRequirements.trim()
+          ? state.recRequirements
+          : data.requirements?.recommended?.length
+            ? data.requirements.recommended.join("\n")
+            : state.recRequirements;
+
         return {
           ...state,
           name: state.name.trim() ? state.name : (data.name ?? state.name),
           summary: state.summary.trim() ? state.summary : (data.summary ?? state.summary),
           description: state.description.trim() ? state.description : (data.description ?? state.description),
+          version:
+            state.version.trim() && state.version !== "1.0.0" ? state.version : (data.version?.trim() || state.version),
+          releaseDate: state.releaseDate.trim() ? state.releaseDate : (data.releaseDate?.trim() || state.releaseDate),
+          statsDownloads: nextDownloads,
+          developerJson: nextDeveloperJson,
+          minRequirements: nextMinReq,
+          recRequirements: nextRecReq,
           logoUrl: state.logoUrl.trim() ? state.logoUrl : nextLogoUrl || state.logoUrl,
           heroImage: state.heroImage.trim() ? state.heroImage : nextHeroImage || state.heroImage,
           gallery: nextGallery,
