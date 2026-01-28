@@ -5,6 +5,7 @@ import net from "node:net";
 
 const payloadSchema = z.object({
   url: z.string().url(),
+  englishMode: z.enum(["soft", "strict"]).optional(),
 });
 
 type ScrapeResult = {
@@ -21,6 +22,7 @@ type ScrapeResult = {
     minimum: string[];
     recommended: string[];
   };
+  features?: string[];
   logoUrl: string;
   heroImage: string;
   screenshots: string[];
@@ -32,6 +34,50 @@ const FETCH_TIMEOUT_MS = 10_000;
 const clampText = (value: string, max: number) => value.trim().replace(/\s+/g, " ").slice(0, max);
 
 const normalizeText = (value: string) => value.replace(/\s+/g, " ").trim();
+
+const countMatches = (value: string, rx: RegExp) => {
+  const matches = value.match(rx);
+  return matches ? matches.length : 0;
+};
+
+const isMostlyEnglish = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  const arabicCount = countMatches(trimmed, /[\u0600-\u06FF]/g);
+  if (arabicCount > 0) {
+    const latinLetters = countMatches(trimmed, /[A-Za-z]/g);
+    return latinLetters >= arabicCount * 2;
+  }
+  return true;
+};
+
+const stripNonEnglishChars = (value: string) => {
+  return value
+    .replace(/[\u0600-\u06FF]/g, " ")
+    .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const applyEnglishModeToText = (value: string, mode: "soft" | "strict") => {
+  const cleaned = mode === "soft" ? stripNonEnglishChars(value) : value.trim();
+  if (!cleaned) return "";
+  if (mode === "strict") {
+    return isMostlyEnglish(cleaned) ? cleaned : "";
+  }
+  return cleaned;
+};
+
+const applyEnglishModeToLines = (lines: string[], mode: "soft" | "strict") => {
+  const out: string[] = [];
+  for (const line of lines) {
+    const cleaned = applyEnglishModeToText(line, mode);
+    if (!cleaned) continue;
+    if (mode === "soft" && cleaned.length < 2) continue;
+    out.push(cleaned);
+  }
+  return out;
+};
 
 const isPrivateIp = (ip: string) => {
   const kind = net.isIP(ip);
@@ -111,9 +157,9 @@ const htmlToTextLines = (html: string) => {
     .replace(/<\/(td|th)\s*>/gi, "\n")
     .replace(/<\/(table)\s*>/gi, "\n");
 
-  return normalizeText(stripTags(withBreaks))
+  return stripTags(withBreaks)
     .split(/\n+/)
-    .map((line) => line.trim())
+    .map((line) => normalizeText(line))
     .filter(Boolean);
 };
 
@@ -135,10 +181,16 @@ const pickNumberAfterLabels = (lines: string[], labels: string[]) => {
   for (const label of labels) {
     const raw = pickValueAfterLabel(lines, label);
     if (!raw) continue;
-    const parsed = Number(String(raw).replace(/[^0-9]/g, ""));
+    const parsed = parseHumanNumber(raw);
     if (Number.isFinite(parsed) && parsed > 0) return parsed;
   }
   return 0;
+};
+
+const parseSizeFromText = (text: string) => {
+  const match = text.match(/\b(?:file\s*size|size)\b\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
+  if (!match) return 0;
+  return parseSizeToMb(`${match[1]} ${match[2]}`);
 };
 
 const pickDownloadsFallback = (lines: string[]) => {
@@ -146,8 +198,34 @@ const pickDownloadsFallback = (lines: string[]) => {
   const rx = /\b(total\s+downloads?|downloads?)\b\s*[:\-]?\s*([0-9][0-9,\s]*)/i;
   const match = text.match(rx);
   if (!match) return 0;
-  const parsed = Number(match[2].replace(/[^0-9]/g, ""));
+  const parsed = parseHumanNumber(match[2]);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
+
+const parseHumanNumber = (raw: string) => {
+  const normalized = String(raw).trim();
+  if (!normalized) return 0;
+
+  const suffixMatch = normalized.match(/([0-9][0-9,\s]*(?:\.[0-9]+)?)\s*([kmb])\b/i);
+  if (suffixMatch) {
+    const num = Number(suffixMatch[1].replace(/,/g, "").replace(/\s+/g, ""));
+    if (!Number.isFinite(num)) return 0;
+    const suffix = suffixMatch[2].toLowerCase();
+    if (suffix === "k") return Math.round(num * 1_000);
+    if (suffix === "m") return Math.round(num * 1_000_000);
+    if (suffix === "b") return Math.round(num * 1_000_000_000);
+  }
+
+  const digits = normalized.replace(/[^0-9]/g, "");
+  const parsed = Number(digits);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const parseVersionFromString = (raw: string) => {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const match = trimmed.match(/\b(?:v)?(\d+\.\d+(?:\.\d+){0,3})\b/i);
+  return match ? match[1] : trimmed;
 };
 
 const parseSizeToMb = (raw: string) => {
@@ -569,7 +647,7 @@ const fetchHtml = async (url: URL) => {
   }
 };
 
-const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
+const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "strict"): ScrapeResult => {
   const lines = htmlToTextLines(html);
 
   const ogTitle = extractMeta(html, { attr: "property", value: "og:title" });
@@ -598,8 +676,10 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
 
   const overviewText = extractOverviewText(lines);
   const descriptionText = overviewText || resolvedDescription;
-  const description = clampText(descriptionText, 1200);
-  const summary = clampText(descriptionText || resolvedDescription, 220);
+  const descriptionEnglish = applyEnglishModeToText(descriptionText, englishMode) || descriptionText;
+  const summaryEnglish = applyEnglishModeToText(descriptionText || resolvedDescription, englishMode) || (descriptionText || resolvedDescription);
+  const description = clampText(descriptionEnglish, 1200);
+  const summary = clampText(summaryEnglish, 220);
 
   const iconHref = extractLinkIcon(html);
 
@@ -651,6 +731,12 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
     productInfo.get("file name") ||
     pickValueAfterLabel(lines, "File name");
 
+  const versionFallback =
+    parseVersionFromString(versionRaw ?? "") ||
+    parseVersionFromString(name) ||
+    parseVersionFromString(title) ||
+    parseVersionFromString(h1);
+
   const releaseDateRaw = productInfo.get("release date") || pickValueAfterLabel(lines, "Release Date");
   const developerRaw = productInfo.get("created by") || pickValueAfterLabel(lines, "Created by");
 
@@ -663,25 +749,32 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
     const fromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
     const parsed = fromProductInfo ? parseSizeToMb(fromProductInfo) : 0;
     if (parsed > 0) return parsed;
-    return pickSizeInMb(lines);
+    const picked = pickSizeInMb(lines);
+    if (picked > 0) return picked;
+    return parseSizeFromText(lines.join("\n"));
   })();
 
   const requirements = extractRequirementsBlock(lines);
-  const features = extractFeaturesList(lines);
+  const requirementsEnglish = {
+    minimum: applyEnglishModeToLines(requirements.minimum, englishMode),
+    recommended: applyEnglishModeToLines(requirements.recommended, englishMode),
+  };
+
+  const features = applyEnglishModeToLines(extractFeaturesList(lines), englishMode);
 
   return {
     name,
     summary,
     description,
     websiteUrl: baseUrl.toString(),
-    version: clampText(versionRaw ?? "", 60) || undefined,
+    version: clampText(versionFallback, 60) || undefined,
     releaseDate: normalizeReleaseDateToIso(clampText(releaseDateRaw ?? "", 80)) || undefined,
     downloads: downloads > 0 ? downloads : undefined,
     sizeInMb: sizeInMb > 0 ? sizeInMb : undefined,
     developer: clampText(developerRaw ?? "", 80) || undefined,
     ...(features.length ? { features } : {}),
     requirements:
-      requirements.minimum.length || requirements.recommended.length ? requirements : undefined,
+      requirementsEnglish.minimum.length || requirementsEnglish.recommended.length ? requirementsEnglish : undefined,
     logoUrl: pickBest(logoCandidates, scoreLogoCandidate) || pickFirst(logoCandidates),
     heroImage: pickBest(heroCandidates, scoreHeroCandidate) || pickFirst(heroCandidates),
     screenshots: uniqueUrls([
@@ -717,7 +810,8 @@ export const POST = async (request: NextRequest) => {
     const targetUrl = assertUrlAllowed(payload.url);
 
     const html = await fetchHtml(targetUrl);
-    const data = toScrapeResult(targetUrl, html);
+    const mode = payload.englishMode ?? "soft";
+    const data = toScrapeResult(targetUrl, html, mode);
 
     return NextResponse.json(data);
   } catch (error) {
