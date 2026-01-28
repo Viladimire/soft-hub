@@ -87,9 +87,23 @@ const handleError = (error: unknown, fallbackMessage: string) => {
   const extra = [code && `code=${code}`, details && `details=${details}`, hint && `hint=${hint}`]
     .filter(Boolean)
     .join(" | ");
-  if (message || extra) {
+  const stack = error instanceof Error ? error.stack ?? "" : "";
+  const debug = {
+    code: code || undefined,
+    details: details || undefined,
+    hint: hint || undefined,
+    stack: stack || undefined,
+  };
+
+  if (message || extra || stack) {
+    const combined = message
+      ? `${fallbackMessage}: ${message}${extra ? ` (${extra})` : ""}`
+      : `${fallbackMessage}${extra ? ` (${extra})` : ""}`;
     return NextResponse.json(
-      { message: message ? `${fallbackMessage}: ${message}${extra ? ` (${extra})` : ""}` : `${fallbackMessage}${extra ? ` (${extra})` : ""}` },
+      {
+        message: combined,
+        debug,
+      },
       { status: 500 },
     );
   }
