@@ -17,6 +17,21 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "filecr.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.filecr.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "media.imgcdn.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "**.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },

@@ -990,16 +990,16 @@ export const SoftwareAdminPanel = () => {
       });
 
       setFormState((state) => {
-        const nextGallery = state.gallery.trim()
-          ? state.gallery
-          : (data.screenshots ?? [])
-              .map((value) => normalizeImageUrl(value))
-              .filter(Boolean)
-              .slice(0, 3)
-              .join("\n");
+        const normalizedScreenshots = (data.screenshots ?? [])
+          .map((value) => normalizeImageUrl(value))
+          .filter(Boolean)
+          .slice(0, 6);
 
-        const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "");
+        const fallbackGallery = normalizedScreenshots.slice(0, 3).join("\n");
+        const nextGallery = state.gallery.trim() ? state.gallery : fallbackGallery;
+
         const nextHeroImage = normalizeImageUrl(data.heroImage ?? "");
+        const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "") || normalizedScreenshots[0] || nextHeroImage;
 
         const nextDownloads =
           parseNumber(state.statsDownloads, 0) > 0
@@ -1026,6 +1026,21 @@ export const SoftwareAdminPanel = () => {
             ? data.requirements.recommended.join("\n")
             : state.recRequirements;
 
+        const today = new Date().toISOString().slice(0, 10);
+        const normalizeDate = (raw: string) => {
+          const trimmed = raw.trim();
+          if (!trimmed) return "";
+          if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+          const parsed = new Date(trimmed);
+          return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+        };
+        const scrapedDate = data.releaseDate ? normalizeDate(data.releaseDate) : "";
+
+        const nextPlatforms: Platform[] = state.platforms.length ? state.platforms : (["windows"] as Platform[]);
+        const nextCategories: SoftwareCategory[] = state.categories.length
+          ? state.categories
+          : (["software"] as SoftwareCategory[]);
+
         return {
           ...state,
           name: state.name.trim() ? state.name : (data.name ?? state.name),
@@ -1033,7 +1048,8 @@ export const SoftwareAdminPanel = () => {
           description: state.description.trim() ? state.description : (data.description ?? state.description),
           version:
             state.version.trim() && state.version !== "1.0.0" ? state.version : (data.version?.trim() || state.version),
-          releaseDate: state.releaseDate.trim() ? state.releaseDate : (data.releaseDate?.trim() || state.releaseDate),
+          releaseDate:
+            state.releaseDate.trim() && state.releaseDate !== today ? state.releaseDate : (scrapedDate || state.releaseDate),
           statsDownloads: nextDownloads,
           developerJson: nextDeveloperJson,
           minRequirements: nextMinReq,
@@ -1041,6 +1057,8 @@ export const SoftwareAdminPanel = () => {
           logoUrl: state.logoUrl.trim() ? state.logoUrl : nextLogoUrl || state.logoUrl,
           heroImage: state.heroImage.trim() ? state.heroImage : nextHeroImage || state.heroImage,
           gallery: nextGallery,
+          platforms: nextPlatforms,
+          categories: nextCategories,
         };
       });
 
