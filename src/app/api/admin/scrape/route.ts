@@ -177,16 +177,6 @@ const pickValueAfterLabel = (lines: string[], label: string) => {
   return "";
 };
 
-const pickNumberAfterLabels = (lines: string[], labels: string[]) => {
-  for (const label of labels) {
-    const raw = pickValueAfterLabel(lines, label);
-    if (!raw) continue;
-    const parsed = parseHumanNumber(raw);
-    if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  }
-  return 0;
-};
-
 const parseSizeFromText = (text: string) => {
   const match = text.match(/\b(?:file\s*size|size)\b\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
   if (!match) return 0;
@@ -368,6 +358,29 @@ const extractProductInfoMap = (lines: string[]) => {
   }
 
   return map;
+};
+
+const parseDownloadsValue = (raw: string) => {
+  const normalized = String(raw ?? "").trim();
+  if (!normalized) return 0;
+  const match = normalized.match(/\b(\d{1,3}(?:,\d{3})+|\d{4,})\b/);
+  if (!match) return 0;
+  const parsed = Number(match[1].replace(/,/g, ""));
+  if (!Number.isFinite(parsed)) return 0;
+  if (parsed < 10_000) return 0;
+  if (parsed > 2_000_000_000) return 0;
+  return parsed;
+};
+
+const pickDownloads = (lines: string[], productInfo: Map<string, string>) => {
+  const fromProductInfo = parseDownloadsValue(productInfo.get("total downloads") || "");
+  if (fromProductInfo) return fromProductInfo;
+
+  const labeled = parseDownloadsValue(pickValueAfterLabel(lines, "Total Downloads"));
+  if (labeled) return labeled;
+
+  const fallback = pickDownloadsFallback(lines);
+  return fallback >= 10_000 && fallback <= 2_000_000_000 ? fallback : 0;
 };
 
 const pickSizeInMb = (lines: string[]) => {
@@ -760,12 +773,7 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
   const releaseDateRaw = productInfo.get("release date") || pickValueAfterLabel(lines, "Release Date");
   const developerRaw = productInfo.get("created by") || pickValueAfterLabel(lines, "Created by");
 
-  const downloadsFromProductInfo = parseHumanNumber(productInfo.get("total downloads") || "");
-
-  const downloads =
-    (downloadsFromProductInfo > 0 ? downloadsFromProductInfo : 0) ||
-    pickNumberAfterLabels(lines, ["Total Downloads", "Downloads", "Total Download"]) ||
-    pickDownloadsFallback(lines);
+  const downloads = pickDownloads(lines, productInfo);
 
   const sizeInMb = (() => {
     const fromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
