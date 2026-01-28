@@ -241,6 +241,60 @@ const parseSizeToMb = (raw: string) => {
   return 0;
 };
 
+const isReasonableSizeInMb = (mb: number) => Number.isFinite(mb) && mb >= 1 && mb <= 200_000;
+
+const extractSizeCandidatesFromText = (text: string) => {
+  const candidates: number[] = [];
+  const normalized = String(text || "");
+  if (!normalized) return candidates;
+
+  const labelRx = /\b(?:file\s*size|filesize|download\s*size|size)\b[^\n\r]{0,80}?(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
+  let m: RegExpExecArray | null;
+  while ((m = labelRx.exec(normalized))) {
+    const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
+    if (isReasonableSizeInMb(mb)) candidates.push(mb);
+  }
+
+  const looseRx = /(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
+  while ((m = looseRx.exec(normalized))) {
+    const start = Math.max(0, m.index - 40);
+    const ctx = normalized.slice(start, m.index + m[0].length + 40);
+    if (!/\b(?:file\s*size|filesize|download\s*size|size)\b/i.test(ctx)) continue;
+    const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
+    if (isReasonableSizeInMb(mb)) candidates.push(mb);
+  }
+
+  return candidates;
+};
+
+const pickBestSizeCandidate = (candidates: number[]) => {
+  if (!candidates.length) return 0;
+  const sorted = [...candidates].sort((a, b) => a - b);
+  // Prefer typical installer sizes over tiny artifacts; pick the median-ish.
+  return sorted[Math.floor(sorted.length / 2)] ?? 0;
+};
+
+const extractSizeInMbFromHtml = (html: string) => {
+  const text = stripTags(html);
+  const fromText = extractSizeCandidatesFromText(text);
+
+  const scripts: string[] = [];
+  const scriptRx = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = scriptRx.exec(html))) {
+    const body = m[1];
+    if (!body) continue;
+    // Only keep scripts that are likely to contain metadata.
+    if (!/(file\s*size|filesize|download\s*size|"size"\s*:|size\s*:)/i.test(body)) continue;
+    scripts.push(body);
+    if (scripts.length >= 10) break;
+  }
+
+  const fromScripts = extractSizeCandidatesFromText(scripts.join("\n"));
+  const best = pickBestSizeCandidate([...fromText, ...fromScripts]);
+  return isReasonableSizeInMb(best) ? best : 0;
+};
+
 const extractSection = (
   lines: string[],
   startMatchers: Array<(line: string) => boolean>,
@@ -791,7 +845,9 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
     if (parsed > 0) return parsed;
     const picked = pickSizeInMb(lines);
     if (picked > 0) return picked;
-    return parseSizeFromText(lines.join("\n"));
+    const fromLines = parseSizeFromText(lines.join("\n"));
+    if (fromLines > 0) return fromLines;
+    return extractSizeInMbFromHtml(html);
   })();
 
   const requirements = extractRequirementsBlock(lines);
