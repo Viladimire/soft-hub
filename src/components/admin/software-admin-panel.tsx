@@ -393,9 +393,28 @@ const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<
   });
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    const baseMessage = errorBody?.message ?? `فشل الطلب (${response.status})`;
-    const fieldErrors = errorBody?.errors?.fieldErrors as Record<string, string[] | undefined> | undefined;
+    const errorText = await response.text().catch(() => "");
+    const errorBody = (() => {
+      if (!errorText) {
+        return {} as unknown;
+      }
+
+      try {
+        return JSON.parse(errorText) as unknown;
+      } catch {
+        return {} as unknown;
+      }
+    })();
+
+    const errorObject = (errorBody ?? {}) as {
+      message?: unknown;
+      errors?: { fieldErrors?: Record<string, unknown> };
+      debug?: { stack?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+    };
+
+    const baseMessage =
+      typeof errorObject?.message === "string" ? errorObject.message : `فشل الطلب (${response.status})`;
+    const fieldErrors = errorObject?.errors?.fieldErrors as Record<string, string[] | undefined> | undefined;
     const fieldSummary = fieldErrors
       ? Object.entries(fieldErrors)
           .filter(([, errors]) => Array.isArray(errors) && errors.length)
@@ -403,7 +422,17 @@ const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<
           .join("\n")
       : "";
 
-    const message = fieldSummary ? `${baseMessage}\n${fieldSummary}` : baseMessage;
+    const rawBodyFallback = !fieldSummary && errorText && !errorText.trim().startsWith("{") ? errorText.trim() : "";
+    const debugParts: string[] = [];
+    const debug = errorObject?.debug;
+    if (debug && typeof debug === "object") {
+      if (typeof debug.code === "string" && debug.code) debugParts.push(`code=${debug.code}`);
+      if (typeof debug.details === "string" && debug.details) debugParts.push(`details=${debug.details}`);
+      if (typeof debug.hint === "string" && debug.hint) debugParts.push(`hint=${debug.hint}`);
+      if (typeof debug.stack === "string" && debug.stack) debugParts.push(debug.stack);
+    }
+
+    const message = [baseMessage, fieldSummary, debugParts.join("\n"), rawBodyFallback].filter(Boolean).join("\n");
     const error = new Error(message) as RequestError;
     error.status = response.status;
     throw error;
