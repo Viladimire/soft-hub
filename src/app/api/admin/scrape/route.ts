@@ -79,6 +79,16 @@ const applyEnglishModeToLines = (lines: string[], mode: "soft" | "strict") => {
   return out;
 };
 
+const stripBranding = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed
+    .replace(/\s*[-|–—]\s*filecr\b/gi, "")
+    .replace(/\bfilecr\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
+
 const isPrivateIp = (ip: string) => {
   const kind = net.isIP(ip);
   if (!kind) return false;
@@ -700,7 +710,7 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
   const title = extractTitle(html);
   const h1 = extractH1(html);
 
-  const name = clampText(ogTitle || twTitle || jsonLdData.name || h1 || title, 120);
+  const name = clampText(stripBranding(ogTitle || twTitle || jsonLdData.name || h1 || title), 120);
 
   const lines = sliceAfterTitle(rawLines, h1 || title || name);
 
@@ -711,8 +721,8 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
   const descriptionText = overviewText || resolvedDescription;
   const descriptionEnglish = applyEnglishModeToText(descriptionText, englishMode) || descriptionText;
   const summaryEnglish = applyEnglishModeToText(descriptionText || resolvedDescription, englishMode) || (descriptionText || resolvedDescription);
-  const description = clampText(descriptionEnglish, 1200);
-  const summary = clampText(summaryEnglish, 220);
+  const description = clampText(stripBranding(descriptionEnglish), 1200);
+  const summary = clampText(stripBranding(summaryEnglish), 220);
 
   const iconHref = extractLinkIcon(html);
 
