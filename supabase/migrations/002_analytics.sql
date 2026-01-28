@@ -24,16 +24,29 @@ create index if not exists idx_analytics_search_events_query
 
 alter table public.analytics_search_events enable row level security;
 
-create policy if not exists "analytics_search_events_admin_read"
-  on public.analytics_search_events
-  for select
-  using (public.is_admin() or public.is_service_role());
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'analytics_search_events'
+      and policyname = 'analytics_search_events_admin_read'
+  ) then
+    execute 'create policy "analytics_search_events_admin_read" on public.analytics_search_events for select using (public.is_admin() or public.is_service_role())';
+  end if;
 
-create policy if not exists "analytics_search_events_service_insert"
-  on public.analytics_search_events
-  for insert
-  to authenticated
-  with check (public.is_admin() or public.is_service_role());
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'analytics_search_events'
+      and policyname = 'analytics_search_events_service_insert'
+  ) then
+    execute 'create policy "analytics_search_events_service_insert" on public.analytics_search_events for insert to authenticated with check (public.is_admin() or public.is_service_role())';
+  end if;
+end
+$$;
 
 create or replace function public.increment_software_stat(
   p_software_id uuid,

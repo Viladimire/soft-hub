@@ -181,6 +181,7 @@ const applyMigration = async (client, filePath) => {
 
     await applyMigration(client, "supabase/migrations/005_admin_config.sql");
     await applyMigration(client, "supabase/migrations/002_analytics.sql");
+    await applyMigration(client, "supabase/migrations/007_software_columns_fix.sql");
 
     console.log("\n✅ All requested migrations applied.");
     console.log("\nشغّل بعد كده للتحقق:\n  node scripts/verify-supabase-setup.mjs\n");
