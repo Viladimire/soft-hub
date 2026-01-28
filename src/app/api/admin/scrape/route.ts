@@ -163,6 +163,117 @@ const parseSizeToMb = (raw: string) => {
   return 0;
 };
 
+const extractSection = (
+  lines: string[],
+  startMatchers: Array<(line: string) => boolean>,
+  stopMatchers: Array<(line: string) => boolean>,
+  maxLines = 80,
+) => {
+  const startIndex = lines.findIndex((line) => startMatchers.some((fn) => fn(line)));
+  if (startIndex < 0) return [] as string[];
+
+  const slice = lines.slice(startIndex + 1, startIndex + 1 + maxLines);
+  const stopIndex = slice.findIndex((line) => stopMatchers.some((fn) => fn(line)));
+  const block = (stopIndex >= 0 ? slice.slice(0, stopIndex) : slice)
+    .map((line) => line.replace(/^[-•\u2022\s]+/, "").trim())
+    .filter(Boolean);
+
+  return block;
+};
+
+const extractOverviewText = (lines: string[]) => {
+  const block = extractSection(
+    lines,
+    [
+      (line) => /\boverview\b/i.test(line),
+      (line) => /\bdescription\b/i.test(line),
+    ],
+    [
+      (line) => /\bfeatures\b/i.test(line),
+      (line) => /\bsystem requirements\b/i.test(line),
+      (line) => /\btechnical details\b/i.test(line),
+      (line) => /\bproduct information\b/i.test(line),
+      (line) => /\bdownload\b/i.test(line),
+    ],
+    60,
+  );
+
+  const paragraph = block
+    .filter((line) => line.length >= 20)
+    .filter((line) => !/^features\b/i.test(line))
+    .slice(0, 6)
+    .join(" ");
+
+  return normalizeText(paragraph);
+};
+
+const extractFeaturesList = (lines: string[]) => {
+  const block = extractSection(
+    lines,
+    [
+      (line) => /^features\b/i.test(line),
+      (line) => /\bfeatures of\b/i.test(line),
+    ],
+    [
+      (line) => /\bsystem requirements\b/i.test(line),
+      (line) => /\btechnical details\b/i.test(line),
+      (line) => /\bproduct information\b/i.test(line),
+      (line) => /\bdownload\b/i.test(line),
+    ],
+    80,
+  );
+
+  const features = block
+    .map((line) => line.replace(/^[-•\u2022\s]+/, "").trim())
+    .filter((line) => line.length >= 3)
+    .filter((line) => !/^(features|feature)\b/i.test(line))
+    .filter((line) => !/^adobe\b/i.test(line))
+    .slice(0, 30);
+
+  return uniqueUrls(features);
+};
+
+const normalizeReleaseDateToIso = (raw: string) => {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const direct = Date.parse(trimmed);
+  if (!Number.isNaN(direct)) return new Date(direct).toISOString();
+  return trimmed;
+};
+
+const extractProductInfoMap = (lines: string[]) => {
+  const block = extractSection(
+    lines,
+    [(line) => /\bproduct information\b/i.test(line)],
+    [
+      (line) => /\bdownload\b/i.test(line),
+      (line) => /\bscreenshots?\b/i.test(line),
+      (line) => /\brelated\b/i.test(line),
+    ],
+    40,
+  );
+
+  const map = new Map<string, string>();
+  for (let i = 0; i < block.length; i += 1) {
+    const current = block[i].trim();
+    const next = (block[i + 1] ?? "").trim();
+    if (!current) continue;
+
+    const m = current.match(/^([^:]{2,40})\s*:\s*(.+)$/);
+    if (m) {
+      map.set(m[1].toLowerCase(), m[2].trim());
+      continue;
+    }
+
+    if (next && /^[a-z][a-z\s]{1,30}$/i.test(current) && !map.has(current.toLowerCase())) {
+      map.set(current.toLowerCase(), next);
+      i += 1;
+    }
+  }
+
+  return map;
+};
+
 const pickSizeInMb = (lines: string[]) => {
   const direct = pickValueAfterLabel(lines, "File size") || pickValueAfterLabel(lines, "File Size");
   const directMb = direct ? parseSizeToMb(direct) : 0;
@@ -484,8 +595,11 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
 
   const paragraph = extractFirstParagraph(html);
   const resolvedDescription = ogDesc || twDesc || jsonLdData.description || metaDesc || paragraph;
-  const description = clampText(resolvedDescription, 1200);
-  const summary = clampText(description || resolvedDescription, 220);
+
+  const overviewText = extractOverviewText(lines);
+  const descriptionText = overviewText || resolvedDescription;
+  const description = clampText(descriptionText, 1200);
+  const summary = clampText(descriptionText || resolvedDescription, 220);
 
   const iconHref = extractLinkIcon(html);
 
@@ -530,26 +644,42 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
     ...scoredScreenshots,
   ]).slice(0, 6);
 
-  const version = pickValueAfterLabel(lines, "Version") || pickValueAfterLabel(lines, "File name");
-  const releaseDate = pickValueAfterLabel(lines, "Release Date");
-  const developer = pickValueAfterLabel(lines, "Created by");
-  const downloads =
-    pickNumberAfterLabels(lines, ["Total Downloads", "Downloads", "Total Download"]) || pickDownloadsFallback(lines);
+  const productInfo = extractProductInfoMap(lines);
+  const versionRaw =
+    productInfo.get("version") ||
+    pickValueAfterLabel(lines, "Version") ||
+    productInfo.get("file name") ||
+    pickValueAfterLabel(lines, "File name");
 
-  const sizeInMb = pickSizeInMb(lines);
+  const releaseDateRaw = productInfo.get("release date") || pickValueAfterLabel(lines, "Release Date");
+  const developerRaw = productInfo.get("created by") || pickValueAfterLabel(lines, "Created by");
+
+  const downloads =
+    pickNumberAfterLabels(lines, ["Total Downloads", "Downloads", "Total Download"]) ||
+    pickNumberAfterLabels(Array.from(productInfo.entries()).flatMap(([k, v]) => [k, v]), ["total downloads"]) ||
+    pickDownloadsFallback(lines);
+
+  const sizeInMb = (() => {
+    const fromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
+    const parsed = fromProductInfo ? parseSizeToMb(fromProductInfo) : 0;
+    if (parsed > 0) return parsed;
+    return pickSizeInMb(lines);
+  })();
 
   const requirements = extractRequirementsBlock(lines);
+  const features = extractFeaturesList(lines);
 
   return {
     name,
     summary,
     description,
     websiteUrl: baseUrl.toString(),
-    version: clampText(version, 40) || undefined,
-    releaseDate: clampText(releaseDate, 40) || undefined,
+    version: clampText(versionRaw ?? "", 60) || undefined,
+    releaseDate: normalizeReleaseDateToIso(clampText(releaseDateRaw ?? "", 80)) || undefined,
     downloads: downloads > 0 ? downloads : undefined,
     sizeInMb: sizeInMb > 0 ? sizeInMb : undefined,
-    developer: clampText(developer, 80) || undefined,
+    developer: clampText(developerRaw ?? "", 80) || undefined,
+    ...(features.length ? { features } : {}),
     requirements:
       requirements.minimum.length || requirements.recommended.length ? requirements : undefined,
     logoUrl: pickBest(logoCandidates, scoreLogoCandidate) || pickFirst(logoCandidates),
