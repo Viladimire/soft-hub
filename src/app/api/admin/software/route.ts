@@ -14,6 +14,7 @@ import type { Json } from "@/lib/supabase/database.types";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
 import { softwareSchema } from "@/lib/validations/software.schema";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
+import { supabaseConfig } from "@/lib/supabase/config";
 
 const platformValues = ["windows", "mac", "linux", "android", "ios", "web"] as const satisfies readonly Platform[];
 const categoryValues = [
@@ -66,6 +67,31 @@ const handleError = (error: unknown, fallbackMessage: string) => {
 
   if (error instanceof z.ZodError) {
     return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });
+  }
+
+  if (!supabaseConfig.serviceRoleKey) {
+    return NextResponse.json(
+      {
+        message:
+          "Supabase service role key is missing. Set SUPABASE_SERVICE_ROLE_KEY on the server (Vercel env) to allow admin writes.",
+      },
+      { status: 501 },
+    );
+  }
+
+  const maybe = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+  const message = typeof maybe?.message === "string" ? maybe.message : "";
+  const details = typeof maybe?.details === "string" ? maybe.details : "";
+  const hint = typeof maybe?.hint === "string" ? maybe.hint : "";
+  const code = typeof maybe?.code === "string" ? maybe.code : "";
+  const extra = [code && `code=${code}`, details && `details=${details}`, hint && `hint=${hint}`]
+    .filter(Boolean)
+    .join(" | ");
+  if (message || extra) {
+    return NextResponse.json(
+      { message: message ? `${fallbackMessage}: ${message}${extra ? ` (${extra})` : ""}` : `${fallbackMessage}${extra ? ` (${extra})` : ""}` },
+      { status: 500 },
+    );
   }
 
   console.error(fallbackMessage, error);

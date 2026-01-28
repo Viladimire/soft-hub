@@ -141,6 +141,15 @@ const pickNumberAfterLabels = (lines: string[], labels: string[]) => {
   return 0;
 };
 
+const pickDownloadsFallback = (lines: string[]) => {
+  const text = lines.join("\n");
+  const rx = /\b(total\s+downloads?|downloads?)\b\s*[:\-]?\s*([0-9][0-9,\s]*)/i;
+  const match = text.match(rx);
+  if (!match) return 0;
+  const parsed = Number(match[2].replace(/[^0-9]/g, ""));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
+
 const parseSizeToMb = (raw: string) => {
   const match = raw.match(/(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
   if (!match) return 0;
@@ -524,7 +533,8 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
   const version = pickValueAfterLabel(lines, "Version") || pickValueAfterLabel(lines, "File name");
   const releaseDate = pickValueAfterLabel(lines, "Release Date");
   const developer = pickValueAfterLabel(lines, "Created by");
-  const downloads = pickNumberAfterLabels(lines, ["Total Downloads", "Downloads", "Total Download"]);
+  const downloads =
+    pickNumberAfterLabels(lines, ["Total Downloads", "Downloads", "Total Download"]) || pickDownloadsFallback(lines);
 
   const sizeInMb = pickSizeInMb(lines);
 
