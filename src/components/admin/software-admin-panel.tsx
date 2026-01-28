@@ -158,6 +158,7 @@ type ScrapeResponse = {
   version?: string;
   releaseDate?: string;
   downloads?: number;
+  sizeInMb?: number;
   developer?: string;
   requirements?: {
     minimum: string[];
@@ -393,7 +394,16 @@ const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    const message = errorBody?.message ?? `فشل الطلب (${response.status})`;
+    const baseMessage = errorBody?.message ?? `فشل الطلب (${response.status})`;
+    const fieldErrors = errorBody?.errors?.fieldErrors as Record<string, string[] | undefined> | undefined;
+    const fieldSummary = fieldErrors
+      ? Object.entries(fieldErrors)
+          .filter(([, errors]) => Array.isArray(errors) && errors.length)
+          .map(([field, errors]) => `${field}: ${(errors ?? []).join(" | ")}`)
+          .join("\n")
+      : "";
+
+    const message = fieldSummary ? `${baseMessage}\n${fieldSummary}` : baseMessage;
     const error = new Error(message) as RequestError;
     error.status = response.status;
     throw error;
@@ -1036,6 +1046,13 @@ export const SoftwareAdminPanel = () => {
         };
         const scrapedDate = data.releaseDate ? normalizeDate(data.releaseDate) : "";
 
+        const nextSizeInMb =
+          parseNumber(state.sizeInMb, 0) > 0 && state.sizeInMb !== "250"
+            ? state.sizeInMb
+            : typeof data.sizeInMb === "number" && Number.isFinite(data.sizeInMb) && data.sizeInMb > 0
+              ? String(Math.round(data.sizeInMb * 10) / 10)
+              : state.sizeInMb;
+
         const nextPlatforms: Platform[] = state.platforms.length ? state.platforms : (["windows"] as Platform[]);
         const nextCategories: SoftwareCategory[] = state.categories.length
           ? state.categories
@@ -1050,6 +1067,7 @@ export const SoftwareAdminPanel = () => {
             state.version.trim() && state.version !== "1.0.0" ? state.version : (data.version?.trim() || state.version),
           releaseDate:
             state.releaseDate.trim() && state.releaseDate !== today ? state.releaseDate : (scrapedDate || state.releaseDate),
+          sizeInMb: nextSizeInMb,
           statsDownloads: nextDownloads,
           developerJson: nextDeveloperJson,
           minRequirements: nextMinReq,

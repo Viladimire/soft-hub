@@ -15,6 +15,7 @@ type ScrapeResult = {
   version?: string;
   releaseDate?: string;
   downloads?: number;
+  sizeInMb?: number;
   developer?: string;
   requirements?: {
     minimum: string[];
@@ -88,6 +89,19 @@ const resolveUrl = (base: URL, candidate: string) => {
 
 const uniqueUrls = (items: string[]) => Array.from(new Set(items.map((v) => v.trim()).filter(Boolean)));
 
+const isFaviconUrl = (raw: string) => {
+  try {
+    const url = new URL(raw);
+    const path = url.pathname.toLowerCase();
+    if (path.includes("favicon")) return true;
+    if (path === "/favicon.ico") return true;
+    if (path === "/favicon.png") return true;
+    return false;
+  } catch {
+    return raw.toLowerCase().includes("favicon");
+  }
+};
+
 const stripTags = (value: string) => value.replace(/<[^>]*>/g, " ");
 
 const htmlToTextLines = (html: string) => {
@@ -115,6 +129,43 @@ const pickValueAfterLabel = (lines: string[], label: string) => {
     }
   }
   return "";
+};
+
+const pickNumberAfterLabels = (lines: string[], labels: string[]) => {
+  for (const label of labels) {
+    const raw = pickValueAfterLabel(lines, label);
+    if (!raw) continue;
+    const parsed = Number(String(raw).replace(/[^0-9]/g, ""));
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return 0;
+};
+
+const parseSizeToMb = (raw: string) => {
+  const match = raw.match(/(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
+  if (!match) return 0;
+  const value = Number(match[1]);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  const unit = match[2].toLowerCase();
+  if (unit === "kb") return value / 1024;
+  if (unit === "mb") return value;
+  if (unit === "gb") return value * 1024;
+  if (unit === "tb") return value * 1024 * 1024;
+  return 0;
+};
+
+const pickSizeInMb = (lines: string[]) => {
+  const direct = pickValueAfterLabel(lines, "File size") || pickValueAfterLabel(lines, "File Size");
+  const directMb = direct ? parseSizeToMb(direct) : 0;
+  if (directMb > 0) return directMb;
+
+  for (const line of lines) {
+    if (/\bfile\s*size\b/i.test(line)) {
+      const mb = parseSizeToMb(line);
+      if (mb > 0) return mb;
+    }
+  }
+  return 0;
 };
 
 const extractRequirementsBlock = (lines: string[]) => {
@@ -432,14 +483,18 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
   const iconCandidates = uniqueUrls([
     resolveUrl(baseUrl, iconHref),
     resolveUrl(baseUrl, extractMeta(html, { attr: "property", value: "og:logo" })),
-  ]).filter(isLikelyImage);
+  ])
+    .filter(isLikelyImage)
+    .filter((url) => !isFaviconUrl(url));
 
   const logoCandidates = uniqueUrls([
     ...iconCandidates,
     resolveUrl(baseUrl, twImage),
     resolveUrl(baseUrl, ogImage),
     ...jsonLdData.images.map((u) => resolveUrl(baseUrl, u)),
-  ]).filter(isLikelyImage);
+  ])
+    .filter(isLikelyImage)
+    .filter((url) => !isFaviconUrl(url));
 
   const heroCandidates = uniqueUrls([
     resolveUrl(baseUrl, ogImage),
@@ -454,7 +509,8 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
     ...imgCandidates,
   ])
     .filter(Boolean)
-    .filter(isLikelyImage);
+    .filter(isLikelyImage)
+    .filter((url) => !isFaviconUrl(url));
 
   const scoredScreenshots = screenshotPool
     .map((url) => ({ url, score: scoreScreenshotCandidate(url) }))
@@ -468,8 +524,9 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
   const version = pickValueAfterLabel(lines, "Version") || pickValueAfterLabel(lines, "File name");
   const releaseDate = pickValueAfterLabel(lines, "Release Date");
   const developer = pickValueAfterLabel(lines, "Created by");
-  const downloadsRaw = pickValueAfterLabel(lines, "Total Downloads");
-  const downloads = downloadsRaw ? Number(String(downloadsRaw).replace(/[^0-9]/g, "")) : 0;
+  const downloads = pickNumberAfterLabels(lines, ["Total Downloads", "Downloads", "Total Download"]);
+
+  const sizeInMb = pickSizeInMb(lines);
 
   const requirements = extractRequirementsBlock(lines);
 
@@ -481,6 +538,7 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
     version: clampText(version, 40) || undefined,
     releaseDate: clampText(releaseDate, 40) || undefined,
     downloads: downloads > 0 ? downloads : undefined,
+    sizeInMb: sizeInMb > 0 ? sizeInMb : undefined,
     developer: clampText(developer, 80) || undefined,
     requirements:
       requirements.minimum.length || requirements.recommended.length ? requirements : undefined,
