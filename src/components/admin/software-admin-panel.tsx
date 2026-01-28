@@ -62,7 +62,20 @@ const normalizeImageUrl = (value: string) => {
     }
   }
 
-  return trimmed;
+  const upgraded = trimmed.startsWith("http://") ? `https://${trimmed.slice("http://".length)}` : trimmed;
+
+  try {
+    const url = new URL(upgraded);
+    const lowerPath = url.pathname.toLowerCase();
+    const lowerHref = url.toString().toLowerCase();
+    if (lowerPath.includes("spacer") || lowerHref.includes("placeholder") || lowerPath.endsWith("/spacer.gif")) {
+      return "";
+    }
+  } catch {
+    // ignore
+  }
+
+  return upgraded;
 };
 
 const DEFAULT_FORM: FormState = {
@@ -1398,13 +1411,14 @@ export const SoftwareAdminPanel = () => {
                             setFormState((state) => ({ ...state, logoUrl: event.target.value }))
                           }
                         />
-                        {formState.logoUrl ? (
+                        {normalizeImageUrl(formState.logoUrl) ? (
                           <div className="relative mt-3 h-28 w-28 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
                             <Image
-                              src={formState.logoUrl}
+                              src={normalizeImageUrl(formState.logoUrl)}
                               alt="logo"
                               fill
                               className="object-contain"
+                              unoptimized
                               sizes="112px"
                             />
                             <Button
@@ -1464,14 +1478,15 @@ export const SoftwareAdminPanel = () => {
                             setFormState((state) => ({ ...state, heroImage: event.target.value }))
                           }
                         />
-                        {formState.heroImage ? (
+                        {normalizeImageUrl(formState.heroImage) ? (
                           <div className="relative mt-3 h-28 w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5">
                             <Image
-                              src={formState.heroImage}
+                              src={normalizeImageUrl(formState.heroImage)}
                               alt="hero"
                               fill
                               className="object-cover"
-                              sizes="(max-width: 768px) 100vw, 300px"
+                              unoptimized
+                              sizes="420px"
                             />
                             <Button
                               type="button"
@@ -1536,16 +1551,18 @@ export const SoftwareAdminPanel = () => {
                           rows={3}
                         />
 
-                        {splitLines(formState.gallery).length ? (
+                        {splitLines(formState.gallery).map((value) => normalizeImageUrl(value)).filter(Boolean).length ? (
                           <div className="mt-4 grid gap-3 sm:grid-cols-3">
                             {splitLines(formState.gallery)
+                              .map((value) => normalizeImageUrl(value))
+                              .filter(Boolean)
                               .slice(0, 3)
                               .map((url, index) => (
                                 <div
                                   key={`${url}-${index}`}
                                   className="relative h-24 overflow-hidden rounded-2xl border border-white/10 bg-white/5"
                                 >
-                                  <Image src={url} alt="gallery" fill className="object-cover" sizes="200px" />
+                                  <Image src={url} alt="gallery" fill className="object-cover" sizes="200px" unoptimized />
                                   <Button
                                     type="button"
                                     size="sm"
