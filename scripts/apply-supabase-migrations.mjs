@@ -141,6 +141,7 @@ const migrations = [
   resolve(process.cwd(), "supabase", "migrations", "005_admin_config.sql"),
   resolve(process.cwd(), "supabase", "migrations", "006_analytics_fix.sql"),
   resolve(process.cwd(), "supabase", "migrations", "007_software_columns_fix.sql"),
+  resolve(process.cwd(), "supabase", "migrations", "008_software_missing_columns_fix.sql"),
 ];
 
 const applyMigration = async (filePath) => {
