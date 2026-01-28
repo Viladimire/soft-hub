@@ -251,8 +251,9 @@ const fetchFromWikipedia = async (name: string): Promise<WikiResult> => {
 };
 
 const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
+  const searchQuery = `${name} in:name,description`;
   const searchUrl = `https://api.github.com/search/repositories?q=${encodeURIComponent(
-    name,
+    searchQuery,
   )}&sort=stars&order=desc&per_page=1`;
 
   const headers: Record<string, string> = {
@@ -284,9 +285,23 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
   const ownerAvatarUrl =
     isPlainRecord(repo.owner) && typeof repo.owner.avatar_url === "string" ? repo.owner.avatar_url : "";
 
-  let version = "Latest";
+  let version = "1.0.0";
   let sizeInMb = "250";
   let downloads = 0;
+
+  const scoreAssetName = (assetName: string) => {
+    const lower = assetName.toLowerCase();
+    let score = 0;
+    if (/(setup|installer)/i.test(lower)) score += 3;
+    if (/\.(exe|msi)$/i.test(lower)) score += 6;
+    if (/\.(dmg|pkg)$/i.test(lower)) score += 5;
+    if (/\.(appimage|deb|rpm)$/i.test(lower)) score += 4;
+    if (/\.(zip|7z|rar|tar\.gz)$/i.test(lower)) score += 2;
+    if (/(arm|aarch64)/i.test(lower)) score -= 1;
+    if (/(src|source)/i.test(lower)) score -= 6;
+    if (/(symbols|debug)/i.test(lower)) score -= 6;
+    return score;
+  };
 
   if (apiUrl) {
     try {
@@ -295,7 +310,12 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
         const releaseJson: unknown = await releaseRes.json();
         if (isPlainRecord(releaseJson)) {
           const tag = toText(releaseJson.tag_name);
-          if (tag) version = tag;
+          const releaseName = toText(releaseJson.name);
+          if (tag) {
+            version = tag;
+          } else if (releaseName) {
+            version = clampText(releaseName, 40);
+          }
 
           const assets = Array.isArray(releaseJson.assets) ? releaseJson.assets : [];
           const downloadCount = assets
@@ -308,14 +328,22 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
             downloads = downloadCount;
           }
 
-          const totalBytes = assets
+          const bestAsset = assets
             .filter(isPlainRecord)
-            .map((asset) => asset.size)
-            .filter((v): v is number => typeof v === "number" && Number.isFinite(v))
-            .reduce((sum, v) => sum + v, 0);
+            .map((asset) => {
+              const name = toText(asset.name);
+              const size = asset.size;
+              return {
+                name,
+                size: typeof size === "number" && Number.isFinite(size) ? size : 0,
+                score: name ? scoreAssetName(name) : -999,
+              };
+            })
+            .filter((asset) => asset.size > 0)
+            .sort((a, b) => (b.score - a.score) || (b.size - a.size))[0];
 
-          if (totalBytes > 0) {
-            sizeInMb = (totalBytes / (1024 * 1024)).toFixed(1);
+          if (bestAsset?.size) {
+            sizeInMb = (bestAsset.size / (1024 * 1024)).toFixed(1);
           }
         }
       }

@@ -96,7 +96,12 @@ const looksLikeImageUrl = (url: string) => {
   if (lower.includes("sprite")) return false;
   if (lower.includes("placeholder")) return false;
   if (lower.includes("favicon")) return true;
-  return /\.(png|jpe?g|webp|gif|svg|avif)(\?|#|$)/i.test(lower);
+  if (/\.(png|jpe?g|webp|gif|svg|avif)(\?|#|$)/i.test(lower)) return true;
+
+  // Allow CDN-style URLs without extensions if query hints a raster format.
+  if (/(\?|&)(format|fm)=(png|jpg|jpeg|webp|gif|avif|svg)(\b|&|$)/i.test(lower)) return true;
+  if (/(\?|&)(ext)=(png|jpg|jpeg|webp|gif|avif|svg)(\b|&|$)/i.test(lower)) return true;
+  return false;
 };
 
 const isLikelyImage = (url: string) => {
@@ -248,11 +253,32 @@ const extractLinkIcon = (html: string) => {
 };
 
 const extractImgSources = (html: string) => {
-  const rx = /<img\s+[^>]*src=["']([^"']+)["'][^>]*>/gi;
+  const rx = /<img\s+[^>]*>/gi;
   const urls: string[] = [];
   let match: RegExpExecArray | null;
+
+  const pickAttr = (tag: string, attr: string) => {
+    const escaped = attr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const rxAttr = new RegExp(`${escaped}=["']([^"']+)["']`, "i");
+    const found = tag.match(rxAttr);
+    return found ? found[1].trim() : "";
+  };
+
+  const parseSrcSet = (srcset: string) => {
+    // Take the first candidate URL (usually the smallest). We only need a few.
+    const first = srcset.split(",")[0]?.trim() ?? "";
+    return first.split(/\s+/)[0]?.trim() ?? "";
+  };
+
   while ((match = rx.exec(html))) {
-    urls.push(match[1].trim());
+    const tag = match[0];
+    const src = pickAttr(tag, "src");
+    const srcset = pickAttr(tag, "srcset");
+    if (src) urls.push(src);
+    if (srcset) {
+      const candidate = parseSrcSet(srcset);
+      if (candidate) urls.push(candidate);
+    }
     if (urls.length >= 12) break;
   }
   return uniqueUrls(urls);
