@@ -881,6 +881,7 @@ export const SoftwareAdminPanel = () => {
         description: string;
         version: string;
         sizeInMb: string;
+        downloads: number;
         websiteUrl: string;
         logoUrl: string;
         heroImage: string;
@@ -914,6 +915,12 @@ export const SoftwareAdminPanel = () => {
             state.version.trim() && state.version !== "1.0.0" ? state.version : data.version ?? state.version,
           sizeInMb:
             state.sizeInMb.trim() && state.sizeInMb !== "250" ? state.sizeInMb : data.sizeInMb ?? state.sizeInMb,
+          statsDownloads:
+            parseNumber(state.statsDownloads, 0) > 0
+              ? state.statsDownloads
+              : typeof data.downloads === "number" && Number.isFinite(data.downloads) && data.downloads > 0
+                ? String(Math.floor(data.downloads))
+                : state.statsDownloads,
           websiteUrl: state.websiteUrl.trim() ? state.websiteUrl : data.websiteUrl ?? state.websiteUrl,
           logoUrl: state.logoUrl.trim() ? state.logoUrl : nextLogoUrl || state.logoUrl,
           heroImage: state.heroImage.trim() ? state.heroImage : nextHeroImage || state.heroImage,
@@ -978,7 +985,6 @@ export const SoftwareAdminPanel = () => {
           name: state.name.trim() ? state.name : (data.name ?? state.name),
           summary: state.summary.trim() ? state.summary : (data.summary ?? state.summary),
           description: state.description.trim() ? state.description : (data.description ?? state.description),
-          websiteUrl: state.websiteUrl.trim() ? state.websiteUrl : (data.websiteUrl ?? state.websiteUrl),
           logoUrl: state.logoUrl.trim() ? state.logoUrl : nextLogoUrl || state.logoUrl,
           heroImage: state.heroImage.trim() ? state.heroImage : nextHeroImage || state.heroImage,
           gallery: nextGallery,
@@ -1398,7 +1404,7 @@ export const SoftwareAdminPanel = () => {
                               src={formState.logoUrl}
                               alt="logo"
                               fill
-                              className="object-cover"
+                              className="object-contain"
                               sizes="112px"
                             />
                             <Button

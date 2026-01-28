@@ -80,10 +80,66 @@ const resolveUrl = (base: URL, candidate: string) => {
 
 const uniqueUrls = (items: string[]) => Array.from(new Set(items.map((v) => v.trim()).filter(Boolean)));
 
-const isLikelyImage = (url: string) => {
+const stripTags = (value: string) => value.replace(/<[^>]*>/g, " ");
+
+const extractFirstParagraph = (html: string) => {
+  const match = html.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+  if (!match) return "";
+  return normalizeText(stripTags(match[1]));
+};
+
+const looksLikeImageUrl = (url: string) => {
   const lower = url.toLowerCase();
+  if (lower.startsWith("data:")) return false;
+  if (lower.startsWith("blob:")) return false;
   if (lower.includes("/_next/image")) return false;
+  if (lower.includes("sprite")) return false;
+  if (lower.includes("placeholder")) return false;
+  if (lower.includes("favicon")) return true;
+  return /\.(png|jpe?g|webp|gif|svg|avif)(\?|#|$)/i.test(lower);
+};
+
+const isLikelyImage = (url: string) => {
+  if (!url) return false;
+  if (!looksLikeImageUrl(url)) return false;
   return true;
+};
+
+const scoreLogoCandidate = (url: string) => {
+  const lower = url.toLowerCase();
+  let score = 0;
+  if (lower.includes("logo")) score += 8;
+  if (lower.includes("icon")) score += 5;
+  if (lower.includes("apple-touch-icon")) score += 6;
+  if (lower.includes("favicon")) score += 3;
+  if (lower.endsWith(".svg") || lower.includes(".svg?")) score += 6;
+  if (lower.endsWith(".png") || lower.includes(".png?")) score += 4;
+  if (lower.endsWith(".webp") || lower.includes(".webp?")) score += 2;
+  if (lower.includes("banner") || lower.includes("hero") || lower.includes("cover")) score -= 6;
+  if (lower.includes("screenshot") || lower.includes("screen")) score -= 4;
+  return score;
+};
+
+const scoreHeroCandidate = (url: string) => {
+  const lower = url.toLowerCase();
+  let score = 0;
+  if (lower.includes("hero") || lower.includes("banner") || lower.includes("cover")) score += 6;
+  if (lower.includes("og")) score += 2;
+  if (lower.includes("logo") || lower.includes("icon") || lower.includes("favicon")) score -= 6;
+  return score;
+};
+
+const pickBest = (items: string[], scorer: (url: string) => number) => {
+  let best = "";
+  let bestScore = -Infinity;
+  for (const item of items) {
+    const score = scorer(item);
+    if (score > bestScore) {
+      best = item;
+      bestScore = score;
+    }
+  }
+  return best;
 };
 
 const pickFirst = (items: string[]) => items.find(Boolean) ?? "";
@@ -240,7 +296,10 @@ const fetchHtml = async (url: URL) => {
 const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
   const ogTitle = extractMeta(html, { attr: "property", value: "og:title" });
   const ogDesc = extractMeta(html, { attr: "property", value: "og:description" });
-  const ogImage = extractMeta(html, { attr: "property", value: "og:image" });
+  const ogImage =
+    extractMeta(html, { attr: "property", value: "og:image:secure_url" }) ||
+    extractMeta(html, { attr: "property", value: "og:image:url" }) ||
+    extractMeta(html, { attr: "property", value: "og:image" });
 
   const twTitle = extractMeta(html, { attr: "name", value: "twitter:title" });
   const twDesc = extractMeta(html, { attr: "name", value: "twitter:description" });
@@ -256,13 +315,20 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
 
   const name = clampText(ogTitle || twTitle || jsonLdData.name || h1 || title, 120);
 
-  const description = clampText(ogDesc || twDesc || jsonLdData.description || metaDesc, 1200);
-  const summary = clampText(description, 220);
+  const paragraph = extractFirstParagraph(html);
+  const resolvedDescription = ogDesc || twDesc || jsonLdData.description || metaDesc || paragraph;
+  const description = clampText(resolvedDescription, 1200);
+  const summary = clampText(description || resolvedDescription, 220);
 
   const iconHref = extractLinkIcon(html);
 
-  const logoCandidates = uniqueUrls([
+  const iconCandidates = uniqueUrls([
     resolveUrl(baseUrl, iconHref),
+    resolveUrl(baseUrl, extractMeta(html, { attr: "property", value: "og:logo" })),
+  ]).filter(isLikelyImage);
+
+  const logoCandidates = uniqueUrls([
+    ...iconCandidates,
     resolveUrl(baseUrl, twImage),
     resolveUrl(baseUrl, ogImage),
     ...jsonLdData.images.map((u) => resolveUrl(baseUrl, u)),
@@ -289,9 +355,14 @@ const toScrapeResult = (baseUrl: URL, html: string): ScrapeResult => {
     summary,
     description,
     websiteUrl: baseUrl.toString(),
-    logoUrl: pickFirst(logoCandidates),
-    heroImage: pickFirst(heroCandidates),
-    screenshots,
+    logoUrl: pickBest(logoCandidates, scoreLogoCandidate) || pickFirst(logoCandidates),
+    heroImage: pickBest(heroCandidates, scoreHeroCandidate) || pickFirst(heroCandidates),
+    screenshots: uniqueUrls([
+      pickBest(heroCandidates, scoreHeroCandidate),
+      ...screenshots,
+    ])
+      .filter(Boolean)
+      .slice(0, 6),
   };
 };
 

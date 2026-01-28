@@ -11,6 +11,7 @@ export type AutoFillData = {
   description: string;
   version: string;
   sizeInMb: string;
+  downloads: number;
   websiteUrl: string;
   logoUrl: string;
   heroImage: string;
@@ -37,6 +38,7 @@ type GitHubResult = {
   description: string;
   version: string;
   sizeInMb: string;
+  downloads: number;
   websiteUrl: string;
   developer: Record<string, unknown>;
   images: {
@@ -284,6 +286,7 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
 
   let version = "Latest";
   let sizeInMb = "250";
+  let downloads = 0;
 
   if (apiUrl) {
     try {
@@ -295,6 +298,16 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
           if (tag) version = tag;
 
           const assets = Array.isArray(releaseJson.assets) ? releaseJson.assets : [];
+          const downloadCount = assets
+            .filter(isPlainRecord)
+            .map((asset) => asset.download_count)
+            .filter((v): v is number => typeof v === "number" && Number.isFinite(v))
+            .reduce((sum, v) => sum + v, 0);
+
+          if (downloadCount > 0) {
+            downloads = downloadCount;
+          }
+
           const totalBytes = assets
             .filter(isPlainRecord)
             .map((asset) => asset.size)
@@ -323,6 +336,7 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
     description: clampText(description, 1200),
     version,
     sizeInMb,
+    downloads,
     websiteUrl,
     developer,
     images: {
@@ -415,6 +429,7 @@ const mergeData = (params: {
 
   const version = clampText(github?.version || "1.0.0", 40);
   const sizeInMb = clampText(github?.sizeInMb || "250", 12);
+  const downloads = typeof github?.downloads === "number" && Number.isFinite(github.downloads) ? github.downloads : 0;
 
   const requirements = generateGenericRequirements();
 
@@ -433,6 +448,7 @@ const mergeData = (params: {
     description,
     version,
     sizeInMb,
+    downloads,
     websiteUrl,
     logoUrl: pickFirstValidUrl(logoCandidates),
     heroImage: pickFirstValidUrl(heroCandidates),
