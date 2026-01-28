@@ -131,10 +131,12 @@ const toSoftwareRecord = (payload: AdminSoftwareInput): Software => {
   } satisfies Software;
 };
 
-const upsertSoftwareToSupabase = async (software: Software) => {
+const upsertSoftwareToSupabase = async (software: Software, options?: { omitDeveloper?: boolean }) => {
   const supabase = createSupabaseServerClient();
 
   const releaseDate = software.releaseDate ? software.releaseDate.slice(0, 10) : null;
+
+  const developerValue = options?.omitDeveloper ? undefined : ((software.developer ?? {}) as unknown as Json);
 
   const { error } = await supabase
     .from("software")
@@ -151,7 +153,7 @@ const upsertSoftwareToSupabase = async (software: Software) => {
         type: software.type,
         website_url: software.websiteUrl ?? null,
         download_url: software.downloadUrl,
-        developer: (software.developer ?? {}) as unknown as Json,
+        ...(developerValue !== undefined ? { developer: developerValue } : {}),
         features: software.features ?? [],
         is_featured: software.isFeatured ?? false,
         is_trending: software.isTrending ?? false,
@@ -203,6 +205,8 @@ export const POST = async (request: NextRequest) => {
     const record = toSoftwareRecord(software);
     const previousSlug = software.previousSlug?.trim();
 
+    const warnings: string[] = [];
+
     if (previousSlug && previousSlug !== record.slug) {
       try {
         await deleteSoftwareFromSupabase(previousSlug);
@@ -211,9 +215,22 @@ export const POST = async (request: NextRequest) => {
       }
     }
 
-    await upsertSoftwareToSupabase(record);
+    try {
+      await upsertSoftwareToSupabase(record);
+    } catch (error) {
+      const maybe = error as { code?: unknown; message?: unknown; details?: unknown; hint?: unknown };
+      const code = typeof maybe?.code === "string" ? maybe.code : "";
+      const message = typeof maybe?.message === "string" ? maybe.message : "";
 
-    const warnings: string[] = [];
+      if (code === "PGRST204" && message.toLowerCase().includes("developer")) {
+        await upsertSoftwareToSupabase(record, { omitDeveloper: true });
+        warnings.push(
+          "تم حفظ البرنامج، لكن تم تجاهل حقل developer لأن عمود developer غير موجود في Supabase (PGRST204)."
+        );
+      } else {
+        throw error;
+      }
+    }
 
     try {
       if (previousSlug && previousSlug !== record.slug) {
