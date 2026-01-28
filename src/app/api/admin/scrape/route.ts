@@ -206,19 +206,19 @@ const parseHumanNumber = (raw: string) => {
   const normalized = String(raw).trim();
   if (!normalized) return 0;
 
-  const suffixMatch = normalized.match(/([0-9][0-9,\s]*(?:\.[0-9]+)?)\s*([kmb])\b/i);
-  if (suffixMatch) {
-    const num = Number(suffixMatch[1].replace(/,/g, "").replace(/\s+/g, ""));
-    if (!Number.isFinite(num)) return 0;
-    const suffix = suffixMatch[2].toLowerCase();
-    if (suffix === "k") return Math.round(num * 1_000);
-    if (suffix === "m") return Math.round(num * 1_000_000);
-    if (suffix === "b") return Math.round(num * 1_000_000_000);
-  }
+  // Prefer the first number token in the string to avoid concatenating unrelated numbers.
+  // Supports: 1,234 | 1234 | 1.2M | 500k
+  const tokenMatch = normalized.match(/\b(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*([kmb])?\b/i);
+  if (!tokenMatch) return 0;
 
-  const digits = normalized.replace(/[^0-9]/g, "");
-  const parsed = Number(digits);
-  return Number.isFinite(parsed) ? parsed : 0;
+  const num = Number(String(tokenMatch[1]).replace(/,/g, ""));
+  if (!Number.isFinite(num)) return 0;
+
+  const suffix = (tokenMatch[2] ?? "").toLowerCase();
+  if (suffix === "k") return Math.round(num * 1_000);
+  if (suffix === "m") return Math.round(num * 1_000_000);
+  if (suffix === "b") return Math.round(num * 1_000_000_000);
+  return Math.round(num);
 };
 
 const parseVersionFromString = (raw: string) => {
@@ -262,7 +262,14 @@ const extractSection = (
 const sliceAfterTitle = (lines: string[], titleHint: string) => {
   const hint = titleHint.trim().toLowerCase();
   if (!hint) return lines;
-  const token = hint.split(/\s+/).filter(Boolean).slice(0, 3).join(" ");
+
+  const normalizedHint = normalizeText(hint);
+  const exactIndex = lines.findIndex((line) => normalizeText(line.toLowerCase()) === normalizedHint);
+  if (exactIndex >= 0) {
+    return lines.slice(exactIndex);
+  }
+
+  const token = normalizedHint.split(/\s+/).filter(Boolean).slice(0, 4).join(" ");
   if (!token) return lines;
 
   const index = lines.findIndex((line) => line.toLowerCase().includes(token));
