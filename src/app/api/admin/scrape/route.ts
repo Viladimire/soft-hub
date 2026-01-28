@@ -60,7 +60,7 @@ const stripNonEnglishChars = (value: string) => {
 };
 
 const applyEnglishModeToText = (value: string, mode: "soft" | "strict") => {
-  const cleaned = mode === "soft" ? stripNonEnglishChars(value) : value.trim();
+  const cleaned = stripNonEnglishChars(value);
   if (!cleaned) return "";
   if (mode === "strict") {
     return isMostlyEnglish(cleaned) ? cleaned : "";
@@ -257,6 +257,17 @@ const extractSection = (
     .filter(Boolean);
 
   return block;
+};
+
+const sliceAfterTitle = (lines: string[], titleHint: string) => {
+  const hint = titleHint.trim().toLowerCase();
+  if (!hint) return lines;
+  const token = hint.split(/\s+/).filter(Boolean).slice(0, 3).join(" ");
+  if (!token) return lines;
+
+  const index = lines.findIndex((line) => line.toLowerCase().includes(token));
+  if (index < 0) return lines;
+  return lines.slice(index);
 };
 
 const extractOverviewText = (lines: string[]) => {
@@ -648,7 +659,7 @@ const fetchHtml = async (url: URL) => {
 };
 
 const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "strict"): ScrapeResult => {
-  const lines = htmlToTextLines(html);
+  const rawLines = htmlToTextLines(html);
 
   const ogTitle = extractMeta(html, { attr: "property", value: "og:title" });
   const ogDesc = extractMeta(html, { attr: "property", value: "og:description" });
@@ -670,6 +681,8 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
   const h1 = extractH1(html);
 
   const name = clampText(ogTitle || twTitle || jsonLdData.name || h1 || title, 120);
+
+  const lines = sliceAfterTitle(rawLines, h1 || title || name);
 
   const paragraph = extractFirstParagraph(html);
   const resolvedDescription = ogDesc || twDesc || jsonLdData.description || metaDesc || paragraph;
@@ -740,9 +753,11 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
   const releaseDateRaw = productInfo.get("release date") || pickValueAfterLabel(lines, "Release Date");
   const developerRaw = productInfo.get("created by") || pickValueAfterLabel(lines, "Created by");
 
+  const downloadsFromProductInfo = parseHumanNumber(productInfo.get("total downloads") || "");
+
   const downloads =
+    (downloadsFromProductInfo > 0 ? downloadsFromProductInfo : 0) ||
     pickNumberAfterLabels(lines, ["Total Downloads", "Downloads", "Total Download"]) ||
-    pickNumberAfterLabels(Array.from(productInfo.entries()).flatMap(([k, v]) => [k, v]), ["total downloads"]) ||
     pickDownloadsFallback(lines);
 
   const sizeInMb = (() => {
