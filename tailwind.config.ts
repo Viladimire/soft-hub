@@ -134,7 +134,7 @@ const spacing = {
 const typography = {
   fontFamilies: {
     display: "'Clash Display', var(--font-geist-sans), system-ui",
-    sans: "var(--font-geist-sans)",
+    sans: "var(--font-inter)",
     mono: "var(--font-geist-mono)",
   },
   fontSizes: {

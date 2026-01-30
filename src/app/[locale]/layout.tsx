@@ -6,7 +6,9 @@ import { Providers } from "@/components/providers/Providers";
 import { PageTransition } from "@/components/animations/PageTransition";
 import { defaultLocale, supportedLocales } from "@/i18n/locales";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 export async function generateMetadata({
   params,
