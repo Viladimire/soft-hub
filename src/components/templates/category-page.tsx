@@ -51,13 +51,15 @@ export const CategoryPage = ({ category, translationKey }: CategoryPageProps) =>
         </header>
 
         <div className="sticky top-24 z-30">
-          <div
-            className={
-              "rounded-3xl border border-white/10 bg-neutral-950/55 backdrop-blur-2xl transition-all " +
-              (isCompact ? "px-3 py-3 shadow-[0_24px_70px_rgba(8,15,35,0.6)]" : "px-4 py-4")
-            }
-          >
-            <SearchBar />
+          <div className="mx-auto w-full max-w-3xl px-1">
+            <div
+              className={
+                "rounded-3xl border border-white/10 bg-neutral-950/55 backdrop-blur-2xl transition-all " +
+                (isCompact ? "px-3 py-3 shadow-[0_24px_70px_rgba(8,15,35,0.6)]" : "px-4 py-4")
+              }
+            >
+              <SearchBar />
+            </div>
           </div>
         </div>
 

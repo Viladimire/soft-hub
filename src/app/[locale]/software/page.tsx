@@ -34,7 +34,7 @@ const LibraryPageFallback = () => {
 export default function SoftwareIndexPage() {
   return (
     <Suspense fallback={<LibraryPageFallback />}>
-      <CategoryPage category={"software"} translationKey="software" />
+      <CategoryPage category={null} translationKey="default" />
     </Suspense>
   );
 }
