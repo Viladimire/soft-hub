@@ -1,6 +1,6 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -28,7 +28,7 @@ const usePrefersReducedMotion = () => {
   return reduced;
 };
 
-const Orbs = ({ count = 36 }: { count?: number }) => {
+const Orbs = ({ count = 24 }: { count?: number }) => {
   const group = useRef<THREE.Group | null>(null);
 
   const positions = useMemo(
@@ -51,33 +51,24 @@ const Orbs = ({ count = 36 }: { count?: number }) => {
     [count],
   );
 
-  // Local lightweight animation loop to avoid extra dependencies.
-  useEffect(() => {
-    let raf = 0;
+  useFrame((state) => {
+    if (!group.current) return;
 
-    const tick = () => {
-      raf = window.requestAnimationFrame(tick);
-      if (!group.current) return;
+    group.current.rotation.y += 0.0005;
+    group.current.rotation.x += 0.00025;
 
-      group.current.rotation.y += 0.0005;
-      group.current.rotation.x += 0.00025;
-
-      const now = Date.now() * 0.001;
-      group.current.children.forEach((child, index) => {
-        child.position.x = Math.cos(now + index) * radii[index];
-        child.position.z = Math.sin(now + index) * radii[index];
-        child.rotation.y += speeds[index];
-      });
-    };
-
-    raf = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(raf);
-  }, [radii, speeds]);
+    const now = state.clock.elapsedTime;
+    group.current.children.forEach((child, index) => {
+      child.position.x = Math.cos(now + index) * radii[index];
+      child.position.z = Math.sin(now + index) * radii[index];
+      child.rotation.y += speeds[index];
+    });
+  });
 
   return (
     <group ref={group}>
       {positions.map((pos, index) => (
-        <Sphere key={index} args={[0.7, 32, 32]} position={pos}>
+        <Sphere key={index} args={[0.65, 16, 16]} position={pos}>
           <meshStandardMaterial
             color="#8aa9ff"
             emissive="#3f5cff"
@@ -101,8 +92,8 @@ export const OrbitBackground = ({ enabled = true }: { enabled?: boolean }) => {
     <div className="pointer-events-none fixed inset-0 -z-10">
       <Canvas
         camera={{ position: [0, 0, 48], fov: 75 }}
-        dpr={[1, 1.5]}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        dpr={1}
+        gl={{ alpha: true, antialias: false, powerPreference: "low-power" }}
       >
         <ambientLight intensity={1} />
         <Orbs />

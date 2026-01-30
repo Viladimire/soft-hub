@@ -6,6 +6,8 @@ const COLLECTIONS_DATA_BASE = process.env.NEXT_PUBLIC_COLLECTIONS_DATA_URL_BASE 
 const COLLECTIONS_FILENAME = "collections/index.json";
 const DEFAULT_REMOTE_BASE = "https://raw.githubusercontent.com/Viladimire/soft-hub/main/public/data";
 
+const FALLBACK_COVER_IMAGE = "/images/software/atlas-utilities/hero.jpg";
+
 let collectionsPromise: Promise<Collection[]> | null = null;
 
 const sanitizeBaseUrl = (value: string) => value.replace(/\/+$/, "");
@@ -24,6 +26,13 @@ const resolveCollectionsUrl = () => {
 
 const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const sanitizeCoverUrl = (value: unknown) => {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return null;
+  if (raw.includes("images.unsplash.com")) return FALLBACK_COVER_IMAGE;
+  return raw;
+};
 
 const normalizeTheme = (value: unknown): Collection["theme"] => {
   if (!isPlainRecord(value)) {
@@ -81,7 +90,7 @@ const normalizeCollection = (entry: unknown): Collection => {
     title: typeof record.title === "string" ? record.title : "Untitled collection",
     subtitle: typeof record.subtitle === "string" ? record.subtitle : null,
     description: typeof record.description === "string" ? record.description : null,
-    coverImageUrl: typeof record.coverImageUrl === "string" ? record.coverImageUrl : null,
+    coverImageUrl: sanitizeCoverUrl(record.coverImageUrl),
     accentColor: typeof record.accentColor === "string" ? record.accentColor : null,
     theme: normalizeTheme(record.theme),
     isFeatured: Boolean(record.isFeatured),
