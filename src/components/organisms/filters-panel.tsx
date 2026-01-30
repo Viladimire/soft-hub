@@ -17,11 +17,9 @@ import {
   Monitor,
   Package,
   RefreshCw,
-  Search,
   ShieldCheck,
   Terminal,
   Wrench,
-  X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -32,7 +30,6 @@ import { cn } from "@/lib/utils/cn";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 type CategoryDefinition = {
   id: string;
@@ -242,35 +239,6 @@ export const FiltersPanel = () => {
         </Button>
       </CardHeader>
       <CardContent className="space-y-8">
-        <section className="space-y-2">
-          <label htmlFor="filters-search" className="text-xs uppercase tracking-wide text-neutral-400">
-            {t("searchLabel")}
-          </label>
-          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
-            <Search className="h-4 w-4 text-neutral-400" />
-            <Input
-              id="filters-search"
-              type="search"
-              value={snapshot.searchQuery}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={t("searchPlaceholder")}
-              className="border-0 bg-transparent text-sm text-white focus-visible:ring-0"
-            />
-            {snapshot.searchQuery ? (
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 rounded-full border border-white/15 text-neutral-300 hover:border-white/35 hover:bg-white/10 hover:text-white"
-                onClick={() => setSearch("")}
-                aria-label={t("reset")}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            ) : null}
-          </div>
-        </section>
-
         <section className="space-y-3">
           <p className="text-xs uppercase tracking-wide text-neutral-400">{t("categoriesLabel")}</p>
           <div className="flex flex-wrap gap-2">

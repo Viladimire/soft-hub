@@ -2,12 +2,13 @@ import { AppShell } from "@/components/layouts/app-shell";
 import { HeroSection } from "@/components/organisms/hero-section";
 import { SideBar } from "@/components/layouts/sidebar";
 import { OrbitBackground } from "@/components/backgrounds/orbit-background";
+import { HomeSoftwareShowcase } from "@/components/organisms/home-software-showcase";
 
 export default function HomePage() {
   return (
     <>
       <OrbitBackground />
-      <AppShell hero={<HeroSection />} sidebar={<SideBar />}> 
+      <AppShell hero={<HeroSection />} sidebar={<SideBar />}>
         <section className="grid gap-6 lg:grid-cols-2">
           <a
             href="/en/software"
@@ -39,6 +40,8 @@ export default function HomePage() {
             </div>
           </a>
         </section>
+
+        <HomeSoftwareShowcase />
       </AppShell>
     </>
   );

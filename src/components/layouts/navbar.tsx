@@ -9,6 +9,8 @@ import { useMemo, useState } from "react";
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils/cn";
 
+import brandMark from "../../../Logo/logo.png";
+
 type NavLink = {
   href: string;
   label: string;
@@ -60,11 +62,11 @@ export const Navbar = () => {
               <span className="text-sm font-semibold text-white">SH</span>
             ) : (
               <Image
-                src="/branding/soft-hub-logomark.svg"
-                alt="SOFT-HUB logomark"
-                width={32}
-                height={32}
-                className="h-8 w-8"
+                src={brandMark}
+                alt="SOFT-HUB logo"
+                width={48}
+                height={48}
+                className="h-10 w-10 object-contain"
                 priority
                 onError={() => setBrandMarkErrored(true)}
               />
