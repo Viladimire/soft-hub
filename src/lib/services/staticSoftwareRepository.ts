@@ -76,6 +76,8 @@ const FALLBACK_HERO_IMAGE = "/images/software/atlas-utilities/hero.jpg";
 const sanitizeMediaUrl = (value: unknown, fallback: string) => {
   const raw = typeof value === "string" ? value.trim() : "";
   if (!raw) return fallback;
+  if (raw.startsWith("images/")) return `/${raw}`;
+  if (raw.startsWith("data/")) return `/${raw}`;
   if (raw.includes("images.unsplash.com")) return fallback;
   return raw;
 };
@@ -201,6 +203,12 @@ const loadLocalDataset = () => {
 };
 
 const loadDataset = async () => {
+  // Never rely on a remote dataset for build-time/static generation.
+  // Otherwise a misconfigured env/base URL can shrink the dataset and cause 404s for most slugs.
+  if (typeof window === "undefined") {
+    return loadLocalDataset();
+  }
+
   if (!DATA_BASE_ENV) {
     return loadLocalDataset();
   }
@@ -214,7 +222,23 @@ const loadDataset = async () => {
     }
 
     const raw = await response.json();
-    return parseSoftwareArray(raw);
+    const remote = parseSoftwareArray(raw);
+
+    // Guardrail: if remote returns an unexpectedly small dataset (common misconfig),
+    // fall back to the bundled dataset to keep the library complete.
+    const local = loadLocalDataset();
+    if (remote.length > 0 && local.length > 0 && remote.length < Math.min(10, local.length)) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Remote dataset looks incomplete; falling back to bundled dataset", {
+          url,
+          remoteCount: remote.length,
+          localCount: local.length,
+        });
+      }
+      return local;
+    }
+
+    return remote;
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.warn("Falling back to bundled static dataset after remote fetch failure", error);

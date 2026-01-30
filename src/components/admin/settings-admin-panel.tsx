@@ -475,9 +475,9 @@ export const SettingsAdminPanel = () => {
             </span>
           </div>
           <p className="text-xs text-neutral-400">
-            If you see "Not configured" it means Supabase environment variables are missing on the server (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).
+            If you see &quot;Not configured&quot; it means Supabase environment variables are missing on the server (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).
             <br />
-            If you see "Not initialized" it means Supabase is set up, but analytics migrations have not been applied yet.
+            If you see &quot;Not initialized&quot; it means Supabase is set up, but analytics migrations have not been applied yet.
           </p>
         </CardContent>
       </Card>

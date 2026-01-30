@@ -2014,7 +2014,7 @@ export const SoftwareAdminPanel = () => {
                     );
                   })}
                 </div>
-                <p className="text-xs text-neutral-500">If you don't select any category, categories won't change.</p>
+                <p className="text-xs text-neutral-500">If you don&apos;t select any category, categories won&apos;t change.</p>
               </div>
 
               <div className="space-y-2">
@@ -2042,7 +2042,7 @@ export const SoftwareAdminPanel = () => {
                     );
                   })}
                 </div>
-                <p className="text-xs text-neutral-500">If you don't select any platform, platforms won't change.</p>
+                <p className="text-xs text-neutral-500">If you don&apos;t select any platform, platforms won&apos;t change.</p>
               </div>
 
               <div className="flex justify-end gap-3">

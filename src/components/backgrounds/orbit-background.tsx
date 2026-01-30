@@ -5,6 +5,15 @@ import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+const mulberry32 = (seed: number) => {
+  return () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
+
 const usePrefersReducedMotion = () => {
   const [reduced, setReduced] = useState(false);
 
@@ -31,24 +40,26 @@ const usePrefersReducedMotion = () => {
 const Orbs = ({ count = 24 }: { count?: number }) => {
   const group = useRef<THREE.Group | null>(null);
 
+  const rng = useMemo(() => mulberry32(1337 + count * 97), [count]);
+
   const positions = useMemo(
     () =>
       Array.from({ length: count }, () => [
-        (Math.random() - 0.5) * 46,
-        (Math.random() - 0.5) * 34,
-        (Math.random() - 0.5) * 40,
+        (rng() - 0.5) * 46,
+        (rng() - 0.5) * 34,
+        (rng() - 0.5) * 40,
       ] as const),
-    [count],
+    [count, rng],
   );
 
   const speeds = useMemo(
-    () => Array.from({ length: count }, () => Math.random() * 0.0012 + 0.00035),
-    [count],
+    () => Array.from({ length: count }, () => rng() * 0.0012 + 0.00035),
+    [count, rng],
   );
 
   const radii = useMemo(
-    () => Array.from({ length: count }, () => Math.random() * 10 + 12),
-    [count],
+    () => Array.from({ length: count }, () => rng() * 10 + 12),
+    [count, rng],
   );
 
   useFrame((state) => {

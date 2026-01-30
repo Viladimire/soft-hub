@@ -3,6 +3,7 @@ import { HeroSection } from "@/components/organisms/hero-section";
 import { SideBar } from "@/components/layouts/sidebar";
 import { OrbitBackground } from "@/components/backgrounds/orbit-background";
 import { HomeSoftwareShowcase } from "@/components/organisms/home-software-showcase";
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -10,7 +11,7 @@ export default function HomePage() {
       <OrbitBackground />
       <AppShell hero={<HeroSection />} sidebar={<SideBar />}>
         <section className="grid gap-6 lg:grid-cols-2">
-          <a
+          <Link
             href="/en/software"
             className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition hover:border-white/25 hover:bg-white/10"
           >
@@ -23,9 +24,9 @@ export default function HomePage() {
               </p>
               <div className="pt-2 text-sm font-semibold text-white/90">Open library</div>
             </div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/en/collections"
             className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition hover:border-white/25 hover:bg-white/10"
           >
@@ -38,7 +39,7 @@ export default function HomePage() {
               </p>
               <div className="pt-2 text-sm font-semibold text-white/90">Open collections</div>
             </div>
-          </a>
+          </Link>
         </section>
 
         <HomeSoftwareShowcase />
