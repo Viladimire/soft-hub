@@ -108,7 +108,7 @@ const ToastClose = React.forwardRef<
     )}
     {...props}
   >
-    <span className="sr-only">إغلاق</span>
+    <span className="sr-only">Close</span>
     ×
   </ToastPrimitives.Close>
 ));

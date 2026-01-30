@@ -2,9 +2,9 @@
   {
     "id": "collection-top-2025",
     "slug": "best-software-2025",
-    "title": "أفضل برامج 2025",
-    "subtitle": "اختيارات فريق SOFT-HUB لهذا العام",
-    "description": "مجموعة متكاملة من التطبيقات التي أثبتت قدرتها على تحسين الإنتاجية والإبداع والأمان خلال عام 2025.",
+    "title": "Best Software of 2025",
+    "subtitle": "SOFT-HUB team picks for the year",
+    "description": "A curated set of apps proven to boost productivity, creativity, and security throughout 2025.",
     "coverImageUrl": "https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#6C47FF",
     "theme": {
@@ -15,17 +15,17 @@
     "displayOrder": 100,
     "publishedAt": "2025-01-05T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "nova-os", "highlight": "أفضل نظام تشغيل خفيف" },
-      { "softwareSlug": "aurora-suite", "highlight": "أقوى استوديو إنتاجي" },
-      { "softwareSlug": "horizon-player", "highlight": "تجربة وسائط مذهلة" }
+      { "softwareSlug": "nova-os", "highlight": "Best lightweight OS" },
+      { "softwareSlug": "aurora-suite", "highlight": "Powerful productivity suite" },
+      { "softwareSlug": "horizon-player", "highlight": "Stunning media experience" }
     ]
   },
   {
     "id": "collection-devs",
     "slug": "developers-toolkit",
-    "title": "برامج للمطورين",
-    "subtitle": "أدوات تعزز إنتاجية المطور",
-    "description": "كل ما يحتاجه المطور المحترف من بيئات تطوير، تكامل مستمر، وأدوات تحليل الشفرات.",
+    "title": "Developer Tools",
+    "subtitle": "Tools that boost developer productivity",
+    "description": "Everything a professional developer needs: IDEs, CI/CD workflows, and code analysis utilities.",
     "coverImageUrl": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#2FD080",
     "theme": {
@@ -36,17 +36,17 @@
     "displayOrder": 90,
     "publishedAt": "2025-01-10T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "spectra-devkit", "highlight": "أداة تطوير شاملة" },
-      { "softwareSlug": "atlas-utilities", "highlight": "مجموعة أدوات صيانة عملية" },
-      { "softwareSlug": "aurora-suite", "highlight": "مخطط مشاريع متقدم" }
+      { "softwareSlug": "spectra-devkit", "highlight": "All-in-one dev toolkit" },
+      { "softwareSlug": "atlas-utilities", "highlight": "Practical maintenance utilities" },
+      { "softwareSlug": "aurora-suite", "highlight": "Advanced project planning" }
     ]
   },
   {
     "id": "collection-designers",
     "slug": "designers-favorites",
-    "title": "برامج للمصممين",
-    "subtitle": "أدوات تصميم تحرّك الخيال",
-    "description": "باقة مختارة من تطبيقات التصميم، الإنفيجوال موشن، وإدارة المشاريع الإبداعية.",
+    "title": "Designer Favorites",
+    "subtitle": "Design tools that spark creativity",
+    "description": "A curated pack of design apps, motion tools, and creative project management workflows.",
     "coverImageUrl": "https://images.unsplash.com/photo-1483058712412-4245e9b90334?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#FF8C69",
     "theme": {
@@ -57,17 +57,17 @@
     "displayOrder": 80,
     "publishedAt": "2025-01-12T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "aurora-suite", "highlight": "لوحات أفكار ذكية" },
-      { "softwareSlug": "horizon-player", "highlight": "إدارة وسائط مرئية" },
-      { "softwareSlug": "lumen-note", "highlight": "ملاحظات تعاونية للمشاريع" }
+      { "softwareSlug": "aurora-suite", "highlight": "Smart idea boards" },
+      { "softwareSlug": "horizon-player", "highlight": "Visual media management" },
+      { "softwareSlug": "lumen-note", "highlight": "Collaborative project notes" }
     ]
   },
   {
     "id": "collection-security",
     "slug": "security-essentials",
-    "title": "برامج الأمان",
-    "subtitle": "حماية متقدمة ومراقبة لحظية",
-    "description": "أدوات تهدف لحماية أجهزتك وبياناتك من التهديدات الرقمية المتزايدة.",
+    "title": "Security Essentials",
+    "subtitle": "Advanced protection and real-time monitoring",
+    "description": "Tools built to protect your devices and data from modern digital threats.",
     "coverImageUrl": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#0AA2FF",
     "theme": {
@@ -78,16 +78,16 @@
     "displayOrder": 70,
     "publishedAt": "2025-01-18T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "pulse-security", "highlight": "دفاع في الزمن الحقيقي" },
-      { "softwareSlug": "quantum-scan", "highlight": "تحويل مستندات آمن" }
+      { "softwareSlug": "pulse-security", "highlight": "Real-time defense" },
+      { "softwareSlug": "quantum-scan", "highlight": "Secure document conversion" }
     ]
   },
   {
     "id": "collection-creators",
     "slug": "content-creators-kit",
-    "title": "عدة صانعي المحتوى",
-    "subtitle": "تحرير، بث، ونشر بلا مجهود",
-    "description": "برامج مصممة لمساعدة صانعي المحتوى على إنتاج فيديو وصوت عالي الجودة مع أدوات نشر سريعة.",
+    "title": "Creators Kit",
+    "subtitle": "Edit, stream, and publish effortlessly",
+    "description": "Apps designed to help creators produce high-quality video and audio with fast publishing workflows.",
     "coverImageUrl": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#FF4F81",
     "theme": {
@@ -98,17 +98,17 @@
     "displayOrder": 60,
     "publishedAt": "2025-01-20T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "horizon-player", "highlight": "تحكم متكامل بالوسائط" },
-      { "softwareSlug": "aurora-suite", "highlight": "تخطيط وجدولة إنتاج" },
-      { "softwareSlug": "lumen-note", "highlight": "كتابة نصوص سريعة" }
+      { "softwareSlug": "horizon-player", "highlight": "Full media control" },
+      { "softwareSlug": "aurora-suite", "highlight": "Production planning" },
+      { "softwareSlug": "lumen-note", "highlight": "Fast script writing" }
     ]
   },
   {
     "id": "collection-students",
     "slug": "students-essentials",
-    "title": "برامج للطلاب",
-    "subtitle": "تنظيم الدراسة والمذاكرة الحديثة",
-    "description": "مجموعة تساعد الطلاب على تدوين الملاحظات، العمل التعاوني، وتنظيم المهام اليومية.",
+    "title": "Student Essentials",
+    "subtitle": "Modern study and organization",
+    "description": "A collection that helps students take notes, collaborate, and manage daily tasks.",
     "coverImageUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#FFD166",
     "theme": {
@@ -119,16 +119,16 @@
     "displayOrder": 50,
     "publishedAt": "2025-01-22T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "lumen-note", "highlight": "مذكرات تفاعلية" },
-      { "softwareSlug": "aurora-suite", "highlight": "إدارة مشاريع دراسية" }
+      { "softwareSlug": "lumen-note", "highlight": "Interactive study notes" },
+      { "softwareSlug": "aurora-suite", "highlight": "Student project management" }
     ]
   },
   {
     "id": "collection-linux",
     "slug": "linux-favorites",
-    "title": "برامج لمحبي لينكس",
-    "subtitle": "أدوات مفتوحة المصدر بكل ما تحتاجه",
-    "description": "حزمة جاهزة لأفضل الأدوات التي تعمل بسلاسة على توزيعات لينكس المختلفة.",
+    "title": "Linux Favorites",
+    "subtitle": "Open-source tools you will love",
+    "description": "A ready-to-use pack of top tools that run smoothly across popular Linux distributions.",
     "coverImageUrl": "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#51D6FF",
     "theme": {
@@ -139,17 +139,17 @@
     "displayOrder": 40,
     "publishedAt": "2025-01-25T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "nova-os", "highlight": "نظام تشغيل سريع" },
-      { "softwareSlug": "pulse-security", "highlight": "حماية متقدمة" },
-      { "softwareSlug": "spectra-devkit", "highlight": "تطوير سريع" }
+      { "softwareSlug": "nova-os", "highlight": "Fast operating system" },
+      { "softwareSlug": "pulse-security", "highlight": "Advanced protection" },
+      { "softwareSlug": "spectra-devkit", "highlight": "Rapid development" }
     ]
   },
   {
     "id": "collection-multimedia",
     "slug": "home-entertainment",
-    "title": "ترفيه منزلي",
-    "subtitle": "صوت وصورة بجودة سينمائية",
-    "description": "مجموعة لعشّاق الوسائط المنزلية تشمل تشغيل الوسائط، إدارة المكتبة، والأجهزة الذكية.",
+    "title": "Home Entertainment",
+    "subtitle": "Cinematic audio and video",
+    "description": "For home media lovers: playback apps, library management, and smart-device utilities.",
     "coverImageUrl": "https://images.unsplash.com/photo-1527443224154-9c9c8c5e0fd2?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#FF7F50",
     "theme": {
@@ -160,16 +160,16 @@
     "displayOrder": 30,
     "publishedAt": "2025-01-28T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "horizon-player", "highlight": "تجربة سينمائية" },
-      { "softwareSlug": "quantum-scan", "highlight": "أرشفة رقمية" }
+      { "softwareSlug": "horizon-player", "highlight": "Cinematic experience" },
+      { "softwareSlug": "quantum-scan", "highlight": "Digital archiving" }
     ]
   },
   {
     "id": "collection-productivity",
     "slug": "focus-and-flow",
-    "title": "تركيز وإنتاجية",
-    "subtitle": "حافظ على الإيقاع طوال اليوم",
-    "description": "أدوات متخصصة للحفاظ على التركيز، تتبّع الإنجازات، وتنسيق العمل اليومي.",
+    "title": "Focus & Productivity",
+    "subtitle": "Stay in flow all day",
+    "description": "Specialized tools to keep you focused, track progress, and streamline daily work.",
     "coverImageUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#9C6BFF",
     "theme": {
@@ -180,17 +180,17 @@
     "displayOrder": 20,
     "publishedAt": "2025-01-30T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "aurora-suite", "highlight": "إدارة الوقت" },
-      { "softwareSlug": "lumen-note", "highlight": "ملاحظات بإلهام" },
-      { "softwareSlug": "atlas-utilities", "highlight": "تحسين الأداء" }
+      { "softwareSlug": "aurora-suite", "highlight": "Time management" },
+      { "softwareSlug": "lumen-note", "highlight": "Notes that inspire" },
+      { "softwareSlug": "atlas-utilities", "highlight": "Performance tuning" }
     ]
   },
   {
     "id": "collection-games",
     "slug": "lightweight-games",
-    "title": "ألعاب خفيفة",
-    "subtitle": "تجارب ممتعة على أي جهاز",
-    "description": "مجموعة ألعاب تناسب الأجهزة المتوسطة وتدعم اللعب التعاوني أو الفردي.",
+    "title": "Lightweight Games",
+    "subtitle": "Fun experiences on any device",
+    "description": "A game selection that runs well on mid-range PCs and supports solo or co-op play.",
     "coverImageUrl": "https://images.unsplash.com/photo-1527443224154-9c9c8c5e0fd2?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#24E0A9",
     "theme": {
@@ -201,7 +201,7 @@
     "displayOrder": 10,
     "publishedAt": "2025-02-02T00:00:00.000Z",
     "items": [
-      { "softwareSlug": "singularity-games", "highlight": "منصة ألعاب متجددة" }
+      { "softwareSlug": "singularity-games", "highlight": "A growing games platform" }
     ]
   }
 ]

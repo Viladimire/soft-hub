@@ -1,3 +1,7 @@
+"use client";
+
+import { Suspense } from "react";
+
 import { AppShell } from "@/components/layouts/app-shell";
 import { SideBar } from "@/components/layouts/sidebar";
 import { FiltersPanel } from "@/components/organisms/filters-panel";
@@ -5,7 +9,7 @@ import { SoftwareGrid } from "@/components/organisms/software-grid";
 import { useFilters } from "@/lib/hooks/useFilters";
 import { useTranslations } from "next-intl";
 
-export default function SearchPage() {
+function SearchPageInner() {
   const t = useTranslations("pages.search");
   const { snapshot } = useFilters();
   const query = snapshot.searchQuery;
@@ -29,5 +33,13 @@ export default function SearchPage() {
         <SoftwareGrid />
       </section>
     </AppShell>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchPageInner />
+    </Suspense>
   );
 }

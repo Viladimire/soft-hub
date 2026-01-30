@@ -5,7 +5,7 @@ import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 
 export const POST = async (request: NextRequest) => {
   if (!isAdminRequestAuthorized(request)) {
-    return NextResponse.json({ message: "غير مصرح" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const config = await readLocalAdminConfig();
@@ -13,7 +13,7 @@ export const POST = async (request: NextRequest) => {
 
   if (!deployHookUrl) {
     return NextResponse.json(
-      { message: "لا يوجد VERCEL_DEPLOY_HOOK_URL. أنشئ Deploy Hook في Vercel ثم الصق الرابط في Settings واحفظ." },
+      { message: "Missing VERCEL_DEPLOY_HOOK_URL. Create a Deploy Hook in Vercel, then paste it in Settings and save." },
       { status: 400 },
     );
   }
@@ -29,15 +29,15 @@ export const POST = async (request: NextRequest) => {
     if (!response.ok) {
       const text = await response.text();
       return NextResponse.json(
-        { message: `فشل Trigger على Vercel (${response.status})`, details: text.slice(0, 2000) },
+        { message: `Failed to trigger Vercel deploy (${response.status})`, details: text.slice(0, 2000) },
         { status: 502 },
       );
     }
 
     const text = await response.text().catch(() => "");
-    return NextResponse.json({ ok: true, message: "تم إرسال أمر النشر إلى Vercel", details: text.slice(0, 2000) });
+    return NextResponse.json({ ok: true, message: "Deploy request sent to Vercel", details: text.slice(0, 2000) });
   } catch (error) {
     console.error("Deploy hook failed", error);
-    return NextResponse.json({ message: "تعذر الاتصال بـ Vercel deploy hook" }, { status: 500 });
+    return NextResponse.json({ message: "Failed to reach Vercel deploy hook" }, { status: 500 });
   }
 };

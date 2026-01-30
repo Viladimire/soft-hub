@@ -72,13 +72,16 @@ const expectedSoftware: Software = {
   sizeInBytes: 123456,
   platforms: platformValues,
   categories: categoryValues,
-  type: "free",
+  type: "standard",
   websiteUrl: "https://example.com",
   downloadUrl: "https://example.com/download",
   isFeatured: false,
+  isTrending: false,
   releaseDate: "2024-01-01",
   updatedAt: "2024-01-02",
   createdAt: "2024-01-01",
+  developer: {},
+  features: [],
   stats: {
     downloads: 42,
     views: 100,
@@ -117,6 +120,10 @@ const baseRow: Database["public"]["Tables"]["software"]["Row"] = {
   website_url: expectedSoftware.websiteUrl ?? null,
   download_url: expectedSoftware.downloadUrl,
   is_featured: expectedSoftware.isFeatured,
+  downloads_count: expectedSoftware.stats.downloads,
+  developer: (expectedSoftware.developer ?? {}) as unknown as Database["public"]["Tables"]["software"]["Row"]["developer"],
+  features: expectedSoftware.features ?? [],
+  is_trending: expectedSoftware.isTrending ?? false,
   release_date: expectedSoftware.releaseDate,
   updated_at: expectedSoftware.updatedAt,
   created_at: expectedSoftware.createdAt,
@@ -124,6 +131,7 @@ const baseRow: Database["public"]["Tables"]["software"]["Row"] = {
   media: expectedSoftware.media as unknown as Database["public"]["Tables"]["software"]["Row"]["media"],
   requirements: expectedSoftware.requirements as unknown as Database["public"]["Tables"]["software"]["Row"]["requirements"],
   changelog: expectedSoftware.changelog as unknown as Database["public"]["Tables"]["software"]["Row"]["changelog"],
+  search_vector: null,
 };
 
 beforeEach(() => {
@@ -131,7 +139,7 @@ beforeEach(() => {
 });
 
 describe("fetchFilteredSoftware", () => {
-  it("يعيد العناصر بعد تحويلها بصورة صحيحة", async () => {
+  it("returns items after transforming them correctly", async () => {
     const response = {
       data: [baseRow],
       error: null,
@@ -154,7 +162,7 @@ describe("fetchFilteredSoftware", () => {
     expect(from).toHaveBeenCalledWith("software");
   });
 
-  it("يرمي الخطأ القادم من Supabase", async () => {
+  it("throws the error returned by Supabase", async () => {
     const error = new Error("failed");
     const response = {
       data: null,
@@ -169,7 +177,7 @@ describe("fetchFilteredSoftware", () => {
 });
 
 describe("fetchSoftwareBySlug", () => {
-  it("يعيد null عندما لا تعود Supabase بأي صف", async () => {
+  it("returns null when Supabase returns no row", async () => {
     const { supabase, from } = createSupabaseMock({ data: null, error: null, count: null });
 
     const result = await fetchSoftwareBySlug("missing", supabase);
@@ -193,13 +201,16 @@ describe("createSoftware", () => {
     websiteUrl: expectedSoftware.websiteUrl,
     downloadUrl: expectedSoftware.downloadUrl,
     isFeatured: expectedSoftware.isFeatured,
+    isTrending: expectedSoftware.isTrending,
     releaseDate: expectedSoftware.releaseDate,
     media: expectedSoftware.media,
     requirements: expectedSoftware.requirements,
     changelog: expectedSoftware.changelog,
+    developer: expectedSoftware.developer,
+    features: expectedSoftware.features,
   };
 
-  it("يعيد السجل بعد الإنشاء بنجاح", async () => {
+  it("returns the record after successful creation", async () => {
     const { supabase, builder, from } = createSupabaseMock({ data: baseRow, error: null, count: null });
 
     const result = await createSoftware(payload, supabase);
@@ -219,7 +230,7 @@ describe("createSoftware", () => {
     expect(from).toHaveBeenCalledWith("software");
   });
 
-  it("يرمي الخطأ عند فشل الإنشاء", async () => {
+  it("throws when creation fails", async () => {
     const error = new Error("insert failed");
     const { supabase } = createSupabaseMock({ data: null, error, count: null });
 
@@ -233,7 +244,7 @@ describe("updateSoftware", () => {
     summary: "Updated summary",
   } as const;
 
-  it("يعيد السجل بعد التحديث بنجاح", async () => {
+  it("returns the record after successful update", async () => {
     const updatedRow = { ...baseRow, name: patch.name, summary: patch.summary };
     const { supabase, builder, from } = createSupabaseMock({ data: updatedRow, error: null, count: null });
 
@@ -247,7 +258,7 @@ describe("updateSoftware", () => {
     expect(from).toHaveBeenCalledWith("software");
   });
 
-  it("يرمي الخطأ عند فشل التحديث", async () => {
+  it("throws when update fails", async () => {
     const error = new Error("update failed");
     const { supabase } = createSupabaseMock({ data: null, error, count: null });
 
@@ -256,7 +267,7 @@ describe("updateSoftware", () => {
 });
 
 describe("deleteSoftware", () => {
-  it("ينفّذ الحذف دون أخطاء", async () => {
+  it("deletes without errors", async () => {
     const { supabase, builder, from } = createSupabaseMock({ data: null, error: null, count: null });
 
     await expect(deleteSoftware(baseRow.id, supabase)).resolves.toBeUndefined();
@@ -265,7 +276,7 @@ describe("deleteSoftware", () => {
     expect(from).toHaveBeenCalledWith("software");
   });
 
-  it("يرمي الخطأ عند فشل الحذف", async () => {
+  it("throws when deletion fails", async () => {
     const error = new Error("delete failed");
     const { supabase } = createSupabaseMock({ data: null, error, count: null });
 

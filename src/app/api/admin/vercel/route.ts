@@ -12,7 +12,7 @@ type VercelDeployment = {
 
 export const GET = async (request: NextRequest) => {
   if (!isAdminRequestAuthorized(request)) {
-    return NextResponse.json({ message: "غير مصرح" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const config = await readLocalAdminConfig();
@@ -22,7 +22,7 @@ export const GET = async (request: NextRequest) => {
 
   if (!token || !projectId) {
     return NextResponse.json(
-      { message: "إعدادات Vercel ناقصة (VERCEL_TOKEN / VERCEL_PROJECT_ID)" },
+      { message: "Missing Vercel settings (VERCEL_TOKEN / VERCEL_PROJECT_ID)" },
       { status: 400 },
     );
   }
@@ -44,7 +44,7 @@ export const GET = async (request: NextRequest) => {
     if (!response.ok) {
       return NextResponse.json(
         {
-          message: `فشل جلب Deployments من Vercel (${response.status})`,
+          message: `Failed to fetch deployments from Vercel (${response.status})`,
           vercelStatus: response.status,
           details: payload,
         },
@@ -59,7 +59,7 @@ export const GET = async (request: NextRequest) => {
     const latest = deployments[0];
 
     if (!latest?.url) {
-      return NextResponse.json({ message: "لم يتم العثور على deployments" }, { status: 404 });
+      return NextResponse.json({ message: "No deployments found" }, { status: 404 });
     }
 
     const httpsUrl = latest.url.startsWith("http") ? latest.url : `https://${latest.url}`;
@@ -74,6 +74,6 @@ export const GET = async (request: NextRequest) => {
     });
   } catch (error) {
     console.error("GET /api/admin/vercel failed", error);
-    return NextResponse.json({ message: "تعذر الاتصال بـ Vercel" }, { status: 500 });
+    return NextResponse.json({ message: "Failed to reach Vercel" }, { status: 500 });
   }
 };

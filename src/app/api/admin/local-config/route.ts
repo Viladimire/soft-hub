@@ -33,7 +33,7 @@ const payloadSchema = z.object({
 
 export const GET = async (request: NextRequest) => {
   if (!isAdminRequestAuthorized(request)) {
-    return NextResponse.json({ message: "غير مصرح" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const config = await readLocalAdminConfig();
@@ -43,7 +43,7 @@ export const GET = async (request: NextRequest) => {
 
 export const PUT = async (request: NextRequest) => {
   if (!isAdminRequestAuthorized(request)) {
-    return NextResponse.json({ message: "غير مصرح" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -58,7 +58,7 @@ export const PUT = async (request: NextRequest) => {
         return NextResponse.json(
           {
             message:
-              "Supabase غير مُجهّز على السيرفر. تأكد من وجود NEXT_PUBLIC_SUPABASE_URL و NEXT_PUBLIC_SUPABASE_ANON_KEY (ويُفضّل SUPABASE_SERVICE_ROLE_KEY) في Vercel ثم أعد النشر.",
+              "Supabase is not configured on the server. Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (and preferably SUPABASE_SERVICE_ROLE_KEY) are set in Vercel env, then redeploy.",
           },
           { status: 501 },
         );
@@ -68,7 +68,7 @@ export const PUT = async (request: NextRequest) => {
         return NextResponse.json(
           {
             message:
-              "تخزين إعدادات الأدمن على Supabase غير مُفعّل بعد. شغّل migrations: 005_admin_config.sql (وبعدها أعد تحميل الصفحة).",
+              "Admin config storage on Supabase is not enabled yet. Run migrations: 005_admin_config.sql, then refresh the page.",
           },
           { status: 503 },
         );
@@ -79,17 +79,17 @@ export const PUT = async (request: NextRequest) => {
       return NextResponse.json(
         {
           message:
-            "لا يمكن حفظ الإعدادات على Vercel لأن نظام الملفات للـ Serverless غير مخصص للتخزين. ضع القيم في Vercel Environment Variables بدلًا من ذلك.",
+            "Cannot persist settings on Vercel because serverless file systems are not writable. Set values via Vercel Environment Variables instead.",
         },
         { status: 501 },
       );
     }
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: "صيغة غير صالحة" }, { status: 400 });
+      return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
     }
 
     console.error("Failed to write local admin config", error);
-    return NextResponse.json({ message: "تعذر حفظ الإعدادات" }, { status: 500 });
+    return NextResponse.json({ message: "Failed to save settings" }, { status: 500 });
   }
 };

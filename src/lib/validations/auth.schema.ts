@@ -1,21 +1,21 @@
 import { z } from "zod";
 
 export const signInSchema = z.object({
-  email: z.string().email("البريد الإلكتروني غير صالح"),
-  password: z.string().min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export const signUpSchema = signInSchema.extend({
-  name: z.string().min(3, "الاسم يجب أن يكون أوضح"),
+  name: z.string().min(3, "Name is too short"),
   confirmPassword: z.string().min(8),
 })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "كلمات المرور غير متطابقة",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("البريد الإلكتروني غير صالح"),
+  email: z.string().email("Invalid email address"),
 });
 
 export type SignInInput = z.infer<typeof signInSchema>;

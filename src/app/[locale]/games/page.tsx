@@ -1,5 +1,11 @@
 import { CategoryPage } from "@/components/templates/category-page";
 
+import { Suspense } from "react";
+
 export default function GamesPage() {
-  return <CategoryPage category="games" translationKey="games" />;
+  return (
+    <Suspense fallback={null}>
+      <CategoryPage category="games" translationKey="games" />
+    </Suspense>
+  );
 }

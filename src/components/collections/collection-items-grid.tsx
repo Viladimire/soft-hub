@@ -101,7 +101,7 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                       <div>
                         <dt className="uppercase tracking-wide text-neutral-500">{t("platformsLabel")}</dt>
                         <dd className="text-neutral-200">
-                          {software.platforms.length ? software.platforms.join("، ") : t("missingSoftware")}
+                          {software.platforms.length ? software.platforms.join(", ") : t("missingSoftware")}
                         </dd>
                       </div>
                       <div>

@@ -36,11 +36,11 @@ const adminSoftwareSchema = softwareSchema.safeExtend({
   previousSlug: z.string().min(1).optional(),
   platforms: z
     .array(z.enum(platformValues))
-    .min(1, "اختر منصة واحدة على الأقل")
+    .min(1, "Select at least one platform")
     .transform((value) => value as Platform[]),
   categories: z
     .array(z.enum(categoryValues))
-    .min(1, "اختر فئة واحدة على الأقل")
+    .min(1, "Select at least one category")
     .transform((value) => value as SoftwareCategory[]),
   developer: z.record(z.string(), z.unknown()).optional(),
   features: z.array(z.string()).optional(),
@@ -227,7 +227,7 @@ export const POST = async (request: NextRequest) => {
       await saveSoftwareToGitHub(record);
     } catch (error) {
       console.error("GitHub save failed (best effort)", error);
-      warnings.push("تعذر تحديث GitHub تلقائيًا، لكن تم حفظ التعديل في قاعدة البيانات.");
+      warnings.push("Failed to update GitHub automatically, but the change was saved in the database.");
     }
 
     return NextResponse.json({ item: record, warnings }, { status: 201 });
@@ -259,7 +259,7 @@ export const DELETE = async (request: NextRequest) => {
       await deleteSoftwareFromGitHub(validatedSlug);
     } catch (error) {
       console.error("GitHub delete failed (best effort)", error);
-      warnings.push("تم الحذف من قاعدة البيانات، لكن تعذر تحديث GitHub تلقائيًا.");
+      warnings.push("Deleted from the database, but failed to update GitHub automatically.");
     }
 
     return NextResponse.json({ slug: validatedSlug, warnings });

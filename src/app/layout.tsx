@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
-
-import { defaultLocale, rtlLocales } from "@/i18n/locales";
 
 import "./globals.css";
 
@@ -32,12 +29,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const headerLocale = headersList.get("x-next-intl-locale") ?? defaultLocale;
-  const direction = rtlLocales.has(headerLocale) ? "rtl" : "ltr";
-
   return (
-    <html lang={headerLocale} dir={direction} suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning

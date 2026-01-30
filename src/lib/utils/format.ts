@@ -67,7 +67,7 @@ export const formatBytes = (bytes: number | null | undefined, decimals = 1) => {
   return `${value.toFixed(decimals)} ${units[exponent]}`;
 };
 
-const resolveFallback = (locale: string) => (locale.startsWith("ar") ? "غير متوفر" : "Not available");
+const resolveFallback = () => "Not available";
 
 export const formatReleaseDate = (
   value: string | Date | null | undefined,
@@ -75,13 +75,13 @@ export const formatReleaseDate = (
   fallback?: string,
 ) => {
   if (!value) {
-    return fallback ?? resolveFallback(locale);
+    return fallback ?? resolveFallback();
   }
 
   const date = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return fallback ?? resolveFallback(locale);
+    return fallback ?? resolveFallback();
   }
 
   return date.toLocaleDateString(locale, {
@@ -93,18 +93,18 @@ export const formatReleaseDate = (
 
 export const formatDuration = (minutes: number | null | undefined) => {
   if (!minutes || minutes < 1) {
-    return "<1 دقيقة";
+    return "<1 min";
   }
 
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
 
   if (!hours) {
-    return `${remainingMinutes} دقيقة`;
+    return `${remainingMinutes} min`;
   }
 
-  return `${hours} ساعة${remainingMinutes ? ` ${remainingMinutes} دقيقة` : ""}`;
+  return `${hours} hr${remainingMinutes ? ` ${remainingMinutes} min` : ""}`;
 };
 
 export const formatVersion = (version: string | null | undefined) =>
-  version?.trim() || "غير محدد";
+  version?.trim() || "Unknown";

@@ -8,7 +8,7 @@ import { fetchSoftwareDatasetFromGitHub } from "@/lib/services/github/softwareDa
 
 export const POST = async (request: NextRequest) => {
   if (!isAdminRequestAuthorized(request)) {
-    return NextResponse.json({ message: "غير مصرح" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const config = await readLocalAdminConfig();
@@ -16,7 +16,7 @@ export const POST = async (request: NextRequest) => {
 
   if (!deployHookUrl) {
     return NextResponse.json(
-      { message: "لا يوجد VERCEL_DEPLOY_HOOK_URL. أنشئ Deploy Hook في Vercel ثم الصق الرابط في Settings واحفظ." },
+      { message: "Missing VERCEL_DEPLOY_HOOK_URL. Create a Deploy Hook in Vercel, then paste it in Settings and save." },
       { status: 400 },
     );
   }
@@ -35,13 +35,13 @@ export const POST = async (request: NextRequest) => {
         return NextResponse.json(
           {
             message:
-              "فشل التحقق من GitHub: Bad credentials (401). التوكن غير صحيح/منتهي أو بدون صلاحيات. أنشئ GitHub token جديد بصلاحية Repo/Contents ثم احفظه في Settings وأعد المحاولة.",
+              "GitHub verification failed: Bad credentials (401). The token is invalid/expired or lacks permissions. Create a new GitHub token with Repo/Contents access, save it in Settings, and try again.",
             steps,
           },
           { status: 401 },
         );
       }
-      return NextResponse.json({ message: "فشل التحقق من GitHub", steps }, { status: 500 });
+      return NextResponse.json({ message: "GitHub verification failed", steps }, { status: 500 });
     }
 
     try {
@@ -54,13 +54,13 @@ export const POST = async (request: NextRequest) => {
         return NextResponse.json(
           {
             message:
-              "فشل التحقق من GitHub: Bad credentials (401). التوكن غير صحيح/منتهي أو بدون صلاحيات. أنشئ GitHub token جديد بصلاحية Repo/Contents ثم احفظه في Settings وأعد المحاولة.",
+              "GitHub verification failed: Bad credentials (401). The token is invalid/expired or lacks permissions. Create a new GitHub token with Repo/Contents access, save it in Settings, and try again.",
             steps,
           },
           { status: 401 },
         );
       }
-      return NextResponse.json({ message: "فشل التحقق من GitHub", steps }, { status: 500 });
+      return NextResponse.json({ message: "GitHub verification failed", steps }, { status: 500 });
     }
 
     try {
@@ -73,13 +73,13 @@ export const POST = async (request: NextRequest) => {
         return NextResponse.json(
           {
             message:
-              "فشل التحقق من GitHub: Bad credentials (401). التوكن غير صحيح/منتهي أو بدون صلاحيات. أنشئ GitHub token جديد بصلاحية Repo/Contents ثم احفظه في Settings وأعد المحاولة.",
+              "GitHub verification failed: Bad credentials (401). The token is invalid/expired or lacks permissions. Create a new GitHub token with Repo/Contents access, save it in Settings, and try again.",
             steps,
           },
           { status: 401 },
         );
       }
-      return NextResponse.json({ message: "فشل التحقق من GitHub", steps }, { status: 500 });
+      return NextResponse.json({ message: "GitHub verification failed", steps }, { status: 500 });
     }
 
     const deployResponse = await fetch(deployHookUrl, {
@@ -93,7 +93,7 @@ export const POST = async (request: NextRequest) => {
       const text = await deployResponse.text();
       steps.push({ step: "Vercel: deploy hook", ok: false, details: text.slice(0, 2000) });
       return NextResponse.json(
-        { message: `فشل Trigger على Vercel (${deployResponse.status})`, steps },
+        { message: `Failed to trigger Vercel deploy (${deployResponse.status})`, steps },
         { status: 502 },
       );
     }
@@ -101,9 +101,9 @@ export const POST = async (request: NextRequest) => {
     steps.push({ step: "Vercel: deploy hook", ok: true });
 
     const text = await deployResponse.text().catch(() => "");
-    return NextResponse.json({ ok: true, message: "تم بدء النشر (GitHub + Vercel)", steps, details: text.slice(0, 2000) });
+    return NextResponse.json({ ok: true, message: "Publish started (GitHub + Vercel)", steps, details: text.slice(0, 2000) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "تعذر إتمام عملية النشر";
+    const message = error instanceof Error ? error.message : "Failed to complete publish";
     steps.push({ step: "Publish", ok: false, details: message });
     console.error("POST /api/admin/publish failed", error);
     return NextResponse.json({ message, steps }, { status: 500 });

@@ -41,7 +41,7 @@ const guessExtension = (mime: string) => {
 const ensureStorageBucket = async (bucket: string) => {
   if (!supabaseConfig.serviceRoleKey) {
     throw new Error(
-      "Supabase Storage يحتاج SUPABASE_SERVICE_ROLE_KEY لإنشاء/إدارة الـ bucket تلقائياً. ضعه في env ثم أعد المحاولة.",
+      "Supabase Storage requires SUPABASE_SERVICE_ROLE_KEY to create/manage buckets automatically. Set it in env and try again.",
     );
   }
 
@@ -50,7 +50,7 @@ const ensureStorageBucket = async (bucket: string) => {
   const { data: buckets, error: listError } = await supabase.storage.listBuckets();
   if (listError) {
     throw new Error(
-      "تعذر قراءة Buckets من Supabase Storage. تأكد من SUPABASE_SERVICE_ROLE_KEY وصلاحيات Storage في المشروع.",
+      "Failed to list buckets from Supabase Storage. Check SUPABASE_SERVICE_ROLE_KEY and Storage permissions in the project.",
     );
   }
 
@@ -64,7 +64,7 @@ const ensureStorageBucket = async (bucket: string) => {
 
   if (createError) {
     throw new Error(
-      "تعذر إنشاء bucket تلقائياً. أنشئ bucket باسم software-images واجعله public (أو حدده في SUPABASE_STORAGE_BUCKET).",
+      "Failed to create the bucket automatically. Create a bucket named software-images and make it public (or set SUPABASE_STORAGE_BUCKET).",
     );
   }
 };

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 const ADMIN_SESSION_COOKIE_NAME = "soft-hub-admin-session";
-const ADMIN_SESSION_MAX_AGE = 60 * 60 * 8; // 8 ساعات
+const ADMIN_SESSION_MAX_AGE = 60 * 60 * 8; // 8 hours
 
 export const getAdminSecretOrThrow = () => {
   const secret = process.env.ADMIN_API_SECRET;

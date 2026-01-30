@@ -7,10 +7,12 @@ import { rateLimit } from "@/lib/utils/rate-limit";
 
 const querySchema = z.object({
   q: z.string().min(1).optional(),
+  query: z.string().min(1).optional(),
   category: z.string().optional(),
   platforms: z.string().optional(),
   types: z.string().optional(),
   sortBy: z.enum(["latest", "popular", "name"]).optional(),
+  sort: z.enum(["latest", "popular", "name"]).optional(),
   page: z.coerce.number().int().min(1).optional(),
   perPage: z.coerce.number().int().min(1).max(50).optional(),
 });
@@ -41,10 +43,16 @@ export const GET = async (request: NextRequest) => {
     const url = new URL(request.url);
     const parsed = querySchema.parse({
       q: url.searchParams.get("q") ?? undefined,
+      query: url.searchParams.get("query") ?? undefined,
       category: url.searchParams.get("category") ?? undefined,
       platforms: url.searchParams.get("platforms") ?? undefined,
       types: url.searchParams.get("types") ?? undefined,
       sortBy: (url.searchParams.get("sortBy") ?? undefined) as
+        | "latest"
+        | "popular"
+        | "name"
+        | undefined,
+      sort: (url.searchParams.get("sort") ?? undefined) as
         | "latest"
         | "popular"
         | "name"
@@ -57,11 +65,11 @@ export const GET = async (request: NextRequest) => {
 
     const result = await fetchFilteredSoftware(
       {
-        query: parsed.q,
+        query: parsed.query ?? parsed.q,
         category: parsed.category ?? null,
         platforms: splitCsv(parsed.platforms),
         types: splitCsv(parsed.types),
-        sortBy: parsed.sortBy,
+        sortBy: parsed.sort ?? parsed.sortBy,
         page: parsed.page,
         perPage: parsed.perPage,
       },

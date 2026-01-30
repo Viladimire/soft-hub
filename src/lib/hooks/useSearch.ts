@@ -97,7 +97,7 @@ export const useSearch = () => {
           console.error("Search failed", searchError);
         }
 
-        setError(searchError instanceof Error ? searchError.message : "تعذر تحميل نتائج البحث");
+        setError(searchError instanceof Error ? searchError.message : "Failed to load search results");
         setResults(null);
       } finally {
         if (!isCancelled) {

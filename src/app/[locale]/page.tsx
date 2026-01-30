@@ -6,9 +6,11 @@ import { SoftwareGrid } from "@/components/organisms/software-grid";
 import { MobileFilters } from "@/components/organisms/mobile-filters";
 import { OrbitBackground } from "@/components/backgrounds/orbit-background";
 
+import { Suspense } from "react";
+
 export default function HomePage() {
   return (
-    <>
+    <Suspense fallback={null}>
       <OrbitBackground />
       <AppShell hero={<HeroSection />} sidebar={<SideBar />}>
         <div className="grid gap-8 lg:grid-cols-[320px_1fr] lg:items-start">
@@ -21,6 +23,6 @@ export default function HomePage() {
         </div>
         <MobileFilters />
       </AppShell>
-    </>
+    </Suspense>
   );
 }
