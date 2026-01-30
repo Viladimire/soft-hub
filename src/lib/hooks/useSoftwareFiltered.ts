@@ -10,6 +10,8 @@ import { queryStaticSoftware } from "@/lib/services/staticSoftwareRepository";
 import { useSupabase } from "@/lib/hooks/useSupabase";
 import { useFilters } from "@/lib/hooks/useFilters";
 
+let disableSupabaseReads = false;
+
 type SoftwareQueryPage = SoftwareListResponse & {
   usedFallback: boolean;
   source: "supabase" | "fallback";
@@ -78,6 +80,17 @@ export const useSoftwareFiltered = () => {
         } satisfies SoftwareQueryPage;
       }
 
+      if (disableSupabaseReads) {
+        const response = await queryStaticSoftware({ ...filters, page, perPage });
+
+        return {
+          ...response,
+          usedFallback: true,
+          source: "fallback",
+          originError: "Supabase schema mismatch detected previously. Using fallback dataset.",
+        } satisfies SoftwareQueryPage;
+      }
+
       try {
         const response = await fetchFilteredSoftware({ ...filters, page }, supabase);
 
@@ -87,7 +100,25 @@ export const useSoftwareFiltered = () => {
           source: "supabase",
         } satisfies SoftwareQueryPage;
       } catch (error) {
-        throw error instanceof Error ? error : new Error(String(error));
+        const maybeCode = (error as { code?: string; status?: number } | null)?.code;
+        const maybeStatus = (error as { code?: string; status?: number } | null)?.status;
+
+        // PostgREST schema mismatch = 400s. Disable further Supabase reads to stop spam.
+        if (maybeCode === "42703" || maybeStatus === 400) {
+          disableSupabaseReads = true;
+        }
+
+        const response = await queryStaticSoftware({ ...filters, page, perPage });
+
+        return {
+          ...response,
+          usedFallback: true,
+          source: "fallback",
+          originError:
+            error instanceof Error
+              ? `Supabase request failed. Using fallback dataset. (${error.message})`
+              : "Supabase request failed. Using fallback dataset.",
+        } satisfies SoftwareQueryPage;
       }
     },
   });

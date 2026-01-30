@@ -107,9 +107,39 @@ export const fetchFilteredSoftware = async (
   const { data, error, count } = await query;
 
   if (error) {
-    if (error.code === "42703" && options.trending) {
-      console.warn("Supabase column 'is_trending' missing. Falling back to dataset without trending filter.");
-      return fetchFilteredSoftware({ ...options, trending: false }, client);
+    // If the connected Supabase project doesn't have the expected schema yet,
+    // PostgREST returns 42703 (undefined_column). Degrade gracefully.
+    if (error.code === "42703") {
+      if (options.trending) {
+        console.warn("Supabase column 'is_trending' missing. Falling back to dataset without trending filter.");
+        return fetchFilteredSoftware({ ...options, trending: false }, client);
+      }
+
+      if (options.featured) {
+        console.warn("Supabase column 'is_featured' missing. Falling back to dataset without featured filter.");
+        return fetchFilteredSoftware({ ...options, featured: false }, client);
+      }
+
+      if (options.sortBy && options.sortBy !== "name") {
+        console.warn(
+          `Supabase sorting column missing for sort '${options.sortBy}'. Falling back to name sorting.`,
+        );
+        return fetchFilteredSoftware({ ...options, sortBy: "name" }, client);
+      }
+
+      // As a last resort, drop optional filters/sorting and fetch the first page.
+      console.warn("Supabase query failed due to schema mismatch. Falling back to a minimal query.");
+      return fetchFilteredSoftware(
+        {
+          query: options.query,
+          page: options.page,
+          perPage: options.perPage,
+          sortBy: "name",
+          trending: false,
+          featured: false,
+        },
+        client,
+      );
     }
 
     throw error;
