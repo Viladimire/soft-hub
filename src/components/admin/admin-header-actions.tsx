@@ -17,14 +17,14 @@ export const AdminHeaderActions = () => {
       const response = await fetch("/api/admin/session", { method: "DELETE" });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        const message = typeof payload?.message === "string" ? payload.message : "تعذر تسجيل الخروج";
+        const message = typeof payload?.message === "string" ? payload.message : "Failed to log out";
         setError(message);
         return;
       }
 
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تسجيل الخروج");
+      setError(err instanceof Error ? err.message : "Failed to log out");
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export const AdminHeaderActions = () => {
     <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
       {error ? <p className="text-xs text-rose-300">{error}</p> : null}
       <Button type="button" variant="outline" className="rounded-full border-white/20" onClick={() => void handleLogout()} disabled={loading}>
-        {loading ? "جارٍ تسجيل الخروج..." : "تسجيل الخروج"}
+        {loading ? "Logging out..." : "Log out"}
       </Button>
     </div>
   );

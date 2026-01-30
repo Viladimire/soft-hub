@@ -10,26 +10,34 @@ import { ComingSoonHero, type ComingSoonFeature, type ComingSoonInfoCard } from 
 export default async function AlternativesPage() {
   const t = await getTranslations("pages.communityAlternatives");
 
-  const heroFeatures: ComingSoonFeature[] = [
+  const HERO_FEATURES: ComingSoonFeature[] = [
     {
-      title: t("hero.features.analysis.title"),
-      items: [t("hero.features.analysis.items.0"), t("hero.features.analysis.items.1"), t("hero.features.analysis.items.2")],
+      title: "Curated analyses",
+      items: [
+        "Benchmarks for performance, memory, and footprint",
+        "Migration playbooks between popular suites",
+        "Side-by-side comparisons with platform coverage",
+      ],
     },
     {
-      title: t("hero.features.signals.title"),
-      items: [t("hero.features.signals.items.0"), t("hero.features.signals.items.1"), t("hero.features.signals.items.2")],
+      title: "Data signals",
+      items: [
+        "Uptime and security advisories feed",
+        "Release notes and change alerts",
+        "AI-assisted recommendation summaries",
+      ],
     },
   ];
 
-  const infoCards: ComingSoonInfoCard[] = [
+  const INFO_CARDS: ComingSoonInfoCard[] = [
     {
-      title: t("infoCards.requestPipeline.title"),
-      description: t("infoCards.requestPipeline.description"),
-      badge: t("infoCards.requestPipeline.badge"),
+      title: "Request pipeline",
+      description: "Community members will be able to suggest alternatives with evidence-backed notes and change logs.",
+      badge: "Planned",
     },
     {
-      title: t("infoCards.exports.title"),
-      description: t("infoCards.exports.description"),
+      title: "Export formats",
+      description: "CSV and JSON exports for IT teams rolling out internal catalogues.",
     },
   ];
 
@@ -42,7 +50,7 @@ export default async function AlternativesPage() {
           description={t("hero.description")}
           gradientClassName="bg-gradient-to-br from-slate-900/70 via-neutral-950/75 to-slate-950/80"
           overlayClassName="bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.3),transparent_65%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.24),transparent_60%)]"
-          features={heroFeatures}
+          features={HERO_FEATURES}
           actions={[
             {
               label: t("hero.actions.primary"),
@@ -57,7 +65,7 @@ export default async function AlternativesPage() {
               variant: "ghost",
             },
           ]}
-          infoCards={infoCards}
+          infoCards={INFO_CARDS}
         />
 
         <Card className="border-white/10 bg-neutral-950/60">

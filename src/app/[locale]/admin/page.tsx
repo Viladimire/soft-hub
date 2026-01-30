@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { OrbitBackground } from "@/components/backgrounds/orbit-background";
 
 import { AdminTabs } from "@/components/admin/admin-tabs";
 import { AdminHeaderActions } from "@/components/admin/admin-header-actions";
@@ -18,8 +19,8 @@ import { fetchSoftwareStats } from "@/lib/services/softwareService";
 import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 
 export const metadata: Metadata = {
-  title: "لوحة الإدارة",
-  description: "إدارة بيانات البرامج والمجموعات الخاصة ببوابة SOFT-HUB.",
+  title: "Admin Dashboard",
+  description: "Manage software, collections, analytics, and settings for SOFT-HUB.",
 };
 
 const isGitHubDataConfigured = async () => {
@@ -51,15 +52,16 @@ export default async function AdminPage() {
   if (!isAuthorized) {
     return (
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-neutral-950 px-4 py-16">
+        <OrbitBackground />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.25),_transparent_55%)]" />
         <section className="relative z-10 w-full max-w-lg space-y-6 text-center">
           <header className="space-y-2">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-neutral-900/70 px-4 py-1 text-xs text-neutral-300">
-              <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" /> لوحة التحكم المؤمنة
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" /> Secure admin access
             </p>
-            <h1 className="text-3xl font-semibold text-white">أمان الوصول مطلوب</h1>
+            <h1 className="text-3xl font-semibold text-white">Admin access required</h1>
             <p className="text-sm text-neutral-400">
-              أدخل مفتاح الإدارة السري لفتح أدوات إدارة البرامج والمجموعات. يتم حفظ الجلسة في كوكي محمية.
+              Enter your admin secret to unlock the management tools. Your session is stored in a secure cookie.
             </p>
           </header>
           <AdminLogin />
@@ -104,20 +106,20 @@ export default async function AdminPage() {
   }> = [
     {
       id: "link-software",
-      title: "إنشاء برنامج جديد",
-      description: "ابدأ نموذج الإضافة داخل تبويب إدارة البرامج.",
+      title: "Create a new software entry",
+      description: "Open the create form inside the Software tab.",
       href: "#software",
     },
     {
       id: "link-collections",
-      title: "تنظيم المجموعات",
-      description: "انتقل إلى تبويب المجموعات لإضافة أو تحديث التجميعات.",
+      title: "Manage collections",
+      description: "Go to the Collections tab to add or update curated sets.",
       href: "#collections",
     },
     {
       id: "link-dataset",
-      title: "فتح مستودع البيانات",
-      description: "استعرض بيانات JSON على GitHub للمراجعة السريعة.",
+      title: "Open dataset repository",
+      description: "Review JSON datasets on GitHub.",
       href: githubRepoUrl,
       external: true,
     },
@@ -125,11 +127,12 @@ export default async function AdminPage() {
 
   return (
     <main className="min-h-screen bg-neutral-950 py-12">
+      <OrbitBackground />
       <div className="mx-auto w-full max-w-6xl px-4">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-white">لوحة الإدارة</h1>
-            <p className="text-sm text-neutral-400">إدارة البرامج، المجموعات، التحليلات، والإعدادات.</p>
+            <h1 className="text-2xl font-semibold text-white">Admin Dashboard</h1>
+            <p className="text-sm text-neutral-400">Manage software, collections, analytics, and settings.</p>
           </div>
           <AdminHeaderActions />
         </div>
@@ -138,19 +141,17 @@ export default async function AdminPage() {
           <section className="mb-8">
             <Card className="border-amber-400/20 bg-amber-500/5">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-amber-200">إعدادات GitHub مطلوبة لتفعيل إدارة البرامج والمجموعات</CardTitle>
+                <CardTitle className="text-sm text-amber-200">GitHub settings are required to enable dataset management</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-amber-100/90">
                 <p>
-                  لم يتم ضبط متغيرات GitHub المطلوبة، لذلك تبويبات <strong>البرامج</strong> و<strong>المجموعات</strong> لن تعمل حتى يتم ضبطها.
+                  Required GitHub variables are missing, so the <strong>Software</strong> and <strong>Collections</strong> tabs will not work until configured.
                 </p>
                 <div className="rounded-xl border border-amber-300/20 bg-neutral-950/40 p-4 text-xs text-neutral-200">
-                  <p className="font-semibold text-neutral-100">ضع القيم التالية في .env.local:</p>
-                  <pre className="mt-2 whitespace-pre-wrap">{`GITHUB_DATA_REPO_OWNER=...\nGITHUB_DATA_REPO_NAME=...\nGITHUB_CONTENT_TOKEN=...\nGITHUB_DATA_REPO_BRANCH=main (اختياري)\nGITHUB_DATA_REPO_URL=https://github.com/<owner>/<repo> (اختياري)`}</pre>
+                  <p className="font-semibold text-neutral-100">Add these values to .env.local:</p>
+                  <pre className="mt-2 whitespace-pre-wrap">{`GITHUB_DATA_REPO_OWNER=...\nGITHUB_DATA_REPO_NAME=...\nGITHUB_CONTENT_TOKEN=...\nGITHUB_DATA_REPO_BRANCH=main (optional)\nGITHUB_DATA_REPO_URL=https://github.com/<owner>/<repo> (optional)`}</pre>
                 </div>
-                <p className="text-xs text-amber-100/80">
-                  بعد ضبطها: اقفل السيرفر وشغّله تاني.
-                </p>
+                <p className="text-xs text-amber-100/80">After setting them: restart your dev server.</p>
               </CardContent>
             </Card>
           </section>
@@ -159,29 +160,29 @@ export default async function AdminPage() {
         <section className="mb-8 grid gap-4 md:grid-cols-3">
           <Card className="border-white/10 bg-neutral-900/80">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-neutral-400">عدد البرامج</CardTitle>
+              <CardTitle className="text-sm text-neutral-400">Total software</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold text-white">{softwareCount}</p>
-              <p className="mt-1 text-xs text-neutral-500">إجمالي العناصر المخزنة في قاعدة البيانات (Supabase)</p>
+              <p className="mt-1 text-xs text-neutral-500">Total entries stored in Supabase</p>
             </CardContent>
           </Card>
           <Card className="border-white/10 bg-neutral-900/80">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-neutral-400">إجمالي التحميلات</CardTitle>
+              <CardTitle className="text-sm text-neutral-400">Total downloads</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-semibold text-white">{softwareDownloads.toLocaleString("ar-EG")}</p>
-              <p className="mt-1 text-xs text-neutral-500">حسب إحصاءات البرامج المنشورة</p>
+              <p className="text-3xl font-semibold text-white">{softwareDownloads.toLocaleString("en-US")}</p>
+              <p className="mt-1 text-xs text-neutral-500">Based on published software stats</p>
             </CardContent>
           </Card>
           <Card className="border-white/10 bg-neutral-900/80">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-neutral-400">زيارات ولوائح</CardTitle>
+              <CardTitle className="text-sm text-neutral-400">Views & collections</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-semibold text-white">{softwareViews.toLocaleString("ar-EG")}</p>
-              <p className="mt-1 text-xs text-neutral-500">المشاهَدات مع {collectionsCount} مجموعة منشورة</p>
+              <p className="text-3xl font-semibold text-white">{softwareViews.toLocaleString("en-US")}</p>
+              <p className="mt-1 text-xs text-neutral-500">Views with {collectionsCount} published collections</p>
             </CardContent>
           </Card>
         </section>
@@ -200,7 +201,7 @@ export default async function AdminPage() {
                   rel={link.external ? "noreferrer" : undefined}
                   className="inline-flex items-center gap-2 text-primary-300 transition hover:text-primary-200"
                 >
-                  فتح الرابط
+                  Open link
                   <span aria-hidden className="text-lg">↗</span>
                 </Link>
               </CardContent>
@@ -212,27 +213,27 @@ export default async function AdminPage() {
           tabs={[
             {
               id: "software",
-              title: "إدارة البرامج",
+              title: "Software",
               content: <SoftwareAdminPanel />,
             },
             {
               id: "collections",
-              title: "إدارة المجموعات",
+              title: "Collections",
               content: <CollectionsAdminPanel />,
             },
             {
               id: "analytics",
-              title: "التحليلات",
+              title: "Analytics",
               content: <AnalyticsAdminPanel />,
             },
             {
               id: "requests",
-              title: "الطلبات",
+              title: "Requests",
               content: <RequestsAdminPanel />,
             },
             {
               id: "settings",
-              title: "الإعدادات",
+              title: "Settings",
               content: <SettingsAdminPanel />,
             },
           ]}

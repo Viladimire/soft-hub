@@ -72,7 +72,7 @@ export const AdminTabs = ({ tabs, initialTabId }: AdminTabsProps) => {
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-neutral-950/70 p-6 shadow-lg">
-        {activeTab?.content ?? <p className="text-sm text-neutral-300">لا يوجد محتوى متاح.</p>}
+        {activeTab?.content ?? <p className="text-sm text-neutral-300">No content available.</p>}
       </div>
     </section>
   );

@@ -49,18 +49,18 @@ export const AnalyticsAdminPanel = () => {
       setError(null);
       const response = await fetch("/api/admin/analytics");
       if (response.status === 401) {
-        setError("انتهت صلاحية الجلسة. أعد تحميل الصفحة.");
+        setError("Your session has expired. Please refresh the page.");
         return;
       }
 
       if (response.status === 501) {
-        setError("Supabase غير مفعّل. فعّل متغيرات البيئة ثم أعد المحاولة.");
+        setError("Supabase is not enabled. Configure environment variables and try again.");
         return;
       }
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        const message = typeof payload?.message === "string" ? payload.message : "تعذر تحميل التحليلات";
+        const message = typeof payload?.message === "string" ? payload.message : "Failed to load analytics";
         setError(message);
         return;
       }
@@ -68,7 +68,7 @@ export const AnalyticsAdminPanel = () => {
       const payload = (await response.json()) as AnalyticsResponse;
       setData(payload);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تحميل التحليلات");
+      setError(err instanceof Error ? err.message : "Failed to load analytics");
     } finally {
       setLoading(false);
     }
@@ -85,18 +85,18 @@ export const AnalyticsAdminPanel = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-white">لوحة التحليلات</h2>
-          <p className="text-sm text-neutral-400">ملخّص مباشر من Supabase (views/downloads/events).</p>
+          <h2 className="text-lg font-semibold text-white">Analytics</h2>
+          <p className="text-sm text-neutral-400">Live summary from Supabase (views / downloads / events).</p>
         </div>
         <Button type="button" variant="secondary" onClick={() => void load()} disabled={loading}>
-          {loading ? "جارٍ التحديث..." : "تحديث"}
+          {loading ? "Refreshing..." : "Refresh"}
         </Button>
       </div>
 
       {error ? (
         <Card className="border-white/10 bg-neutral-950/60">
           <CardHeader>
-            <CardTitle className="text-base text-white">تعذر تحميل البيانات</CardTitle>
+            <CardTitle className="text-base text-white">Failed to load data</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-neutral-300">{error}</CardContent>
         </Card>
@@ -105,26 +105,26 @@ export const AnalyticsAdminPanel = () => {
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="border-white/10 bg-neutral-950/60">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-neutral-400">إجمالي البرامج</CardTitle>
+            <CardTitle className="text-sm text-neutral-400">Total software</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-white">{totals ? totals.total_software.toLocaleString("ar-EG") : "—"}</p>
+            <p className="text-3xl font-semibold text-white">{totals ? totals.total_software.toLocaleString("en-US") : "—"}</p>
           </CardContent>
         </Card>
         <Card className="border-white/10 bg-neutral-950/60">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-neutral-400">إجمالي الزيارات</CardTitle>
+            <CardTitle className="text-sm text-neutral-400">Total views</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-white">{totals ? totals.total_views.toLocaleString("ar-EG") : "—"}</p>
+            <p className="text-3xl font-semibold text-white">{totals ? totals.total_views.toLocaleString("en-US") : "—"}</p>
           </CardContent>
         </Card>
         <Card className="border-white/10 bg-neutral-950/60">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-neutral-400">إجمالي التحميلات</CardTitle>
+            <CardTitle className="text-sm text-neutral-400">Total downloads</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-white">{totals ? totals.total_downloads.toLocaleString("ar-EG") : "—"}</p>
+            <p className="text-3xl font-semibold text-white">{totals ? totals.total_downloads.toLocaleString("en-US") : "—"}</p>
           </CardContent>
         </Card>
       </section>
@@ -132,7 +132,7 @@ export const AnalyticsAdminPanel = () => {
       <section className="grid gap-4 lg:grid-cols-2">
         <Card className="border-white/10 bg-neutral-950/60">
           <CardHeader>
-            <CardTitle className="text-base text-white">الأكثر تحميلاً</CardTitle>
+            <CardTitle className="text-base text-white">Most downloaded</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {popularRows.length ? (
@@ -147,20 +147,20 @@ export const AnalyticsAdminPanel = () => {
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-xs text-neutral-400">Downloads</p>
-                      <p className="font-semibold text-white">{row.downloads.toLocaleString("ar-EG")}</p>
+                      <p className="font-semibold text-white">{row.downloads.toLocaleString("en-US")}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-neutral-400">لا توجد بيانات بعد.</p>
+              <p className="text-sm text-neutral-400">No data yet.</p>
             )}
           </CardContent>
         </Card>
 
         <Card className="border-white/10 bg-neutral-950/60">
           <CardHeader>
-            <CardTitle className="text-base text-white">الأكثر نشاطًا (7 أيام)</CardTitle>
+            <CardTitle className="text-base text-white">Most active (7 days)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {trendingRows.length ? (
@@ -175,13 +175,13 @@ export const AnalyticsAdminPanel = () => {
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-xs text-neutral-400">Events</p>
-                      <p className="font-semibold text-white">{row.total_events.toLocaleString("ar-EG")}</p>
+                      <p className="font-semibold text-white">{row.total_events.toLocaleString("en-US")}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-neutral-400">لا توجد بيانات بعد.</p>
+              <p className="text-sm text-neutral-400">No data yet.</p>
             )}
           </CardContent>
         </Card>

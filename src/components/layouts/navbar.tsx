@@ -2,12 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Globe } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-
-import { supportedLocales } from "@/i18n/locales";
 
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils/cn";
@@ -15,59 +12,6 @@ import { cn } from "@/lib/utils/cn";
 type NavLink = {
   href: string;
   label: string;
-};
-
-const getLocaleLabel = (locale: string) => {
-  switch (locale) {
-    case "ar":
-      return "العربية";
-    case "fr":
-      return "Français";
-    case "es":
-      return "Español";
-    case "de":
-      return "Deutsch";
-    case "tr":
-      return "Türkçe";
-    case "ru":
-      return "Русский";
-    case "zh":
-      return "中文";
-    case "ja":
-      return "日本語";
-    case "hi":
-      return "हिन्दी";
-    default:
-      return "English";
-  }
-};
-
-const LanguageSwitcher = ({ locale, onChange }: { locale: string; onChange: (nextLocale: string) => void }) => {
-  const options = useMemo(
-    () =>
-      supportedLocales.map((value) => ({
-        value,
-        label: getLocaleLabel(value),
-      })),
-    [],
-  );
-
-  return (
-    <label className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-neutral-100 transition hover:border-white/25 hover:bg-white/15 lg:flex">
-      <Globe className="h-3.5 w-3.5 text-primary-200" />
-      <select
-        value={locale}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-[110px] bg-transparent text-xs outline-none"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-neutral-950 text-neutral-100">
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
 };
 
 const DesktopNavLinks = ({ pathname, links }: { pathname: string; links: NavLink[] }) => (
@@ -95,8 +39,6 @@ export const Navbar = () => {
   const dictionary = useTranslations("nav");
   const locale = useLocale();
   const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [brandMarkErrored, setBrandMarkErrored] = useState(false);
 
   const navLinks = useMemo<NavLink[]>(
@@ -108,27 +50,6 @@ export const Navbar = () => {
     ],
     [dictionary, locale],
   );
-
-  const handleLocaleChange = (nextLocale: string) => {
-    if (!nextLocale || nextLocale === locale) return;
-
-    const segments = pathname.split("/");
-    if (segments.length < 2) {
-      router.replace(`/${nextLocale}`);
-      return;
-    }
-
-    const currentLocale = segments[1];
-    if (supportedLocales.includes(currentLocale as (typeof supportedLocales)[number])) {
-      segments[1] = nextLocale;
-    } else {
-      segments.splice(1, 0, nextLocale);
-    }
-
-    const nextPath = segments.join("/") || `/${nextLocale}`;
-    const query = searchParams.toString();
-    router.replace(`${nextPath}${query ? `?${query}` : ""}`);
-  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/70 backdrop-blur-xl">
@@ -166,7 +87,6 @@ export const Navbar = () => {
         </div>
 
         <div className="ml-auto flex items-center gap-3">
-          <LanguageSwitcher locale={locale} onChange={handleLocaleChange} />
           <ThemeToggle />
         </div>
       </div>

@@ -131,25 +131,25 @@ const generateFeaturesFromDescription = (description: string): string[] => {
   }
 
   return [
-    "واجهة سهلة الاستخدام",
-    "تحديثات وتحسينات مستمرة",
-    "أداء سريع وخفيف",
-    "توافق واسع مع أنظمة التشغيل",
+    "Easy to use interface",
+    "Regular updates and improvements",
+    "Fast and lightweight performance",
+    "Wide compatibility across platforms",
   ];
 };
 
 const generateGenericRequirements = () => ({
   minimum: [
-    "OS: Windows 10 أو أحدث / macOS 10.14 أو أحدث",
-    "Processor: 1 GHz أو أسرع",
+    "OS: Windows 10 or later / macOS 10.14 or later",
+    "Processor: 1 GHz or faster",
     "RAM: 2 GB",
-    "Storage: 500 MB مساحة متاحة",
+    "Storage: 500 MB available space",
   ],
   recommended: [
-    "OS: Windows 11 / macOS 12 أو أحدث",
-    "Processor: Multi-core 2 GHz أو أسرع",
-    "RAM: 4 GB أو أكثر",
-    "Storage: 1 GB مساحة متاحة",
+    "OS: Windows 11 / macOS 12 or later",
+    "Processor: Multi-core 2 GHz or faster",
+    "RAM: 4 GB or more",
+    "Storage: 1 GB available space",
   ],
 });
 
@@ -285,8 +285,8 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
   const ownerAvatarUrl =
     isPlainRecord(repo.owner) && typeof repo.owner.avatar_url === "string" ? repo.owner.avatar_url : "";
 
-  let version = "1.0.0";
-  let sizeInMb = "250";
+  let version = "";
+  let sizeInMb = "";
   let downloads = 0;
 
   const scoreAssetName = (assetName: string) => {
@@ -314,7 +314,8 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
           if (tag) {
             version = tag;
           } else if (releaseName) {
-            version = clampText(releaseName, 40);
+            const parsedFromName = clampText(releaseName, 40);
+            version = parsedFromName;
           }
 
           const assets = Array.isArray(releaseJson.assets) ? releaseJson.assets : [];
@@ -455,8 +456,8 @@ const mergeData = (params: {
     wiki?.thumbnailUrl ?? "",
   ]).filter((url) => isValidUrl(url));
 
-  const version = clampText(github?.version || "1.0.0", 40);
-  const sizeInMb = clampText(github?.sizeInMb || "250", 12);
+  const version = clampText(github?.version || "", 40);
+  const sizeInMb = clampText(github?.sizeInMb || "", 12);
   const downloads = typeof github?.downloads === "number" && Number.isFinite(github.downloads) ? github.downloads : 0;
 
   const requirements = generateGenericRequirements();
@@ -509,8 +510,8 @@ export const autoFillSoftwareData = async (softwareName: string): Promise<AutoFi
         ...data,
         summary: clampText(data.summary, 220),
         description: clampText(data.description, 1200),
-        version: clampText(data.version || "1.0.0", 40),
-        sizeInMb: clampText(data.sizeInMb || "250", 12),
+        version: clampText(data.version || "", 40),
+        sizeInMb: clampText(data.sizeInMb || "", 12),
         websiteUrl: data.websiteUrl && isValidUrl(data.websiteUrl) ? data.websiteUrl : "",
         logoUrl: data.logoUrl && isValidUrl(data.logoUrl) ? data.logoUrl : "",
         heroImage: data.heroImage && isValidUrl(data.heroImage) ? data.heroImage : "",

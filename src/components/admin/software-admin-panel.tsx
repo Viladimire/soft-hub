@@ -164,6 +164,7 @@ type ScrapeResponse = {
     minimum: string[];
     recommended: string[];
   };
+  features?: string[];
   logoUrl: string;
   heroImage: string;
   screenshots: string[];
@@ -235,12 +236,12 @@ const parseChangelog = (raw: string) => {
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) {
-      throw new Error("Changelog يجب أن يكون مصفوفة");
+      throw new Error("Changelog must be an array");
     }
     return parsed;
   } catch (error) {
     throw new Error(
-      error instanceof Error ? `فشل قراءة الـ Changelog: ${error.message}` : "صيغة Changelog غير صحيحة",
+      error instanceof Error ? `Failed to parse changelog: ${error.message}` : "Invalid changelog format",
     );
   }
 };
@@ -253,12 +254,12 @@ const parseDeveloperJson = (raw: string) => {
   try {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      throw new Error("Developer يجب أن يكون كائن JSON");
+      throw new Error("Developer must be a JSON object");
     }
     return parsed as Record<string, unknown>;
   } catch (error) {
     throw new Error(
-      error instanceof Error ? `فشل قراءة Developer JSON: ${error.message}` : "صيغة Developer JSON غير صحيحة",
+      error instanceof Error ? `Failed to parse Developer JSON: ${error.message}` : "Invalid Developer JSON format",
     );
   }
 };
@@ -268,6 +269,32 @@ const splitLines = (raw: string) =>
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
+
+const sanitizeFeaturesText = (raw: string) => {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.map((v) => String(v)).map((v) => v.trim()).filter(Boolean).join("\n");
+    }
+    if (parsed && typeof parsed === "object") {
+      return Object.values(parsed as Record<string, unknown>)
+        .map((v) => String(v))
+        .map((v) => v.trim())
+        .filter(Boolean)
+        .join("\n");
+    }
+  } catch {
+    // ignore
+  }
+
+  return splitLines(trimmed)
+    .map((line) => line.replace(/^features\s*:?\s*/i, "").trim())
+    .filter(Boolean)
+    .join("\n");
+};
 
 const isSoftwareCategory = (value: string): value is SoftwareCategory =>
   [
@@ -413,7 +440,7 @@ const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<
     };
 
     const baseMessage =
-      typeof errorObject?.message === "string" ? errorObject.message : `فشل الطلب (${response.status})`;
+      typeof errorObject?.message === "string" ? errorObject.message : `Request failed (${response.status})`;
     const fieldErrors = errorObject?.errors?.fieldErrors as Record<string, string[] | undefined> | undefined;
     const fieldSummary = fieldErrors
       ? Object.entries(fieldErrors)
@@ -487,7 +514,7 @@ export const SoftwareAdminPanel = () => {
         if (controller.signal.aborted) {
           return;
         }
-        const message = err instanceof Error ? err.message : "تعذر تحميل البيانات";
+        const message = err instanceof Error ? err.message : "Failed to load data";
         setError(message);
         setDataset([]);
         if ((err as RequestError).status === 401) {
@@ -538,12 +565,12 @@ export const SoftwareAdminPanel = () => {
   const slugExists = async (slug: string) => {
     const response = await fetch(`/api/admin/check-slug?slug=${encodeURIComponent(slug)}`);
     if (!response.ok) {
-      throw new Error("تعذر التحقق من الـ slug");
+      throw new Error("Failed to check slug");
     }
 
     const data: unknown = await response.json();
     if (!data || typeof data !== "object" || !("exists" in data)) {
-      throw new Error("استجابة غير متوقعة من خدمة التحقق من slug");
+      throw new Error("Unexpected response from slug check service");
     }
 
     return Boolean((data as { exists?: unknown }).exists);
@@ -587,7 +614,7 @@ export const SoftwareAdminPanel = () => {
         return { ...state, slug: unique };
       });
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل توليد slug فريد");
+      pushNotification("error", err instanceof Error ? err.message : "Failed to generate a unique slug");
     } finally {
       setIsSlugChecking(false);
     }
@@ -608,14 +635,14 @@ export const SoftwareAdminPanel = () => {
       const message =
         payload && typeof payload === "object" && "message" in payload
           ? String((payload as { message?: unknown }).message)
-          : "فشل رفع الصورة";
+          : "Image upload failed";
       const error = new Error(message) as RequestError;
       error.status = response.status;
       throw error;
     }
 
     if (!payload || typeof payload !== "object" || !("url" in payload)) {
-      throw new Error("استجابة رفع غير متوقعة");
+      throw new Error("Unexpected upload response");
     }
 
     return String((payload as { url: unknown }).url);
@@ -749,7 +776,7 @@ export const SoftwareAdminPanel = () => {
     const text = await file.text();
     const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
     if (!lines.length) {
-      pushNotification("error", "ملف CSV فارغ");
+      pushNotification("error", "CSV file is empty");
       return;
     }
 
@@ -803,7 +830,7 @@ export const SoftwareAdminPanel = () => {
 
   const confirmImport = async () => {
     if (!importRows.length) {
-      pushNotification("error", "لا توجد صفوف صالحة للاستيراد");
+      pushNotification("error", "No valid rows to import");
       return;
     }
 
@@ -826,11 +853,11 @@ export const SoftwareAdminPanel = () => {
         });
       }
 
-      pushNotification("success", "تم استيراد البيانات");
+      pushNotification("success", "Import completed");
       closeImportDialog();
       await syncDataset();
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل الاستيراد");
+      pushNotification("error", err instanceof Error ? err.message : "Import failed");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -851,7 +878,7 @@ export const SoftwareAdminPanel = () => {
 
   const applyBulkEdit = async () => {
     if (!selectedSlugs.length) {
-      pushNotification("error", "اختر عناصر أولاً");
+      pushNotification("error", "Select items first");
       return;
     }
 
@@ -874,12 +901,12 @@ export const SoftwareAdminPanel = () => {
         });
       }
 
-      pushNotification("success", "تم تطبيق التعديل الجماعي");
+      pushNotification("success", "Bulk edit applied");
       closeBulkEdit();
       clearSelection();
       await syncDataset();
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل التعديل الجماعي");
+      pushNotification("error", err instanceof Error ? err.message : "Bulk edit failed");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -894,7 +921,7 @@ export const SoftwareAdminPanel = () => {
       const data = await request<AdminDatasetResponse>("/api/admin/software/supabase");
       setDataset(data.items);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "تعذر تحديث القائمة";
+      const message = err instanceof Error ? err.message : "Failed to refresh list";
       setError(message);
       if ((err as RequestError).status === 401) {
         router.refresh();
@@ -915,11 +942,11 @@ export const SoftwareAdminPanel = () => {
         body: JSON.stringify({ ...payload, previousSlug: previousSlug ?? undefined }),
       });
 
-      pushNotification("success", "تم حفظ البرنامج بنجاح");
+      pushNotification("success", "Software saved");
       closeForm();
       await syncDataset();
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل حفظ البرنامج");
+      pushNotification("error", err instanceof Error ? err.message : "Failed to save software");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -930,7 +957,7 @@ export const SoftwareAdminPanel = () => {
 
   const handleAutoFill = async () => {
     if (!formState.name.trim()) {
-      pushNotification("error", "اكتب اسم البرنامج أولاً");
+      pushNotification("error", "Enter the software name first");
       return;
     }
 
@@ -967,14 +994,28 @@ export const SoftwareAdminPanel = () => {
         const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "");
         const nextHeroImage = normalizeImageUrl(data.heroImage ?? "");
 
+        const candidateVersion = (data.version ?? "").trim();
+        const shouldApplyVersion = Boolean(candidateVersion) && /\d/.test(candidateVersion);
+
+        const candidateSize = parseNumber(data.sizeInMb ?? "", 0);
+        const shouldApplySize = Number.isFinite(candidateSize) && candidateSize > 0;
+
         return {
           ...state,
           summary: state.summary.trim() ? state.summary : data.summary ?? state.summary,
           description: state.description.trim() ? state.description : data.description ?? state.description,
           version:
-            state.version.trim() && state.version !== "1.0.0" ? state.version : data.version ?? state.version,
+            state.version.trim() && state.version !== "1.0.0"
+              ? state.version
+              : shouldApplyVersion
+                ? candidateVersion
+                : state.version,
           sizeInMb:
-            state.sizeInMb.trim() && state.sizeInMb !== "250" ? state.sizeInMb : data.sizeInMb ?? state.sizeInMb,
+            parseNumber(state.sizeInMb, 0) > 0 && state.sizeInMb !== "250"
+              ? state.sizeInMb
+              : shouldApplySize
+                ? String(Math.round(candidateSize * 10) / 10)
+                : state.sizeInMb,
           statsDownloads:
             parseNumber(state.statsDownloads, 0) > 0
               ? state.statsDownloads
@@ -991,7 +1032,9 @@ export const SoftwareAdminPanel = () => {
           recRequirements: state.recRequirements.trim()
             ? state.recRequirements
             : data.requirements?.recommended?.join("\n") ?? state.recRequirements,
-          features: state.features.trim() ? state.features : data.features?.join("\n") ?? state.features,
+          features: state.features.trim()
+            ? state.features
+            : sanitizeFeaturesText((data.features ?? []).join("\n")) || state.features,
           developerJson: state.developerJson.trim()
             ? state.developerJson
             : data.developer && Object.keys(data.developer).length > 0
@@ -1003,9 +1046,9 @@ export const SoftwareAdminPanel = () => {
 
       await ensureUniqueSlug(formState.name);
 
-      pushNotification("success", "تمت التعبئة التلقائية — راجع البيانات قبل الحفظ");
+      pushNotification("success", "Auto-fill completed — review before saving");
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل auto-fill");
+      pushNotification("error", err instanceof Error ? err.message : "Auto-fill failed");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -1017,7 +1060,7 @@ export const SoftwareAdminPanel = () => {
   const handleScrapeOfficial = async () => {
     const url = officialUrl.trim();
     if (!url) {
-      pushNotification("error", "أدخل رابط الموقع الرسمي أولاً");
+      pushNotification("error", "Enter the official website URL first");
       return;
     }
 
@@ -1087,6 +1130,12 @@ export const SoftwareAdminPanel = () => {
           ? state.categories
           : (["software"] as SoftwareCategory[]);
 
+        const nextFeatures = state.features.trim()
+          ? state.features
+          : data.features?.length
+            ? sanitizeFeaturesText(data.features.join("\n"))
+            : state.features;
+
         return {
           ...state,
           name: state.name.trim() ? state.name : (data.name ?? state.name),
@@ -1101,6 +1150,7 @@ export const SoftwareAdminPanel = () => {
           developerJson: nextDeveloperJson,
           minRequirements: nextMinReq,
           recRequirements: nextRecReq,
+          features: nextFeatures,
           logoUrl: state.logoUrl.trim() ? state.logoUrl : nextLogoUrl || state.logoUrl,
           heroImage: state.heroImage.trim() ? state.heroImage : nextHeroImage || state.heroImage,
           gallery: nextGallery,
@@ -1113,9 +1163,9 @@ export const SoftwareAdminPanel = () => {
         await ensureUniqueSlug(data.name);
       }
 
-      pushNotification("success", "تم جلب البيانات من الموقع — راجعها قبل الحفظ");
+      pushNotification("success", "Website data fetched — review before saving");
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل سحب البيانات من الموقع");
+      pushNotification("error", err instanceof Error ? err.message : "Failed to scrape website data");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -1125,7 +1175,7 @@ export const SoftwareAdminPanel = () => {
   };
 
   const handleDelete = async (software: Software) => {
-    if (!confirm(`هل تريد حذف ${software.name}؟`)) {
+    if (!confirm(`Delete ${software.name}?`)) {
       return;
     }
 
@@ -1134,10 +1184,10 @@ export const SoftwareAdminPanel = () => {
       await request(`/api/admin/software?slug=${encodeURIComponent(software.slug)}`, {
         method: "DELETE",
       });
-      pushNotification("success", "تم حذف البرنامج");
+      pushNotification("success", "Software deleted");
       await syncDataset();
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل حذف البرنامج");
+      pushNotification("error", err instanceof Error ? err.message : "Failed to delete software");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -1152,11 +1202,15 @@ export const SoftwareAdminPanel = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-primary-500/10 blur-3xl" />
+        <div className="absolute -bottom-24 left-1/4 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-purple-500/10 blur-3xl" />
+      </div>
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold text-neutral-100">لوحة إدارة البرامج</h1>
+        <h1 className="text-3xl font-semibold text-neutral-100">Software admin</h1>
         <p className="text-sm text-neutral-400">
-          تحكم كامل في بيانات الكتالوج المخزن على GitHub. تأكد من أن بياناتك دقيقة قبل الحفظ.
+          Manage the software catalog stored on GitHub. Review changes before saving.
         </p>
       </header>
 
@@ -1181,7 +1235,7 @@ export const SoftwareAdminPanel = () => {
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="bg-neutral-900/60">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-neutral-400">إجمالي البرامج</CardTitle>
+              <CardTitle className="text-sm text-neutral-400">Total software</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-semibold text-neutral-100">{dataset.length}</p>
@@ -1189,35 +1243,35 @@ export const SoftwareAdminPanel = () => {
           </Card>
           <Card className="bg-neutral-900/60">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-neutral-400">إجمالي التحميلات</CardTitle>
+              <CardTitle className="text-sm text-neutral-400">Total downloads</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-semibold text-neutral-100">
-                {formatCompactNumber(totalDownloads, "ar")}
+                {formatCompactNumber(totalDownloads, "en")}
               </p>
             </CardContent>
           </Card>
           <Card className="bg-neutral-900/60">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-neutral-400">آخر تحديث</CardTitle>
+              <CardTitle className="text-sm text-neutral-400">Last update</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl.font-semibold.text-neutral-100">
-                {loading ? "..." : mounted ? new Date().toLocaleString("ar-EG") : "—"}
+              <p className="text-2xl font-semibold text-neutral-100">
+                {loading ? "..." : mounted ? new Date().toLocaleString("en-US") : "—"}
               </p>
             </CardContent>
           </Card>
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <h2 className="text-xl.font-semibold.text-neutral-200">قائمة البرامج</h2>
+          <h2 className="text-xl font-semibold text-neutral-200">Software list</h2>
           <div className="flex flex-wrap gap-2">
             <Button onClick={openCreateForm} className="bg-primary-500 text-white hover:bg-primary-400">
               <Plus className="ms-2 h-4 w-4" />
-              برنامج جديد
+              New software
             </Button>
             <Button variant="outline" onClick={syncDataset} disabled={loading}>
-              تحديث القائمة
+              Refresh
             </Button>
             <Button type="button" variant="outline" onClick={exportCsv}>
               <Download className="ms-2 h-4 w-4" />
@@ -1234,7 +1288,7 @@ export const SoftwareAdminPanel = () => {
                   Bulk Edit ({selectedSlugs.length})
                 </Button>
                 <Button type="button" variant="outline" onClick={clearSelection}>
-                  إلغاء التحديد
+                  Clear selection
                 </Button>
               </>
             ) : null}
@@ -1284,17 +1338,17 @@ export const SoftwareAdminPanel = () => {
                   </span>
                   {software.isFeatured ? (
                     <span className="rounded-full border border-amber-400/60 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-200">
-                      مميز
+                      Featured
                     </span>
                   ) : null}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-neutral-500">
-                  <span>تحميلات: {software.stats.downloads.toLocaleString("ar-EG")}</span>
-                  <span>تقييم: {software.stats.rating.toFixed(1)} ⭐</span>
+                  <span>Downloads: {software.stats.downloads.toLocaleString("en-US")}</span>
+                  <span>Rating: {software.stats.rating.toFixed(1)} ⭐</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button size="sm" onClick={() => openEditForm(software)}>
-                    تعديل
+                    Edit
                   </Button>
                   <Button
                     size="sm"
@@ -1302,7 +1356,7 @@ export const SoftwareAdminPanel = () => {
                     className="border-red-500/60 text-red-200"
                     onClick={() => handleDelete(software)}
                   >
-                    حذف
+                    Delete
                   </Button>
                 </div>
               </CardContent>
@@ -1313,7 +1367,7 @@ export const SoftwareAdminPanel = () => {
         {dataset.length === 0 && !loading && !error ? (
           <Card className="border-dashed border-white/10 bg-neutral-900/60">
             <CardContent className="p-6 text-center text-sm text-neutral-400">
-              لم يتم إضافة أي برنامج بعد.
+              No software has been added yet.
             </CardContent>
           </Card>
         ) : null}
@@ -1321,13 +1375,13 @@ export const SoftwareAdminPanel = () => {
 
       {isFormOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-full w-full max-w-6xl overflow-y-auto rounded-2xl border border-white/10 bg-neutral-950/95 p-6 shadow-2xl">
+          <div className="max-h-full w-full max-w-6xl overflow-y-auto rounded-2xl border border-white/10 bg-neutral-950/95 p-6 shadow-2xl backdrop-blur">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold text-neutral-100">
-                {formState.id ? "تعديل برنامج" : "إضافة برنامج جديد"}
+                {formState.id ? "Edit software" : "Create software"}
               </h3>
               <Button variant="ghost" onClick={closeForm} className="text-neutral-400 hover:text-neutral-200">
-                إغلاق
+                Close
               </Button>
             </div>
 
@@ -1343,7 +1397,7 @@ export const SoftwareAdminPanel = () => {
                   <TabsContent value="basic">
                     <section className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">اسم البرنامج</label>
+                        <label className="text-sm text-neutral-300">Software name</label>
                         <div className="flex flex-wrap gap-2">
                           <Input
                             required
@@ -1364,14 +1418,14 @@ export const SoftwareAdminPanel = () => {
                             disabled={isAutoFilling || !formState.name.trim()}
                             className="bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800"
                           >
-                            {isAutoFilling ? "...جارٍ التعبئة" : "تعبئة تلقائية"}
+                            {isAutoFilling ? "Filling..." : "Auto-fill"}
                           </Button>
                         </div>
                         <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
                           <Input
                             value={officialUrl}
                             onChange={(event) => setOfficialUrl(event.target.value)}
-                            placeholder="رابط الموقع الرسمي (https://...)"
+                            placeholder="Official website URL (https://...)"
                           />
                           <Button
                             type="button"
@@ -1380,13 +1434,13 @@ export const SoftwareAdminPanel = () => {
                             variant="outline"
                             className="border-white/15"
                           >
-                            {isScraping ? "...جارٍ الجلب" : "جلب من الموقع"}
+                            {isScraping ? "Fetching..." : "Fetch website"}
                           </Button>
                         </div>
-                        {isSlugChecking ? <p className="text-xs text-neutral-500">جارٍ التحقق من slug...</p> : null}
+                        {isSlugChecking ? <p className="text-xs text-neutral-500">Checking slug...</p> : null}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">الـ Slug</label>
+                        <label className="text-sm text-neutral-300">Slug</label>
                         <Input
                           required
                           value={formState.slug}
@@ -1398,14 +1452,14 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">الإصدار</label>
+                        <label className="text-sm text-neutral-300">Version</label>
                         <Input
                           value={formState.version}
                           onChange={(event) => setFormState((state) => ({ ...state, version: event.target.value }))}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">الحجم (ميغابايت)</label>
+                        <label className="text-sm text-neutral-300">Size (MB)</label>
                         <Input
                           type="number"
                           min="0"
@@ -1415,7 +1469,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">رابط التحميل</label>
+                        <label className="text-sm text-neutral-300">Download URL</label>
                         <Input
                           required
                           value={formState.downloadUrl}
@@ -1425,7 +1479,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">الموقع الرسمي</label>
+                        <label className="text-sm text-neutral-300">Official website</label>
                         <Input
                           value={formState.websiteUrl}
                           onChange={(event) =>
@@ -1434,7 +1488,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">تاريخ الإصدار</label>
+                        <label className="text-sm text-neutral-300">Release date</label>
                         <Input
                           type="date"
                           value={formState.releaseDate}
@@ -1447,7 +1501,7 @@ export const SoftwareAdminPanel = () => {
 
                     <section className="mt-6 grid gap-4 md:grid-cols-2">
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">الملخص</label>
+                        <label className="text-sm text-neutral-300">Summary</label>
                         <Textarea
                           required
                           value={formState.summary}
@@ -1456,7 +1510,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">الوصف</label>
+                        <label className="text-sm text-neutral-300">Description</label>
                         <Textarea
                           required
                           value={formState.description}
@@ -1472,7 +1526,7 @@ export const SoftwareAdminPanel = () => {
                   <TabsContent value="media">
                     <section className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">شعار البرنامج</label>
+                        <label className="text-sm text-neutral-300">Logo</label>
                         <div className="flex flex-wrap gap-2">
                           <Button
                             type="button"
@@ -1481,7 +1535,7 @@ export const SoftwareAdminPanel = () => {
                             disabled={uploadingType !== null}
                           >
                             <Upload className="ms-2 h-4 w-4" />
-                            رفع شعار
+                            Upload logo
                           </Button>
                           <input
                             ref={logoUploadRef}
@@ -1497,9 +1551,9 @@ export const SoftwareAdminPanel = () => {
                                 setUploadingType("logo");
                                 const url = await uploadImage(file, "logo");
                                 setFormState((state) => ({ ...state, logoUrl: url }));
-                                pushNotification("success", "تم رفع الشعار");
+                                pushNotification("success", "Logo uploaded");
                               } catch (err) {
-                                pushNotification("error", err instanceof Error ? err.message : "فشل رفع الشعار");
+                                pushNotification("error", err instanceof Error ? err.message : "Failed to upload logo");
                                 if ((err as RequestError).status === 401) {
                                   router.refresh();
                                 }
@@ -1540,7 +1594,7 @@ export const SoftwareAdminPanel = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">صورة البطل</label>
+                        <label className="text-sm text-neutral-300">Hero image</label>
                         <div className="flex flex-wrap gap-2">
                           <Button
                             type="button"
@@ -1549,7 +1603,7 @@ export const SoftwareAdminPanel = () => {
                             disabled={uploadingType !== null}
                           >
                             <Upload className="ms-2 h-4 w-4" />
-                            رفع صورة البطل
+                            Upload hero
                           </Button>
                           <input
                             ref={heroUploadRef}
@@ -1565,9 +1619,9 @@ export const SoftwareAdminPanel = () => {
                                 setUploadingType("hero");
                                 const url = await uploadImage(file, "hero");
                                 setFormState((state) => ({ ...state, heroImage: url }));
-                                pushNotification("success", "تم رفع صورة البطل");
+                                pushNotification("success", "Hero image uploaded");
                               } catch (err) {
-                                pushNotification("error", err instanceof Error ? err.message : "فشل رفع الصورة");
+                                pushNotification("error", err instanceof Error ? err.message : "Failed to upload image");
                                 if ((err as RequestError).status === 401) {
                                   router.refresh();
                                 }
@@ -1607,7 +1661,7 @@ export const SoftwareAdminPanel = () => {
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">معرض الصور (كل رابط في سطر)</label>
+                        <label className="text-sm text-neutral-300">Gallery (one URL per line)</label>
                         <div className="flex flex-wrap gap-2">
                           <Button
                             type="button"
@@ -1616,7 +1670,7 @@ export const SoftwareAdminPanel = () => {
                             disabled={uploadingType !== null}
                           >
                             <Upload className="ms-2 h-4 w-4" />
-                            رفع لقطة شاشة
+                            Upload screenshot
                           </Button>
                           <input
                             ref={screenshotUploadRef}
@@ -1635,9 +1689,9 @@ export const SoftwareAdminPanel = () => {
                                   ...state,
                                   gallery: state.gallery.trim() ? `${state.gallery.trim()}\n${url}` : url,
                                 }));
-                                pushNotification("success", "تم رفع اللقطة");
+                                pushNotification("success", "Screenshot uploaded");
                               } catch (err) {
-                                pushNotification("error", err instanceof Error ? err.message : "فشل رفع اللقطة");
+                                pushNotification("error", err instanceof Error ? err.message : "Failed to upload screenshot");
                                 if ((err as RequestError).status === 401) {
                                   router.refresh();
                                 }
@@ -1646,9 +1700,7 @@ export const SoftwareAdminPanel = () => {
                               }
                             }}
                           />
-                          {uploadingType ? (
-                            <p className="text-xs text-neutral-500">جارٍ رفع الصورة...</p>
-                          ) : null}
+                          {uploadingType ? <p className="text-xs text-neutral-500">Uploading...</p> : null}
                         </div>
                         <Textarea
                           value={formState.gallery}
@@ -1695,7 +1747,7 @@ export const SoftwareAdminPanel = () => {
                   <TabsContent value="stats">
                     <section className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">تحميلات</label>
+                        <label className="text-sm text-neutral-300">Downloads</label>
                         <Input
                           type="number"
                           min="0"
@@ -1706,7 +1758,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">مشاهدات</label>
+                        <label className="text-sm text-neutral-300">Views</label>
                         <Input
                           type="number"
                           min="0"
@@ -1717,7 +1769,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">التقييم</label>
+                        <label className="text-sm text-neutral-300">Rating</label>
                         <Input
                           type="number"
                           min="0"
@@ -1730,7 +1782,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">عدد الأصوات</label>
+                        <label className="text-sm text-neutral-300">Votes</label>
                         <Input
                           type="number"
                           min="0"
@@ -1744,7 +1796,7 @@ export const SoftwareAdminPanel = () => {
 
                     <section className="mt-6 grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">المنصات المدعومة</label>
+                        <label className="text-sm text-neutral-300">Platforms</label>
                         <div className="flex flex-wrap gap-2">
                           {platformOptions.map((platform) => {
                             const selected = formState.platforms.includes(platform);
@@ -1771,7 +1823,7 @@ export const SoftwareAdminPanel = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">الفئات</label>
+                        <label className="text-sm text-neutral-300">Categories</label>
                         <div className="flex flex-wrap gap-2">
                           {categoryOptions.map((category) => {
                             const selected = formState.categories.includes(category);
@@ -1798,14 +1850,14 @@ export const SoftwareAdminPanel = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">الظهور في الواجهة</label>
+                        <label className="text-sm text-neutral-300">Featured in UI</label>
                         <Button
                           type="button"
                           variant={formState.isFeatured ? "primary" : "outline"}
                           className={formState.isFeatured ? "bg-amber-500 text-neutral-900" : undefined}
                           onClick={() => setFormState((state) => ({ ...state, isFeatured: !state.isFeatured }))}
                         >
-                          {formState.isFeatured ? "مميز" : "غير مميز"}
+                          {formState.isFeatured ? "Featured" : "Not featured"}
                         </Button>
                       </div>
                     </section>
@@ -1814,7 +1866,7 @@ export const SoftwareAdminPanel = () => {
                   <TabsContent value="advanced">
                     <section className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">المميزات (سطر لكل ميزة)</label>
+                        <label className="text-sm text-neutral-300">Features (one per line)</label>
                         <Textarea
                           value={formState.features}
                           onChange={(event) =>
@@ -1838,7 +1890,7 @@ export const SoftwareAdminPanel = () => {
 
                     <section className="mt-6 grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">المتطلبات الدنيا (سطر لكل بند)</label>
+                        <label className="text-sm text-neutral-300">Minimum requirements (one per line)</label>
                         <Textarea
                           value={formState.minRequirements}
                           onChange={(event) =>
@@ -1848,7 +1900,7 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">المتطلبات الموصى بها (سطر لكل بند)</label>
+                        <label className="text-sm text-neutral-300">Recommended requirements (one per line)</label>
                         <Textarea
                           value={formState.recRequirements}
                           onChange={(event) =>
@@ -1860,7 +1912,7 @@ export const SoftwareAdminPanel = () => {
                     </section>
 
                     <section className="mt-6 space-y-2">
-                      <label className="text-sm text-neutral-300">سجل التحديثات (JSON)</label>
+                      <label className="text-sm text-neutral-300">Changelog (JSON)</label>
                       <Textarea
                         value={formState.changelogJson}
                         onChange={(event) =>
@@ -1875,19 +1927,19 @@ export const SoftwareAdminPanel = () => {
 
                 <div className="flex justify-end gap-3">
                   <Button type="button" variant="outline" onClick={closeForm}>
-                    إلغاء
+                    Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={isSaving}
                     className="bg-primary-500 text-white hover:bg-primary-400"
                   >
-                    {isSaving ? "...جارٍ الحفظ" : "حفظ"}
+                    {isSaving ? "Saving..." : "Save"}
                   </Button>
                 </div>
               </form>
 
-              <aside className="sticky top-4 space-y-3">
+              <aside className="sticky top-4 space-y-3 rounded-2xl border border-white/10 bg-neutral-900/40 p-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-neutral-200">Preview</p>
                 </div>
@@ -1904,7 +1956,7 @@ export const SoftwareAdminPanel = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-neutral-100">Bulk Edit ({selectedSlugs.length})</h3>
               <Button variant="ghost" onClick={closeBulkEdit} className="text-neutral-400 hover:text-neutral-200">
-                إغلاق
+                Close
               </Button>
             </div>
 
@@ -1918,21 +1970,21 @@ export const SoftwareAdminPanel = () => {
                     className={bulkEdit.isFeatured === true ? "bg-amber-500 text-neutral-900" : undefined}
                     onClick={() => setBulkEdit((s) => ({ ...s, isFeatured: true }))}
                   >
-                    مميز
+                    Featured
                   </Button>
                   <Button
                     type="button"
                     variant={bulkEdit.isFeatured === false ? "primary" : "outline"}
                     onClick={() => setBulkEdit((s) => ({ ...s, isFeatured: false }))}
                   >
-                    غير مميز
+                    Not featured
                   </Button>
                   <Button
                     type="button"
                     variant={bulkEdit.isFeatured === undefined ? "primary" : "outline"}
                     onClick={() => setBulkEdit((s) => ({ ...s, isFeatured: undefined }))}
                   >
-                    بدون تغيير
+                    No change
                   </Button>
                 </div>
               </div>
@@ -1962,7 +2014,7 @@ export const SoftwareAdminPanel = () => {
                     );
                   })}
                 </div>
-                <p className="text-xs text-neutral-500">لو ما اخترتش أي فئة: مش هيغيّر الفئات الحالية.</p>
+                <p className="text-xs text-neutral-500">If you don't select any category, categories won't change.</p>
               </div>
 
               <div className="space-y-2">
@@ -1990,12 +2042,12 @@ export const SoftwareAdminPanel = () => {
                     );
                   })}
                 </div>
-                <p className="text-xs text-neutral-500">لو ما اخترتش أي منصة: مش هيغيّر المنصات الحالية.</p>
+                <p className="text-xs text-neutral-500">If you don't select any platform, platforms won't change.</p>
               </div>
 
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={closeBulkEdit}>
-                  إلغاء
+                  Cancel
                 </Button>
                 <Button
                   type="button"
@@ -2003,7 +2055,7 @@ export const SoftwareAdminPanel = () => {
                   onClick={() => void applyBulkEdit()}
                   className="bg-primary-500 text-white hover:bg-primary-400"
                 >
-                  {bulkSaving ? "...جارٍ التطبيق" : "تطبيق"}
+                  {bulkSaving ? "Applying..." : "Apply"}
                 </Button>
               </div>
             </div>
@@ -2017,7 +2069,7 @@ export const SoftwareAdminPanel = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-neutral-100">Import CSV</h3>
               <Button variant="ghost" onClick={closeImportDialog} className="text-neutral-400 hover:text-neutral-200">
-                إغلاق
+                Close
               </Button>
             </div>
 
@@ -2035,7 +2087,7 @@ export const SoftwareAdminPanel = () => {
             />
 
             <div className="mt-6 space-y-4">
-              <p className="text-sm text-neutral-400">سيتم عرض أول 50 صف فقط كمعاينة.</p>
+              <p className="text-sm text-neutral-400">Only the first 50 rows will be shown as a preview.</p>
 
               {importRows.length ? (
                 <div className="max-h-[360px] overflow-auto rounded-xl border border-white/10">
@@ -2060,13 +2112,13 @@ export const SoftwareAdminPanel = () => {
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-white/15 bg-white/5 p-6 text-center">
-                  <p className="text-sm text-neutral-300">اختر ملف CSV للبدء</p>
+                  <p className="text-sm text-neutral-300">Choose a CSV file to start</p>
                 </div>
               )}
 
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => importInputRef.current?.click()}>
-                  اختيار ملف
+                  Choose file
                 </Button>
                 <Button
                   type="button"
@@ -2074,7 +2126,7 @@ export const SoftwareAdminPanel = () => {
                   onClick={() => void confirmImport()}
                   className="bg-primary-500 text-white hover:bg-primary-400"
                 >
-                  {importSaving ? "...جارٍ الاستيراد" : "تأكيد الاستيراد"}
+                  {importSaving ? "Importing..." : "Confirm import"}
                 </Button>
               </div>
             </div>

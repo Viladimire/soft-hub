@@ -61,7 +61,7 @@ const parseJson = <T,>(label: string, value: string, fallback: T): T => {
   try {
     return JSON.parse(trimmed) as T;
   } catch (error) {
-    throw new Error(`فشل تحليل ${label}: ${(error as Error).message}`);
+    throw new Error(`Failed to parse ${label}: ${(error as Error).message}`);
   }
 };
 
@@ -73,7 +73,7 @@ const normalizePublishedAt = (value: string) => {
 
   const parsed = new Date(trimmed);
   if (Number.isNaN(parsed.getTime())) {
-    throw new Error("صيغة تاريخ نشر غير صحيحة، يرجى استخدام ISO أو datetime-local");
+    throw new Error("Invalid publish date format. Use ISO or datetime-local.");
   }
 
   return parsed.toISOString();
@@ -109,7 +109,7 @@ const toFormState = (collection: Collection): FormState => {
 
 const buildCollectionPayload = (form: FormState): Collection => {
   const now = new Date().toISOString();
-  const theme = parseJson("الثيم", form.themeJson, {} as Collection["theme"]);
+  const theme = parseJson("theme", form.themeJson, {} as Collection["theme"]);
   const itemsPayload = parseJson<
     Array<{
       softwareId?: string;
@@ -119,10 +119,10 @@ const buildCollectionPayload = (form: FormState): Collection => {
       createdAt?: string;
       updatedAt?: string;
     }>
-  >("العناصر", form.itemsJson, []);
+  >("items", form.itemsJson, []);
 
   if (!itemsPayload.length) {
-    throw new Error("يجب إدخال عنصر واحد على الأقل للمجموعة");
+    throw new Error("Please provide at least one item in the collection");
   }
 
   const collectionId = form.id ?? crypto.randomUUID();
@@ -130,7 +130,7 @@ const buildCollectionPayload = (form: FormState): Collection => {
   const displayOrder = Number(form.displayOrder || 0);
 
   if (!Number.isFinite(displayOrder)) {
-    throw new Error("قيمة ترتيب العرض غير صحيحة");
+    throw new Error("Invalid display order value");
   }
 
   const createdAt = form.createdAt ?? now;
@@ -139,7 +139,7 @@ const buildCollectionPayload = (form: FormState): Collection => {
     const softwareKey = item.softwareId ?? item.softwareSlug;
 
     if (!softwareKey) {
-      throw new Error("كل عنصر يجب أن يحتوي على softwareId أو softwareSlug");
+      throw new Error("Each item must include softwareId or softwareSlug");
     }
 
     const position = Number.isFinite(item.position) ? (item.position as number) : index;
@@ -190,7 +190,7 @@ const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    const message = errorBody?.message ?? `فشل الطلب (${response.status})`;
+    const message = errorBody?.message ?? `Request failed (${response.status})`;
     const error = new Error(message) as RequestError;
     error.status = response.status;
     throw error;
@@ -229,7 +229,7 @@ export const CollectionsAdminPanel = () => {
         if (controller.signal.aborted) {
           return;
         }
-        const message = err instanceof Error ? err.message : "تعذر تحميل بيانات المجموعات";
+        const message = err instanceof Error ? err.message : "Failed to load collections";
         setError(message);
         setDataset([]);
         if ((err as RequestError).status === 401) {
@@ -294,7 +294,7 @@ export const CollectionsAdminPanel = () => {
       setDataset(data.items);
       setError(null);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "تعذر تحديث القائمة";
+      const message = err instanceof Error ? err.message : "Failed to refresh list";
       setError(message);
       if ((err as RequestError).status === 401) {
         router.refresh();
@@ -319,11 +319,11 @@ export const CollectionsAdminPanel = () => {
         body: JSON.stringify(payload),
       });
 
-      pushNotification("success", "تم حفظ المجموعة بنجاح");
+      pushNotification("success", "Collection saved");
       closeForm();
       await syncDataset();
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل حفظ المجموعة");
+      pushNotification("error", err instanceof Error ? err.message : "Failed to save collection");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -333,7 +333,7 @@ export const CollectionsAdminPanel = () => {
   };
 
   const handleDelete = async (collection: Collection) => {
-    if (!confirm(`هل تريد حذف المجموعة ${collection.title}؟`)) {
+    if (!confirm(`Delete collection ${collection.title}?`)) {
       return;
     }
 
@@ -342,10 +342,10 @@ export const CollectionsAdminPanel = () => {
       await request(`/api/admin/collections?slug=${encodeURIComponent(collection.slug)}`, {
         method: "DELETE",
       });
-      pushNotification("success", "تم حذف المجموعة");
+      pushNotification("success", "Collection deleted");
       await syncDataset();
     } catch (err) {
-      pushNotification("error", err instanceof Error ? err.message : "فشل حذف المجموعة");
+      pushNotification("error", err instanceof Error ? err.message : "Failed to delete collection");
       if ((err as RequestError).status === 401) {
         router.refresh();
       }
@@ -364,23 +364,22 @@ export const CollectionsAdminPanel = () => {
     <div className="space-y-6">
       <header className="space-y-4">
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-semibold text-neutral-100">لوحة إدارة المجموعات</h2>
+          <h2 className="text-3xl font-semibold text-neutral-100">Collections</h2>
           <p className="text-sm text-neutral-400">
-            أنشئ وحرر مجموعات البرامج مع التحكم الكامل في بياناتها وثيماتها. يتم حفظ التعديلات مباشرة في مستودع GitHub
-            بعد التحقق من صلاحية الجلسة.
+            Create and manage curated collections. Changes are saved directly to GitHub after session verification.
           </p>
         </div>
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-3">
             <Button onClick={openCreateForm} className="bg-primary-500 text-white hover:bg-primary-400">
-              مجموعة جديدة
+              New collection
             </Button>
             <Button variant="outline" onClick={syncDataset} disabled={loading}>
-              تحديث القائمة
+              Refresh list
             </Button>
           </div>
           <p className="text-xs text-neutral-500">
-            يتم إرسال جميع الطلبات مع ملف تعريف الارتباط للجلسة (HTTP-only) ويعاد تحميل الصفحة في حال انتهاء الصلاحية.
+            Requests include the HTTP-only session cookie and the page reloads when the session expires.
           </p>
         </div>
       </header>
@@ -405,20 +404,20 @@ export const CollectionsAdminPanel = () => {
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="border-white/10 bg-neutral-950/70">
           <CardContent className="space-y-1 p-4">
-            <p className="text-xs text-neutral-400">إجمالي المجموعات</p>
+            <p className="text-xs text-neutral-400">Total collections</p>
             <p className="text-xl font-semibold text-white">{totalCollections}</p>
           </CardContent>
         </Card>
         <Card className="border-white/10 bg-neutral-950/70">
           <CardContent className="space-y-1 p-4">
-            <p className="text-xs text-neutral-400">إجمالي العناصر</p>
+            <p className="text-xs text-neutral-400">Total items</p>
             <p className="text-xl font-semibold text-white">{totalItems}</p>
           </CardContent>
         </Card>
         <Card className="border-white/10 bg-neutral-950/70">
           <CardContent className="space-y-1 p-4">
-            <p className="text-xs text-neutral-400">آخر مزامنة</p>
-            <p className="text-xl font-semibold text-white">{loading ? "..." : mounted ? new Date().toLocaleString("ar-EG") : "—"}</p>
+            <p className="text-xs text-neutral-400">Last sync</p>
+            <p className="text-xl font-semibold text-white">{loading ? "..." : mounted ? new Date().toLocaleString("en-US") : "—"}</p>
           </CardContent>
         </Card>
       </section>
@@ -435,24 +434,24 @@ export const CollectionsAdminPanel = () => {
             <CardHeader className="space-y-2">
               <CardTitle className="text-xl text-white">{collection.title}</CardTitle>
               <div className="text-xs text-neutral-400">
-                <p>الرمز: {collection.slug}</p>
-                <p>ترتيب العرض: {collection.displayOrder}</p>
-                <p>الحالة: {collection.publishedAt ? "منشورة" : "مسودة"}</p>
+                <p>Slug: {collection.slug}</p>
+                <p>Display order: {collection.displayOrder}</p>
+                <p>Status: {collection.publishedAt ? "Published" : "Draft"}</p>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-neutral-300">
               {collection.description ? <p className="line-clamp-3">{collection.description}</p> : null}
               <div className="flex flex-wrap gap-2 text-xs text-neutral-400">
-                <span>عناصر: {collection.items.length}</span>
-                {collection.isFeatured ? <span className="text-amber-300">مميزة</span> : null}
-                {collection.accentColor ? <span>لون: {collection.accentColor}</span> : null}
+                <span>Items: {collection.items.length}</span>
+                {collection.isFeatured ? <span className="text-amber-300">Featured</span> : null}
+                {collection.accentColor ? <span>Color: {collection.accentColor}</span> : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => openEditForm(collection)} variant="secondary" className="text-sm">
-                  تعديل
+                  Edit
                 </Button>
                 <Button onClick={() => handleDelete(collection)} variant="ghost" className="text-sm text-rose-300">
-                  حذف
+                  Delete
                 </Button>
               </div>
             </CardContent>
@@ -464,7 +463,7 @@ export const CollectionsAdminPanel = () => {
         <Card className="border-primary-500/30 bg-neutral-950/80">
           <CardHeader>
             <CardTitle className="text-lg text-white">
-              {formState.id ? "تعديل المجموعة" : "إنشاء مجموعة جديدة"}
+              {formState.id ? "Edit collection" : "Create collection"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -480,7 +479,7 @@ export const CollectionsAdminPanel = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs text-neutral-400">العنوان</label>
+                  <label className="block text-xs text-neutral-400">Title</label>
                   <Input
                     required
                     value={formState.title}
@@ -489,7 +488,7 @@ export const CollectionsAdminPanel = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs text-neutral-400">الوصف المختصر</label>
+                  <label className="block text-xs text-neutral-400">Subtitle</label>
                   <Input
                     value={formState.subtitle}
                     onChange={(event) => handleFormChange("subtitle", event.target.value)}
@@ -497,7 +496,7 @@ export const CollectionsAdminPanel = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs text-neutral-400">رابط الغلاف</label>
+                  <label className="block text-xs text-neutral-400">Cover image URL</label>
                   <Input
                     value={formState.coverImageUrl}
                     onChange={(event) => handleFormChange("coverImageUrl", event.target.value)}
@@ -507,7 +506,7 @@ export const CollectionsAdminPanel = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs text-neutral-400">الوصف</label>
+                <label className="block text-xs text-neutral-400">Description</label>
                 <Textarea
                   rows={4}
                   value={formState.description}
@@ -518,7 +517,7 @@ export const CollectionsAdminPanel = () => {
 
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
-                  <label className="block text-xs text-neutral-400">اللون المميز</label>
+                  <label className="block text-xs text-neutral-400">Accent color</label>
                   <Input
                     value={formState.accentColor}
                     onChange={(event) => handleFormChange("accentColor", event.target.value)}
@@ -526,7 +525,7 @@ export const CollectionsAdminPanel = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs text-neutral-400">ترتيب العرض</label>
+                  <label className="block text-xs text-neutral-400">Display order</label>
                   <Input
                     type="number"
                     value={formState.displayOrder}
@@ -535,7 +534,7 @@ export const CollectionsAdminPanel = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs text-neutral-400">تاريخ النشر (اختياري)</label>
+                  <label className="block text-xs text-neutral-400">Publish date (optional)</label>
                   <Input
                     value={formState.publishedAt}
                     onChange={(event) => handleFormChange("publishedAt", event.target.value)}
@@ -554,12 +553,12 @@ export const CollectionsAdminPanel = () => {
                   className="h-4 w-4 rounded border border-neutral-600 bg-neutral-900 text-primary-500"
                 />
                 <label htmlFor="isFeatured" className="text-sm text-neutral-300">
-                  مجموعة مميزة
+                  Featured collection
                 </label>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs text-neutral-400">الثيم (JSON)</label>
+                <label className="block text-xs text-neutral-400">Theme (JSON)</label>
                 <Textarea
                   rows={4}
                   value={formState.themeJson}
@@ -569,7 +568,7 @@ export const CollectionsAdminPanel = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs text-neutral-400">العناصر (JSON Array)</label>
+                <label className="block text-xs text-neutral-400">Items (JSON array)</label>
                 <Textarea
                   rows={6}
                   value={formState.itemsJson}
@@ -577,16 +576,16 @@ export const CollectionsAdminPanel = () => {
                   className="font-mono text-xs text-neutral-100"
                 />
                 <p className="text-xs text-neutral-500">
-                  مثال: <code>{`[{ "softwareSlug": "photoshop", "position": 0, "highlight": "أدوات تصميم" }]`}</code>
+                  Example: <code>{`[{ "softwareSlug": "photoshop", "position": 0, "highlight": "Design tools" }]`}</code>
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <Button type="submit" disabled={isSaving} className="bg-primary-500 text-white hover:bg-primary-400">
-                  {isSaving ? "جارٍ الحفظ..." : "حفظ المجموعة"}
+                  {isSaving ? "Saving..." : "Save collection"}
                 </Button>
                 <Button type="button" variant="ghost" onClick={closeForm}>
-                  إلغاء
+                  Cancel
                 </Button>
               </div>
             </form>

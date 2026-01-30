@@ -832,27 +832,10 @@ const enMessages = {
 const cloneMessages = () => JSON.parse(JSON.stringify(enMessages)) as typeof enMessages;
 
 const typedEnMessages: AbstractIntlMessages = enMessages;
-const typedArMessages: AbstractIntlMessages = cloneMessages();
-const typedFrMessages: AbstractIntlMessages = cloneMessages();
-const typedEsMessages: AbstractIntlMessages = cloneMessages();
-const typedDeMessages: AbstractIntlMessages = cloneMessages();
-const typedTrMessages: AbstractIntlMessages = cloneMessages();
-const typedRuMessages: AbstractIntlMessages = cloneMessages();
-const typedZhMessages: AbstractIntlMessages = cloneMessages();
-const typedJaMessages: AbstractIntlMessages = cloneMessages();
-const typedHiMessages: AbstractIntlMessages = cloneMessages();
+void cloneMessages;
 
 const catalog: Partial<Record<SupportedLocale, AbstractIntlMessages>> = {
   en: typedEnMessages,
-  ar: typedArMessages,
-  fr: typedFrMessages,
-  es: typedEsMessages,
-  de: typedDeMessages,
-  tr: typedTrMessages,
-  ru: typedRuMessages,
-  zh: typedZhMessages,
-  ja: typedJaMessages,
-  hi: typedHiMessages,
 };
 
 const isSupportedLocale = (value: string): value is SupportedLocale =>

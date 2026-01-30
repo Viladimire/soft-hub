@@ -149,19 +149,19 @@ export const SettingsAdminPanel = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">إعدادات النظام</h2>
-        <p className="text-sm text-neutral-400">ملخص سريع لحالة التهيئة. (لا نعرض القيم الحساسة)</p>
+        <h2 className="text-lg font-semibold text-white">System settings</h2>
+        <p className="text-sm text-neutral-400">Quick configuration overview. (Sensitive values are not shown)</p>
       </div>
 
       <Card className="border-white/10 bg-neutral-950/60">
         <CardHeader>
-          <CardTitle className="text-base text-white">إعدادات محلية للاختبار</CardTitle>
+          <CardTitle className="text-base text-white">Local config (for testing)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-neutral-300">
           <p className="text-xs text-neutral-400">
-            هذه الإعدادات تُحفظ محليًا على جهازك داخل ملف ضمن المشروع (<strong>.local/soft-hub-admin-config.json</strong>) لتسهيل الاختبار.
+            This config is stored locally in your project (<strong>.local/soft-hub-admin-config.json</strong>) to simplify testing.
           </p>
-          {configPath ? <p className="text-xs text-neutral-500">المسار: {configPath}</p> : null}
+          {configPath ? <p className="text-xs text-neutral-500">Path: {configPath}</p> : null}
 
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-2">
@@ -313,7 +313,7 @@ export const SettingsAdminPanel = () => {
                 void run();
               }}
             >
-              {configStatus === "saving" ? "جارٍ الحفظ..." : "حفظ محليًا"}
+              {configStatus === "saving" ? "Saving..." : "Save locally"}
             </Button>
             <Button
               type="button"
@@ -327,18 +327,18 @@ export const SettingsAdminPanel = () => {
                     const response = await fetch("/api/admin/deploy", { method: "POST" });
                     if (!response.ok) {
                       const payload = (await response.json().catch(() => ({}))) as { message?: string };
-                      setDeployMessage(payload?.message ?? "فشل النشر");
+                      setDeployMessage(payload?.message ?? "Deploy failed");
                       setDeployStatus("error");
                       setTimeout(() => setDeployStatus("idle"), 2500);
                       return;
                     }
 
                     const payload = (await response.json().catch(() => ({}))) as { message?: string };
-                    setDeployMessage(payload?.message ?? "تم إرسال أمر النشر");
+                    setDeployMessage(payload?.message ?? "Deploy triggered");
                     setDeployStatus("success");
                     setTimeout(() => setDeployStatus("idle"), 2000);
                   } catch {
-                    setDeployMessage("فشل النشر");
+                    setDeployMessage("Deploy failed");
                     setDeployStatus("error");
                     setTimeout(() => setDeployStatus("idle"), 2500);
                   }
@@ -347,7 +347,7 @@ export const SettingsAdminPanel = () => {
                 void run();
               }}
             >
-              {deployStatus === "deploying" ? "جارٍ النشر..." : "نشر على Vercel"}
+              {deployStatus === "deploying" ? "Deploying..." : "Deploy to Vercel"}
             </Button>
             <Button
               type="button"
@@ -361,17 +361,17 @@ export const SettingsAdminPanel = () => {
                     const response = await fetch("/api/admin/publish", { method: "POST" });
                     const payload = (await response.json().catch(() => ({}))) as { message?: string };
                     if (!response.ok) {
-                      setPublishMessage(payload?.message ?? "فشل النشر");
+                      setPublishMessage(payload?.message ?? "Publish failed");
                       setPublishStatus("error");
                       setTimeout(() => setPublishStatus("idle"), 3000);
                       return;
                     }
 
-                    setPublishMessage(payload?.message ?? "تم بدء النشر");
+                    setPublishMessage(payload?.message ?? "Publish started");
                     setPublishStatus("success");
                     setTimeout(() => setPublishStatus("idle"), 2500);
                   } catch {
-                    setPublishMessage("فشل النشر");
+                    setPublishMessage("Publish failed");
                     setPublishStatus("error");
                     setTimeout(() => setPublishStatus("idle"), 3000);
                   }
@@ -380,7 +380,7 @@ export const SettingsAdminPanel = () => {
                 void run();
               }}
             >
-              {publishStatus === "publishing" ? "جارٍ النشر الشامل..." : "نشر شامل (GitHub + Vercel)"}
+              {publishStatus === "publishing" ? "Publishing..." : "Publish (GitHub + Vercel)"}
             </Button>
             <Button
               type="button"
@@ -404,7 +404,7 @@ export const SettingsAdminPanel = () => {
                       setVercelStatus("error");
                       const details = payload?.details ? `\n${JSON.stringify(payload.details).slice(0, 800)}` : "";
                       const upstream = payload?.vercelStatus ? ` (Vercel: ${payload.vercelStatus})` : "";
-                      setVercelInfo(`${payload?.message ?? "تعذر جلب رابط النشر"}${upstream}${details}`);
+                      setVercelInfo(`${payload?.message ?? "Failed to fetch deployment URL"}${upstream}${details}`);
                       return;
                     }
 
@@ -412,25 +412,25 @@ export const SettingsAdminPanel = () => {
                     setVercelUrl(url);
                     setVercelInfo(
                       payload?.latest?.state
-                        ? `الحالة: ${payload.latest.state}`
-                        : "تم جلب آخر لينك للنشر",
+                        ? `State: ${payload.latest.state}`
+                        : "Fetched latest deployment URL",
                     );
                     setVercelStatus("success");
                   } catch {
                     setVercelStatus("error");
-                    setVercelInfo("تعذر جلب رابط النشر");
+                    setVercelInfo("Failed to fetch deployment URL");
                   }
                 };
 
                 void run();
               }}
             >
-              {vercelStatus === "loading" ? "جارٍ الجلب..." : "جلب رابط اللايف"}
+              {vercelStatus === "loading" ? "Fetching..." : "Fetch live URL"}
             </Button>
-            {configStatus === "saved" ? <span className="text-xs text-emerald-300">تم الحفظ</span> : null}
-            {configStatus === "error" ? <span className="text-xs text-rose-300">تعذر حفظ الإعدادات</span> : null}
-            {deployStatus === "success" ? <span className="text-xs text-emerald-300">تم إرسال أمر النشر</span> : null}
-            {deployStatus === "error" ? <span className="text-xs text-rose-300">فشل النشر</span> : null}
+            {configStatus === "saved" ? <span className="text-xs text-emerald-300">Saved</span> : null}
+            {configStatus === "error" ? <span className="text-xs text-rose-300">Failed to save settings</span> : null}
+            {deployStatus === "success" ? <span className="text-xs text-emerald-300">Deploy triggered</span> : null}
+            {deployStatus === "error" ? <span className="text-xs text-rose-300">Deploy failed</span> : null}
           </div>
           {deployMessage ? <p className="text-xs text-neutral-400">{deployMessage}</p> : null}
           {publishMessage ? <p className="text-xs text-neutral-400">{publishMessage}</p> : null}
@@ -447,7 +447,7 @@ export const SettingsAdminPanel = () => {
 
       <Card className="border-white/10 bg-neutral-950/60">
         <CardHeader>
-          <CardTitle className="text-base text-white">حالة التهيئة</CardTitle>
+          <CardTitle className="text-base text-white">Configuration status</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-neutral-300">
           <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2">
@@ -462,34 +462,34 @@ export const SettingsAdminPanel = () => {
               }
             >
               {supabaseStatus === "unknown"
-                ? "جارٍ التحقق..."
+                ? "Checking..."
                 : supabaseStatus === "ok"
-                  ? "مفعّل"
+                  ? "Enabled"
                   : supabaseStatus === "not_configured"
-                    ? "غير مُجهّز"
+                    ? "Not configured"
                     : supabaseStatus === "not_initialized"
-                      ? "غير مُفعّل"
+                      ? "Not initialized"
                     : supabaseStatus === "unauthorized"
-                      ? "غير مصرح"
-                      : "خطأ"}
+                      ? "Unauthorized"
+                      : "Error"}
             </span>
           </div>
           <p className="text-xs text-neutral-400">
-            إذا ظهر &quot;غير مُجهّز&quot; فهذا يعني أن متغيرات Supabase غير متاحة للسيرفر (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).
+            If you see "Not configured" it means Supabase environment variables are missing on the server (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY).
             <br />
-            إذا ظهر &quot;غير مُفعّل&quot; فهذا يعني أن Supabase موجود لكن وظائف التحليلات (migrations) لم تُطبّق بعد.
+            If you see "Not initialized" it means Supabase is set up, but analytics migrations have not been applied yet.
           </p>
         </CardContent>
       </Card>
 
       <Card className="border-white/10 bg-neutral-950/60">
         <CardHeader>
-          <CardTitle className="text-base text-white">ملاحظات</CardTitle>
+          <CardTitle className="text-base text-white">Notes</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-neutral-300">
-          لتحليلات Supabase داخل لوحة الأدمن:
-          - يلزم تفعيل Supabase + تشغيل migrations.
-          - الأفضل توفير SUPABASE_SERVICE_ROLE_KEY على السيرفر.
+          For Supabase analytics in the admin dashboard:
+          - Enable Supabase and run migrations.
+          - Prefer setting SUPABASE_SERVICE_ROLE_KEY on the server (never expose it in the client).
         </CardContent>
       </Card>
     </div>

@@ -24,7 +24,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
     const trimmed = token.trim();
 
     if (!trimmed) {
-      setErrorMessage("يرجى إدخال مفتاح الإدارة");
+      setErrorMessage("Please enter the admin secret");
       setStatus("error");
       return;
     }
@@ -40,7 +40,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        const message = typeof payload?.message === "string" ? payload.message : "فشل تسجيل الدخول";
+        const message = typeof payload?.message === "string" ? payload.message : "Login failed";
         setErrorMessage(message);
         setStatus("error");
         return;
@@ -52,7 +52,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
       router.refresh();
     } catch (error) {
       console.error("Failed to login as admin", error);
-      setErrorMessage("حدث خطأ غير متوقع. أعد المحاولة لاحقًا");
+      setErrorMessage("Unexpected error. Please try again later.");
       setStatus("error");
     }
   };
@@ -60,9 +60,9 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
   return (
     <Card className="border-white/10 bg-neutral-950/70">
       <CardHeader className="space-y-2 text-center">
-        <CardTitle className="text-2xl font-semibold text-white">تسجيل دخول الإدارة</CardTitle>
+        <CardTitle className="text-2xl font-semibold text-white">Admin Login</CardTitle>
         <CardDescription className="text-sm text-neutral-400">
-          أدخل مفتاح الإدارة السري للوصول إلى لوحة التحكم.
+          Enter the admin secret to access the dashboard.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -89,7 +89,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
           ) : null}
 
           <Button type="submit" className="w-full" disabled={status === "loading"}>
-            {status === "loading" ? "جارٍ التحقق..." : "تسجيل الدخول"}
+            {status === "loading" ? "Verifying..." : "Log in"}
           </Button>
         </form>
       </CardContent>
