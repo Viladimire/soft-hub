@@ -18,7 +18,7 @@ import { SoftwareGallery } from "@/components/software/software-gallery";
 import { SoftwareHeader } from "@/components/software/software-header";
 import { JsonLd } from "@/components/seo/json-ld";
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 

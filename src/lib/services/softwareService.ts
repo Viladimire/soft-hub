@@ -32,10 +32,20 @@ export type FilteredSoftwareOptions = {
   trending?: boolean;
 };
 
+let supabaseSchemaMismatchDetected = false;
+
 export const fetchFilteredSoftware = async (
   options: FilteredSoftwareOptions = {},
   client: Supabase,
 ): Promise<SoftwareListResponse> => {
+  if (supabaseSchemaMismatchDetected) {
+    const error = new Error("Supabase schema mismatch detected; skipping Supabase queries.") as Error & {
+      code?: string;
+    };
+    error.code = "42703";
+    throw error;
+  }
+
   const supabase = client;
 
   const trimmedQuery = options.query?.trim() ?? "";
@@ -110,36 +120,28 @@ export const fetchFilteredSoftware = async (
     // If the connected Supabase project doesn't have the expected schema yet,
     // PostgREST returns 42703 (undefined_column). Degrade gracefully.
     if (error.code === "42703") {
+      supabaseSchemaMismatchDetected = true;
+
       if (options.trending) {
         console.warn("Supabase column 'is_trending' missing. Falling back to dataset without trending filter.");
-        return fetchFilteredSoftware({ ...options, trending: false }, client);
+        throw error;
       }
 
       if (options.featured) {
         console.warn("Supabase column 'is_featured' missing. Falling back to dataset without featured filter.");
-        return fetchFilteredSoftware({ ...options, featured: false }, client);
+        throw error;
       }
 
       if (options.sortBy && options.sortBy !== "name") {
         console.warn(
           `Supabase sorting column missing for sort '${options.sortBy}'. Falling back to name sorting.`,
         );
-        return fetchFilteredSoftware({ ...options, sortBy: "name" }, client);
+        throw error;
       }
 
       // As a last resort, drop optional filters/sorting and fetch the first page.
       console.warn("Supabase query failed due to schema mismatch. Falling back to a minimal query.");
-      return fetchFilteredSoftware(
-        {
-          query: options.query,
-          page: options.page,
-          perPage: options.perPage,
-          sortBy: "name",
-          trending: false,
-          featured: false,
-        },
-        client,
-      );
+      throw error;
     }
 
     throw error;

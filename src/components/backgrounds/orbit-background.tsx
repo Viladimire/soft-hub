@@ -3,7 +3,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 const mulberry32 = (seed: number) => {
   return () => {
@@ -35,6 +35,14 @@ const usePrefersReducedMotion = () => {
   }, []);
 
   return reduced;
+};
+
+const useHasMounted = () => {
+  return useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 };
 
 const Orbs = ({ count = 24 }: { count?: number }) => {
@@ -94,8 +102,9 @@ const Orbs = ({ count = 24 }: { count?: number }) => {
 
 export const OrbitBackground = ({ enabled = true }: { enabled?: boolean }) => {
   const reducedMotion = usePrefersReducedMotion();
+  const mounted = useHasMounted();
 
-  if (!enabled || reducedMotion) {
+  if (!enabled || !mounted || reducedMotion) {
     return null;
   }
 
