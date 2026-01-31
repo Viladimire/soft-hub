@@ -56,7 +56,7 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
         </p>
       </header>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid auto-rows-fr items-stretch gap-5 md:grid-cols-2 xl:grid-cols-3">
         {collection.items
           .slice()
           .sort((a, b) => a.position - b.position)
@@ -76,7 +76,7 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
               <Card
                 key={`${collection.id}-${item.softwareId}-${item.position}`}
                 className={cn(
-                  "h-full overflow-hidden border-white/10 bg-neutral-950/70 backdrop-blur-xl",
+                  "flex h-full min-h-[280px] flex-col overflow-hidden border-white/10 bg-neutral-950/70 backdrop-blur-xl",
                   "shadow-[0_24px_60px_rgba(8,15,35,0.45)]",
                 )}
               >
@@ -93,7 +93,7 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                     #{item.position + 1}
                   </Badge>
                 </CardHeader>
-                <CardContent className="space-y-4 text-sm text-neutral-300">
+                <CardContent className="flex flex-1 flex-col gap-4 text-sm text-neutral-300">
                   <p className="line-clamp-3 leading-6 text-neutral-200">{highlight}</p>
 
                   {software ? (
@@ -121,7 +121,7 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                     </div>
                   ) : null}
 
-                  <div className="flex flex-wrap gap-3">
+                  <div className="mt-auto flex flex-wrap gap-3">
                     {href ? (
                       <Button asChild variant="primary" className="text-sm">
                         <Link href={href} prefetch>

@@ -100,7 +100,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       whileHover={{ y: -6 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
+        "group relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
         "shadow-[0_18px_45px_rgba(3,7,18,0.45)] transition-all duration-300 hover:border-white/20 hover:bg-neutral-950/45 hover:shadow-[0_28px_80px_rgba(59,130,246,0.18)]",
         className,
       )}

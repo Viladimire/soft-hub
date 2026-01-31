@@ -26,6 +26,7 @@ type QueryBuilder = {
   update: MockFn;
   delete: MockFn;
   eq: MockFn;
+  ilike: MockFn;
   or: MockFn;
   contains: MockFn;
   in: MockFn;
@@ -44,6 +45,7 @@ const createSupabaseMock = (response: FilterQueryResponse) => {
   builder.update = chain();
   builder.delete = chain();
   builder.eq = chain();
+  builder.ilike = chain();
   builder.or = chain();
   builder.contains = chain();
   builder.in = chain();

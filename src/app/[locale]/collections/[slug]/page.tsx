@@ -18,7 +18,7 @@ import { CollectionItemsGrid } from "@/components/collections/collection-items-g
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/seo/json-ld";
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 

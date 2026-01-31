@@ -129,6 +129,16 @@ type FeaturedGame = {
   gradient: string;
 };
 
+const hashToUnitFloat = (value: string) => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+
+  return (Math.abs(hash) % 1000) / 1000;
+};
+
 const AnimatedStat = ({ value, label, Icon, accentClass, locale }: AnimatedStatProps) => {
   const statRef = useRef<HTMLDivElement | null>(null);
   const inView = useInView(statRef, { once: true, amount: 0.45 });
@@ -725,6 +735,7 @@ export const HeroSection = () => {
                     (() => {
                       const accent = CATEGORY_ACCENTS[category.id] ?? CATEGORY_ACCENTS.default;
                       const AccentIcon = accent.Icon;
+                      const pulseDelay = hashToUnitFloat(category.id) * 1.5;
                       return (
                       <motion.button
                         key={category.id}
@@ -742,7 +753,7 @@ export const HeroSection = () => {
                         />
                         <motion.span
                           animate={{ scale: [1, 1.08, 1], rotate: [0, 3, -3, 0] }}
-                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 1.5 }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: pulseDelay }}
                           className={`flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-[0_12px_30px_rgba(15,23,42,0.45)] ${accent.iconBg}`}
                         >
                           <AccentIcon className="h-5 w-5" />
