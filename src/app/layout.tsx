@@ -34,7 +34,7 @@ export default async function RootLayout({
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${geistMono.variable} min-h-screen bg-[#050510] text-white antialiased`}
+        className={`${inter.variable} ${geistMono.variable} min-h-screen bg-white text-neutral-950 antialiased dark:bg-[#050510] dark:text-white`}
         suppressHydrationWarning
       >
         <OrbitBackground />

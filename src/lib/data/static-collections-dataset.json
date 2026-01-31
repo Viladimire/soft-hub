@@ -150,7 +150,7 @@
     "title": "Home Entertainment",
     "subtitle": "Cinematic audio and video",
     "description": "For home media lovers: playback apps, library management, and smart-device utilities.",
-    "coverImageUrl": "https://images.unsplash.com/photo-1527443224154-9c9c8c5e0fd2?auto=format&fit=crop&w=1600&q=80",
+    "coverImageUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#FF7F50",
     "theme": {
       "background": "linear-gradient(135deg, rgba(255,127,80,0.2), rgba(33,12,0,0.85))",
@@ -191,7 +191,7 @@
     "title": "Lightweight Games",
     "subtitle": "Fun experiences on any device",
     "description": "A game selection that runs well on mid-range PCs and supports solo or co-op play.",
-    "coverImageUrl": "https://images.unsplash.com/photo-1527443224154-9c9c8c5e0fd2?auto=format&fit=crop&w=1600&q=80",
+    "coverImageUrl": "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1600&q=80",
     "accentColor": "#24E0A9",
     "theme": {
       "background": "linear-gradient(135deg, rgba(36,224,169,0.25), rgba(10,20,12,0.85))",
