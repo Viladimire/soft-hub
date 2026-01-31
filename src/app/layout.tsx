@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 
+import { GalaxySky } from "@/components/backgrounds/galaxy-sky";
 import { OrbitBackground } from "@/components/backgrounds/orbit-background";
 
 import "./globals.css";
@@ -37,6 +38,7 @@ export default async function RootLayout({
         className={`${inter.variable} ${geistMono.variable} min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] antialiased`}
         suppressHydrationWarning
       >
+        <GalaxySky />
         <OrbitBackground />
         <div className="relative z-10">{children}</div>
       </body>
