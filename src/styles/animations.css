@@ -304,8 +304,8 @@
       radial-gradient(circle at 70% 25%, rgba(34, 211, 238, 0.16), transparent 50%),
       radial-gradient(circle at 65% 70%, rgba(236, 72, 153, 0.14), transparent 55%),
       radial-gradient(circle at 25% 80%, rgba(167, 139, 250, 0.16), transparent 55%);
-    filter: blur(24px);
-    opacity: 0.75;
+    filter: blur(18px);
+    opacity: 0.55;
     animation: nebula-shift 22s ease-in-out infinite;
   }
 
@@ -316,10 +316,9 @@
       radial-gradient(circle at 62% 72%, rgba(236, 72, 153, 0.20), transparent 58%),
       radial-gradient(circle at 28% 78%, rgba(167, 139, 250, 0.24), transparent 60%),
       radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.06), transparent 55%);
-    filter: blur(34px);
-    opacity: 0.85;
+    filter: blur(24px);
+    opacity: 0.45;
     animation-duration: 28s;
-    mix-blend-mode: screen;
   }
 
   .galaxy-milkyway {
@@ -340,10 +339,15 @@
         rgba(255, 255, 255, 0.06) 82%,
         transparent 100%
       );
-    filter: blur(18px);
-    opacity: 0.55;
-    mix-blend-mode: screen;
+    filter: blur(14px);
+    opacity: 0.22;
     mask: radial-gradient(circle at center, #000 0%, #000 55%, transparent 78%);
+  }
+
+  .galaxy-dim {
+    background:
+      radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.55) 60%, rgba(0, 0, 0, 0.72) 100%);
+    opacity: 1;
   }
 
   .galaxy-vignette {
@@ -353,21 +357,21 @@
   }
 
   .meteor-layer {
-    opacity: 0.85;
+    opacity: 0.7;
   }
 
   .meteor {
     position: absolute;
     top: 0;
     right: -10vw;
-    width: 180px;
+    width: 160px;
     height: 2px;
     border-radius: 999px;
     background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95), rgba(34, 211, 238, 0.55));
-    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.35));
+    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.25));
     opacity: 0;
     transform: rotate(35deg);
-    animation: meteor 10s linear infinite;
+    animation: meteor 12s linear infinite;
   }
 
   .meteor::after {
@@ -403,19 +407,6 @@
     width: 160px;
   }
 
-  .meteor-4 {
-    top: 52vh;
-    animation-delay: 11.7s;
-    animation-duration: 14.5s;
-    width: 240px;
-  }
-
-  .meteor-5 {
-    top: 66vh;
-    animation-delay: 16.1s;
-    animation-duration: 15.2s;
-    width: 200px;
-  }
 }
 @layer utilities {
   @keyframes rise {

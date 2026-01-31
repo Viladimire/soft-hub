@@ -5,6 +5,11 @@ import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
+type NetworkInformation = {
+  saveData?: boolean;
+  effectiveType?: string;
+};
+
 let hasMountedStore = false;
 const hasMountedListeners = new Set<() => void>();
 
@@ -40,6 +45,28 @@ const usePrefersReducedMotion = () => {
   return reduced;
 };
 
+const useLowPowerMode = () => {
+  const [lowPower] = useState(() => {
+    if (typeof window === "undefined") return false;
+
+    const nav = navigator as Navigator & {
+      connection?: NetworkInformation;
+      deviceMemory?: number;
+    };
+
+    const saveData = Boolean(nav.connection?.saveData);
+    const effectiveType = String(nav.connection?.effectiveType ?? "");
+    const slowNet = effectiveType.includes("2g") || effectiveType.includes("slow-2g");
+
+    const deviceMemory = Number(nav.deviceMemory ?? 0);
+    const cores = Number(navigator.hardwareConcurrency ?? 0);
+
+    return saveData || slowNet || (deviceMemory > 0 && deviceMemory < 4) || (cores > 0 && cores < 4);
+  });
+
+  return lowPower;
+};
+
 const useHasMounted = () => {
   const mounted = useSyncExternalStore(
     (onStoreChange) => {
@@ -61,7 +88,7 @@ const useHasMounted = () => {
   return mounted;
 };
 
-const Orbs = ({ count = 24 }: { count?: number }) => {
+const Orbs = ({ count = 16 }: { count?: number }) => {
   const group = useRef<THREE.Group | null>(null);
 
   const rng = useMemo(() => mulberry32(1337 + count * 97), [count]);
@@ -118,9 +145,10 @@ const Orbs = ({ count = 24 }: { count?: number }) => {
 
 export const OrbitBackground = ({ enabled = true }: { enabled?: boolean }) => {
   const reducedMotion = usePrefersReducedMotion();
+  const lowPower = useLowPowerMode();
   const mounted = useHasMounted();
 
-  if (!enabled || !mounted || reducedMotion) {
+  if (!enabled || !mounted || reducedMotion || lowPower) {
     return null;
   }
 

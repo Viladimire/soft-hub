@@ -5,9 +5,36 @@ import { useEffect, useRef, useState } from "react";
 import { Starfield } from "@/components/backgrounds/starfield";
 import { cn } from "@/lib/utils/cn";
 
+type NetworkInformation = {
+  saveData?: boolean;
+  effectiveType?: string;
+};
+
 type GalaxySkyProps = {
   className?: string;
   intensity?: "soft" | "medium";
+};
+
+const useLowPowerMode = () => {
+  const [lowPower] = useState(() => {
+    if (typeof window === "undefined") return false;
+
+    const nav = navigator as Navigator & {
+      connection?: NetworkInformation;
+      deviceMemory?: number;
+    };
+
+    const saveData = Boolean(nav.connection?.saveData);
+    const effectiveType = String(nav.connection?.effectiveType ?? "");
+    const slowNet = effectiveType.includes("2g") || effectiveType.includes("slow-2g");
+
+    const deviceMemory = Number(nav.deviceMemory ?? 0);
+    const cores = Number(navigator.hardwareConcurrency ?? 0);
+
+    return saveData || slowNet || (deviceMemory > 0 && deviceMemory < 4) || (cores > 0 && cores < 4);
+  });
+
+  return lowPower;
 };
 
 const usePrefersReducedMotion = () => {
@@ -35,11 +62,13 @@ const usePrefersReducedMotion = () => {
 
 export const GalaxySky = ({ className, intensity = "medium" }: GalaxySkyProps) => {
   const reducedMotion = usePrefersReducedMotion();
+  const lowPower = useLowPowerMode();
 
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (reducedMotion) return;
+    if (lowPower) return;
     if (!rootRef.current) return;
     if (typeof window === "undefined") return;
 
@@ -89,7 +118,7 @@ export const GalaxySky = ({ className, intensity = "medium" }: GalaxySkyProps) =
         window.cancelAnimationFrame(raf);
       }
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, lowPower]);
 
   if (reducedMotion) return null;
 
@@ -105,21 +134,28 @@ export const GalaxySky = ({ className, intensity = "medium" }: GalaxySkyProps) =
       )}
     >
       <div className="absolute inset-0 galaxy-parallax">
-        <Starfield className="opacity-75 animate-starfield-parallax" intensity={intensity} />
+        <Starfield
+          className={cn(
+            "opacity-70",
+            lowPower ? null : "animate-starfield-parallax",
+          )}
+          intensity={intensity}
+        />
 
         <div className="absolute inset-0 galaxy-nebula" />
-        <div className="absolute inset-0 galaxy-nebula galaxy-nebula--strong" />
+        {lowPower ? null : <div className="absolute inset-0 galaxy-nebula galaxy-nebula--strong" />}
         <div className="absolute inset-0 galaxy-milkyway" />
 
-        <div className="absolute inset-0 meteor-layer">
-          <span className="meteor meteor-1" />
-          <span className="meteor meteor-2" />
-          <span className="meteor meteor-3" />
-          <span className="meteor meteor-4" />
-          <span className="meteor meteor-5" />
-        </div>
+        {lowPower ? null : (
+          <div className="absolute inset-0 meteor-layer">
+            <span className="meteor meteor-1" />
+            <span className="meteor meteor-2" />
+            <span className="meteor meteor-3" />
+          </div>
+        )}
       </div>
 
+      <div className="absolute inset-0 galaxy-dim" />
       <div className="absolute inset-0 galaxy-vignette" />
     </div>
   );
