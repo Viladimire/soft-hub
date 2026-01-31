@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
 import animatePlugin from "tailwindcss-animate";
+import formsPlugin from "@tailwindcss/forms";
 
 const colors = {
   dark: {
@@ -256,7 +257,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [animatePlugin],
+  plugins: [animatePlugin, formsPlugin],
 };
 
 export default config;
