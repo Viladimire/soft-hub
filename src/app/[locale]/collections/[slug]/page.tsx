@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { TranslationValues } from "next-intl";
 
+import Link from "next/link";
+
 import { defaultLocale, supportedLocales } from "@/i18n/locales";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -139,9 +141,9 @@ export default async function CollectionDetailPage({
         <JsonLd data={jsonLd} />
         <div className="flex items-center justify-between">
           <Button variant="ghost" asChild className="text-sm text-neutral-300 hover:text-white">
-            <a href={`/${locale}/collections`}>
+            <Link href={`/${locale}/collections`}>
               ← {translateDetail("backLink")}
-            </a>
+            </Link>
           </Button>
         </div>
 
