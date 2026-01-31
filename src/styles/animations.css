@@ -292,6 +292,12 @@
     animation: starfield-parallax 18s ease-in-out infinite;
   }
 
+  .galaxy-parallax {
+    transform: translate3d(var(--sky-x, 0px), var(--sky-y, 0px), 0);
+    transition: transform 120ms linear;
+    will-change: transform;
+  }
+
   .galaxy-nebula {
     background:
       radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.20), transparent 55%),
@@ -301,6 +307,43 @@
     filter: blur(24px);
     opacity: 0.75;
     animation: nebula-shift 22s ease-in-out infinite;
+  }
+
+  .galaxy-nebula--strong {
+    background:
+      radial-gradient(circle at 18% 35%, rgba(56, 189, 248, 0.22), transparent 58%),
+      radial-gradient(circle at 72% 32%, rgba(99, 102, 241, 0.26), transparent 60%),
+      radial-gradient(circle at 62% 72%, rgba(236, 72, 153, 0.20), transparent 58%),
+      radial-gradient(circle at 28% 78%, rgba(167, 139, 250, 0.24), transparent 60%),
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.06), transparent 55%);
+    filter: blur(34px);
+    opacity: 0.85;
+    animation-duration: 28s;
+    mix-blend-mode: screen;
+  }
+
+  .galaxy-milkyway {
+    position: absolute;
+    left: -25%;
+    top: 10%;
+    width: 160%;
+    height: 55%;
+    transform: rotate(-18deg);
+    background:
+      linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.06) 18%,
+        rgba(34, 211, 238, 0.10) 35%,
+        rgba(99, 102, 241, 0.14) 50%,
+        rgba(236, 72, 153, 0.10) 65%,
+        rgba(255, 255, 255, 0.06) 82%,
+        transparent 100%
+      );
+    filter: blur(18px);
+    opacity: 0.55;
+    mix-blend-mode: screen;
+    mask: radial-gradient(circle at center, #000 0%, #000 55%, transparent 78%);
   }
 
   .galaxy-vignette {
