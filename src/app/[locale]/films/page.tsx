@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Lock } from "lucide-react";
 
 import { AppShell } from "@/components/layouts/app-shell";
 import { SideBar } from "@/components/layouts/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { ComingSoonHero, type ComingSoonFeature } from "@/components/templates/coming-soon-hero";
 
 type FilmPreview = {
@@ -28,8 +28,6 @@ type EditorialHighlight = {
 export default function FilmsComingSoonPage() {
   const locale = useLocale();
   const t = useTranslations("pages.films");
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "disabled" | "error">("idle");
 
   const upcomingFilms: FilmPreview[] = useMemo(
     () => [
@@ -96,35 +94,6 @@ export default function FilmsComingSoonPage() {
     [upcomingFilms],
   );
 
-  const handleSubmit = useCallback(async () => {
-    const trimmed = email.trim();
-    if (!trimmed) return;
-
-    try {
-      setStatus("loading");
-      const response = await fetch("/api/films/notify", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: trimmed, locale }),
-      });
-
-      if (response.status === 501) {
-        setStatus("disabled");
-        return;
-      }
-
-      if (!response.ok) {
-        setStatus("error");
-        return;
-      }
-
-      setStatus("success");
-      setEmail("");
-    } catch {
-      setStatus("error");
-    }
-  }, [email, locale]);
-
   return (
     <AppShell sidebar={<SideBar />} className="pt-10">
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -149,31 +118,32 @@ export default function FilmsComingSoonPage() {
               variant: "ghost",
             },
           ]}
-          footer={
-            <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 sm:max-w-xl">
-              <p className="text-sm font-semibold text-white">{t("notify.title")}</p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder={t("notify.placeholder")}
-                  className="bg-neutral-900/60 text-neutral-100 placeholder:text-neutral-500"
-                />
-                <Button type="button" variant="primary" onClick={() => void handleSubmit()} disabled={status === "loading"}>
-                  {status === "loading" ? t("notify.actions.loading") : t("notify.actions.submit")}
-                </Button>
-              </div>
-              {status === "success" ? <p className="text-xs text-emerald-300">{t("notify.status.success")}</p> : null}
-              {status === "disabled" ? (
-                <p className="text-xs text-neutral-300">{t("notify.status.disabled")}</p>
-              ) : null}
-              {status === "error" ? <p className="text-xs text-rose-300">{t("notify.status.error")}</p> : null}
-            </div>
-          }
         />
 
         <div className="space-y-6">
+          <Card className="border-white/10 bg-neutral-950/60">
+            <CardHeader>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-lg font-semibold text-white">{t("notify.title")}</CardTitle>
+                <Badge className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                  {t("hero.badge")}
+                </Badge>
+              </div>
+              <CardDescription className="text-sm text-neutral-300">
+                {t("notify.status.disabled")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                <Lock className="h-5 w-5 text-neutral-200" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-neutral-200">{t("notify.placeholder")}</p>
+                <p className="text-xs text-neutral-400">{t("notify.status.disabled")}</p>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-white/10 bg-neutral-950/60">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-white">{t("upcoming.title")}</CardTitle>
