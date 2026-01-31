@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -8,11 +7,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Search, X } from "lucide-react";
 
+import { GalaxyLogo } from "@/components/branding/galaxy-logo";
+import { Starfield } from "@/components/backgrounds/starfield";
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils/cn";
 import { Input } from "@/components/ui/input";
-
-import brandMark from "../../../Logo/logo.png";
 
 type NavLink = {
   href: string;
@@ -46,7 +45,6 @@ export const Navbar = () => {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const [brandMarkErrored, setBrandMarkErrored] = useState(false);
   const [query, setQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -99,23 +97,12 @@ export const Navbar = () => {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-black/10 bg-white/70 text-neutral-900 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/70 dark:text-neutral-50">
+        <div className="relative">
+          <Starfield className="opacity-40" intensity="soft" />
+        </div>
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6">
         <Link href={`/${locale}`} className="group inline-flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-3xl border border-white/15 bg-white/5 shadow-[0_14px_36px_rgba(59,130,246,0.38)] transition duration-300 group-hover:shadow-[0_24px_60px_rgba(99,102,241,0.5)]">
-            {brandMarkErrored ? (
-              <span className="text-sm font-semibold text-white">SH</span>
-            ) : (
-              <Image
-                src={brandMark}
-                alt="SOFT-HUB logo"
-                width={48}
-                height={48}
-                className="h-10 w-10 object-contain"
-                priority
-                onError={() => setBrandMarkErrored(true)}
-              />
-            )}
-          </div>
+          <GalaxyLogo className="transition duration-300 group-hover:scale-[1.03]" size={48} />
           <div className="hidden flex-col sm:flex">
             <span className="text-lg font-semibold uppercase tracking-[0.22em] text-neutral-950 dark:text-white">
               <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-rose-300 bg-clip-text text-transparent">
