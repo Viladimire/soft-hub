@@ -59,7 +59,7 @@ const formatPublishedDate = (collection: Collection, locale: string) => {
   const value = collection.publishedAt ?? collection.createdAt;
 
   try {
-    return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
+    return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: "UTC" }).format(new Date(value));
   } catch {
     return value.slice(0, 10);
   }
@@ -99,11 +99,11 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
             </Badge>
           </div>
 
-          <div className="space-y-2 min-w-0">
-            <h2 className="text-2xl font-semibold sm:text-3xl md:text-[32px] line-clamp-2">{collection.title}</h2>
-            {collection.subtitle ? <p className="text-sm text-white/85">{collection.subtitle}</p> : null}
+          <div className="min-w-0 space-y-2">
+            <h2 className="line-clamp-2 text-2xl font-semibold sm:text-3xl md:text-[32px]">{collection.title}</h2>
+            {collection.subtitle ? <p className="line-clamp-2 text-sm text-white/85">{collection.subtitle}</p> : null}
             {collection.description ? (
-              <p className="text-sm leading-6 text-white/75 line-clamp-3">{collection.description}</p>
+              <p className="line-clamp-3 text-sm leading-6 text-white/75">{collection.description}</p>
             ) : null}
           </div>
 
@@ -126,7 +126,7 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
         </div>
 
         <div className="relative flex flex-col gap-4">
-          <div className="relative h-40 overflow-hidden rounded-2xl border border-white/12 bg-black/30">
+          <div className="relative h-44 overflow-hidden rounded-2xl border border-white/12 bg-black/30">
             <Image
               src={collection.coverImageUrl || FALLBACK_COVER}
               alt={collection.title}
@@ -135,20 +135,22 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
               sizes="(max-width: 768px) 100vw, 240px"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+          </div>
 
-            <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-2 p-4">
-              {previewItems.map((item) => (
-                <Badge
-                  key={`${collection.id}-${item.softwareId}-${item.position}`}
-                  className="rounded-full border border-white/20 bg-white/15 text-[11px] text-white"
-                >
+          <div className="flex flex-wrap gap-2">
+            {previewItems.map((item) => (
+              <Badge
+                key={`${collection.id}-${item.softwareId}-${item.position}`}
+                className="max-w-full rounded-full border border-white/20 bg-white/12 text-[11px] text-white/90"
+              >
+                <span className="block max-w-[200px] truncate">
                   {item.software?.name ?? item.softwareSlug ?? item.softwareId}
-                </Badge>
-              ))}
-              {extraCount > 0 ? (
-                <Badge className="rounded-full border border-white/20 bg-white/10 text-[11px] text-white/80">+{extraCount}</Badge>
-              ) : null}
-            </div>
+                </span>
+              </Badge>
+            ))}
+            {extraCount > 0 ? (
+              <Badge className="rounded-full border border-white/20 bg-white/10 text-[11px] text-white/80">+{extraCount}</Badge>
+            ) : null}
           </div>
 
           <div className="mt-auto grid grid-cols-3 gap-3 text-center text-xs text-white/70">
