@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useSyncExternalStore, useTransition } from "react";
+import { useCallback, useMemo, useTransition } from "react";
 import { useLocale } from "next-intl";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { rtlLocales } from "@/i18n/locales";
 
@@ -38,58 +38,6 @@ const canonicalizeSearchParamsString = (value: string) => {
   return new URLSearchParams(entries).toString();
 };
 
-let historyPatched = false;
-
-const subscribeToUrlChanges = (callback: () => void) => {
-  if (typeof window === "undefined") {
-    return () => undefined;
-  }
-
-  if (!historyPatched) {
-    historyPatched = true;
-    const originalPushState = window.history.pushState;
-    const originalReplaceState = window.history.replaceState;
-
-    window.history.pushState = function patchedPushState(
-      this: History,
-      ...args: Parameters<History["pushState"]>
-    ) {
-      const result = originalPushState.apply(this, args);
-      window.dispatchEvent(new Event("soft-hub:navigation"));
-      return result;
-    } as typeof window.history.pushState;
-
-    window.history.replaceState = function patchedReplaceState(
-      this: History,
-      ...args: Parameters<History["replaceState"]>
-    ) {
-      const result = originalReplaceState.apply(this, args);
-      window.dispatchEvent(new Event("soft-hub:navigation"));
-      return result;
-    } as typeof window.history.replaceState;
-  }
-
-  window.addEventListener("popstate", callback);
-  window.addEventListener("soft-hub:navigation", callback);
-
-  return () => {
-    window.removeEventListener("popstate", callback);
-    window.removeEventListener("soft-hub:navigation", callback);
-  };
-};
-
-const getUrlSearchString = () => {
-  if (typeof window === "undefined") return "";
-  return window.location.search.startsWith("?")
-    ? window.location.search.slice(1)
-    : window.location.search;
-};
-
-const useUrlSearchParamsKey = () => {
-  const raw = useSyncExternalStore(subscribeToUrlChanges, getUrlSearchString, () => "");
-  return canonicalizeSearchParamsString(raw);
-};
-
 const parseSort = (value: string | null): FilterSortOption => {
   if (value === "popular" || value === "name" || value === "latest") {
     return value;
@@ -121,7 +69,11 @@ export const useFilters = () => {
   const pathname = usePathname();
   const [isNavigating, startTransition] = useTransition();
 
-  const searchParamsKey = useUrlSearchParamsKey();
+  const searchParams = useSearchParams();
+  const searchParamsKey = useMemo(() => {
+    const raw = searchParams?.toString() ?? "";
+    return canonicalizeSearchParamsString(raw);
+  }, [searchParams]);
 
   const snapshot = useMemo(() => {
     const currentParams = new URLSearchParams(searchParamsKey);
