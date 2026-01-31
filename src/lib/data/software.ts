@@ -91,8 +91,10 @@ export const topPlatforms: Array<{ id: Platform; label: string; description: str
   },
 ];
 
+const STABLE_NOW_ISO = "2024-01-01T00:00:00.000Z";
+
 const createSoftware = (partial: Partial<Software>): Software => ({
-  id: crypto.randomUUID(),
+  id: partial.id ?? (partial.slug ? `software-${partial.slug}` : "software-mock"),
   slug: partial.slug ?? "",
   name: partial.name ?? "Untitled product",
   summary: partial.summary ?? "",
@@ -106,9 +108,9 @@ const createSoftware = (partial: Partial<Software>): Software => ({
   downloadUrl: partial.downloadUrl ?? "https://example.com/download",
   isFeatured: partial.isFeatured ?? false,
   isTrending: partial.isTrending ?? false,
-  releaseDate: partial.releaseDate ?? new Date().toISOString(),
-  updatedAt: partial.updatedAt ?? new Date().toISOString(),
-  createdAt: partial.createdAt ?? new Date().toISOString(),
+  releaseDate: partial.releaseDate ?? STABLE_NOW_ISO,
+  updatedAt: partial.updatedAt ?? partial.releaseDate ?? STABLE_NOW_ISO,
+  createdAt: partial.createdAt ?? partial.releaseDate ?? STABLE_NOW_ISO,
   stats: partial.stats ?? {
     downloads: 0,
     views: 0,
@@ -129,7 +131,7 @@ const createSoftware = (partial: Partial<Software>): Software => ({
   changelog: partial.changelog ?? [
     {
       version: partial.version ?? "1.0.0",
-      date: partial.releaseDate ?? new Date().toISOString(),
+      date: partial.releaseDate ?? STABLE_NOW_ISO,
       highlights: ["Performance improvements", "Critical fixes"],
     },
   ],

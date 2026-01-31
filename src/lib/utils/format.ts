@@ -2,6 +2,7 @@ import { defaultLocale } from "@/i18n/locales";
 
 const compactFormatters = new Map<string, Intl.NumberFormat>();
 const decimalFormatters = new Map<string, Intl.NumberFormat>();
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 
 const getCompactFormatter = (locale: string) => {
   if (!compactFormatters.has(locale)) {
@@ -28,6 +29,22 @@ const getDecimalFormatter = (locale: string) => {
   }
 
   return decimalFormatters.get(locale)!;
+};
+
+const getDateFormatter = (locale: string) => {
+  if (!dateFormatters.has(locale)) {
+    dateFormatters.set(
+      locale,
+      new Intl.DateTimeFormat(locale, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }),
+    );
+  }
+
+  return dateFormatters.get(locale)!;
 };
 
 export const formatCompactNumber = (
@@ -84,11 +101,7 @@ export const formatReleaseDate = (
     return fallback ?? resolveFallback();
   }
 
-  return date.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return getDateFormatter(locale).format(date);
 };
 
 export const formatDuration = (minutes: number | null | undefined) => {

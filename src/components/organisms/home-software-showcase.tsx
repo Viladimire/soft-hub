@@ -50,7 +50,7 @@ export const HomeSoftwareShowcase = ({ limit = 12 }: { limit?: number }) => {
         transition={{ delay: index * 0.045, duration: 0.45, ease: "easeOut" }}
         className="h-full"
       >
-        <SoftwareCard software={software} showActions={false} />
+        <SoftwareCard software={software} showActions />
       </motion.div>
     ));
   }, [items]);
@@ -84,7 +84,7 @@ export const HomeSoftwareShowcase = ({ limit = 12 }: { limit?: number }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+          className="grid auto-rows-fr items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3"
         >
           {content}
         </motion.div>

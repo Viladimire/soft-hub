@@ -78,7 +78,6 @@ const sanitizeMediaUrl = (value: unknown, fallback: string) => {
   if (!raw) return fallback;
   if (raw.startsWith("images/")) return `/${raw}`;
   if (raw.startsWith("data/")) return `/${raw}`;
-  if (raw.includes("images.unsplash.com")) return fallback;
   return raw;
 };
 
