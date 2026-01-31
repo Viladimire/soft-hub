@@ -96,11 +96,9 @@ export const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-black/10 bg-white/70 text-neutral-900 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/70 dark:text-neutral-50">
-        <div className="relative">
-          <Starfield className="opacity-40" intensity="soft" />
-        </div>
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6">
+      <header className="relative sticky top-0 z-40 overflow-hidden border-b border-black/10 bg-white/70 text-neutral-900 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/70 dark:text-neutral-50">
+        <Starfield className="z-0 opacity-40" intensity="soft" />
+        <div className="relative z-10 mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6">
         <Link href={`/${locale}`} className="group inline-flex items-center gap-3">
           <GalaxyLogo className="transition duration-300 group-hover:scale-[1.03]" size={48} />
           <div className="hidden flex-col sm:flex">
