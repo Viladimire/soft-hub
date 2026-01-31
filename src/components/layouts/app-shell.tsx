@@ -15,7 +15,7 @@ type AppShellProps = {
 
 export const AppShell = ({ hero, sidebar, children, className }: AppShellProps) => {
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50">
+    <div className="min-h-screen">
       <Navbar />
       {hero ?? null}
       <main

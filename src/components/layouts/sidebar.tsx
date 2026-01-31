@@ -90,9 +90,9 @@ export const SideBar = () => {
 
   return (
     <aside className="space-y-6">
-      <Card className="glass-card border-white/10 bg-neutral-950/70">
+      <Card className="glass-card border-black/10 bg-white/70 dark:border-white/10 dark:bg-neutral-950/70">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-neutral-50">
+          <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
             {t("trending.title")}
           </CardTitle>
           <Badge variant="soft" className="gap-1 text-[10px] uppercase">
@@ -110,36 +110,36 @@ export const SideBar = () => {
               <Link
                 key={software.id}
                 href={`/${locale}/software/${software.slug}`}
-                className="group block rounded-xl border border-white/10 bg-neutral-900/60 p-4 transition hover:border-primary-400/60 hover:bg-primary-500/10"
+                className="group block rounded-xl border border-black/10 bg-black/5 p-4 transition hover:border-primary-400/60 hover:bg-primary-500/10 dark:border-white/10 dark:bg-neutral-900/60"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-sm font-semibold text-neutral-100">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/5 text-sm font-semibold text-neutral-900 dark:bg-white/10 dark:text-neutral-100">
                       {index + 1}
                     </span>
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-neutral-50">{software.name}</p>
-                      <p className="text-xs text-neutral-400 line-clamp-1">{software.summary}</p>
+                      <p className="text-sm font-medium text-neutral-950 dark:text-neutral-50">{software.name}</p>
+                      <p className="text-xs text-neutral-600 line-clamp-1 dark:text-neutral-400">{software.summary}</p>
                     </div>
                   </div>
-                  <span className="text-xs text-primary-200">
+                  <span className="text-xs text-primary-600 dark:text-primary-200">
                     {formatCompactNumber(software.stats.downloads, locale)}+
                   </span>
                 </div>
               </Link>
             ))
           ) : (
-            <p className="text-xs text-neutral-400">{trendingEmptyMessage}</p>
+            <p className="text-xs text-neutral-600 dark:text-neutral-400">{trendingEmptyMessage}</p>
           )}
-          <Button variant="ghost" className="w-full text-sm text-neutral-300" asChild>
+          <Button variant="ghost" className="w-full text-sm text-neutral-700 dark:text-neutral-300" asChild>
             <Link href={`/${locale}/software?sort=popular`}>{t("trending.viewAll")}</Link>
           </Button>
         </CardContent>
       </Card>
-      <Card className="glass-card border-dashed border-white/15 bg-neutral-950/50 text-center">
+      <Card className="glass-card border-dashed border-black/15 bg-white/70 text-center dark:border-white/15 dark:bg-neutral-950/50">
         <CardContent className="space-y-4 py-6">
-          <h3 className="text-sm font-semibold text-neutral-50">{t("request.title")}</h3>
-          <p className="text-xs text-neutral-400">{t("request.description")}</p>
+          <h3 className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">{t("request.title")}</h3>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400">{t("request.description")}</p>
           <Button variant="primary" className="w-full gap-2" asChild>
             <Link href={`/${locale}/request`}>
               <PlusCircle className="h-4 w-4" />
@@ -149,9 +149,9 @@ export const SideBar = () => {
         </CardContent>
       </Card>
 
-      <Card className="glass-card border-white/10 bg-neutral-950/70">
+      <Card className="glass-card border-black/10 bg-white/70 dark:border-white/10 dark:bg-neutral-950/70">
         <CardHeader>
-          <CardTitle className="text-sm font-semibold text-neutral-50">
+          <CardTitle className="text-sm font-semibold text-neutral-950 dark:text-neutral-50">
             {t("community.title")}
           </CardTitle>
         </CardHeader>
@@ -164,12 +164,12 @@ export const SideBar = () => {
               <Link
                 key={key}
                 href={`/${locale}${key === "trends" ? "/insights/trends" : `/community/${key}`}`}
-                className="flex items-start gap-3 rounded-lg border border-white/10 bg-neutral-900/50 px-4 py-3 transition hover:border-primary-400/60 hover:bg-primary-500/10"
+                className="flex items-start gap-3 rounded-lg border border-black/10 bg-black/5 px-4 py-3 transition hover:border-primary-400/60 hover:bg-primary-500/10 dark:border-white/10 dark:bg-neutral-900/50"
               >
                 <Icon className="mt-0.5 h-4 w-4 text-primary-300" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-neutral-50">{copy.label}</p>
-                  <p className="text-xs text-neutral-400">{copy.description}</p>
+                  <p className="text-sm font-medium text-neutral-950 dark:text-neutral-50">{copy.label}</p>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">{copy.description}</p>
                 </div>
               </Link>
             );

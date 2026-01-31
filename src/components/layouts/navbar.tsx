@@ -98,7 +98,7 @@ export const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-black/10 bg-white/70 text-neutral-900 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/70 dark:text-neutral-50">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6">
         <Link href={`/${locale}`} className="group inline-flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-3xl border border-white/15 bg-white/5 shadow-[0_14px_36px_rgba(59,130,246,0.38)] transition duration-300 group-hover:shadow-[0_24px_60px_rgba(99,102,241,0.5)]">
@@ -117,12 +117,12 @@ export const Navbar = () => {
             )}
           </div>
           <div className="hidden flex-col sm:flex">
-            <span className="text-lg font-semibold uppercase tracking-[0.22em] text-white">
+            <span className="text-lg font-semibold uppercase tracking-[0.22em] text-neutral-950 dark:text-white">
               <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-rose-300 bg-clip-text text-transparent">
                 {dictionary("brandTitle")}
               </span>
             </span>
-            <span className="mt-1 text-[12px] text-neutral-300 transition duration-300 group-hover:text-neutral-100">
+            <span className="mt-1 text-[12px] text-neutral-600 transition duration-300 group-hover:text-neutral-900 dark:text-neutral-300 dark:group-hover:text-neutral-100">
               {dictionary("brandSubtitle")}
             </span>
           </div>
@@ -136,11 +136,11 @@ export const Navbar = () => {
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
-            className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/10 md:flex"
+            className="hidden items-center gap-2 rounded-full border border-black/10 bg-black/5 px-4 py-2 backdrop-blur-xl transition hover:border-black/20 hover:bg-black/10 md:flex dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10"
           >
-            <Search className="h-4 w-4 text-neutral-300" />
-            <span className="text-sm text-neutral-300">{filtersT("search.placeholder")}</span>
-            <kbd className="ml-2 hidden items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-neutral-400 lg:inline-flex">
+            <Search className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
+            <span className="text-sm text-neutral-700 dark:text-neutral-300">{filtersT("search.placeholder")}</span>
+            <kbd className="ml-2 hidden items-center gap-1 rounded-md border border-black/10 bg-black/5 px-2 py-1 text-[11px] text-neutral-500 lg:inline-flex dark:border-white/10 dark:bg-white/5 dark:text-neutral-400">
               <span>Ctrl</span>
               <span>+</span>
               <span>K</span>
@@ -150,7 +150,7 @@ export const Navbar = () => {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 p-2 text-neutral-200 transition hover:border-white/20 hover:bg-white/10 xl:hidden"
+            className="inline-flex items-center justify-center rounded-full border border-black/10 bg-black/5 p-2 text-neutral-800 transition hover:border-black/20 hover:bg-black/10 xl:hidden dark:border-white/10 dark:bg-white/5 dark:text-neutral-200 dark:hover:border-white/20 dark:hover:bg-white/10"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -166,7 +166,7 @@ export const Navbar = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-t border-white/10 bg-neutral-950/80 backdrop-blur-xl xl:hidden"
+              className="border-t border-black/10 bg-white/85 backdrop-blur-xl xl:hidden dark:border-white/10 dark:bg-neutral-950/80"
             >
               <nav className="mx-auto max-w-7xl space-y-1 px-4 py-4 sm:px-6">
                 {navLinks.map((link) => {
@@ -179,8 +179,8 @@ export const Navbar = () => {
                       className={cn(
                         "block rounded-2xl px-4 py-3 text-sm transition",
                         isActive
-                          ? "bg-white/10 text-white"
-                          : "text-neutral-300 hover:bg-white/5 hover:text-white",
+                          ? "bg-black/5 text-neutral-950 dark:bg-white/10 dark:text-white"
+                          : "text-neutral-700 hover:bg-black/5 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-white/5 dark:hover:text-white",
                       )}
                     >
                       {link.label}
