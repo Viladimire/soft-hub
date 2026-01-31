@@ -5,6 +5,8 @@ import { Sphere } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
+let hasMountedStore = false;
+
 const mulberry32 = (seed: number) => {
   return () => {
     let t = (seed += 0x6d2b79f5);
@@ -39,8 +41,14 @@ const usePrefersReducedMotion = () => {
 
 const useHasMounted = () => {
   return useSyncExternalStore(
-    () => () => undefined,
-    () => true,
+    (onStoreChange) => {
+      if (!hasMountedStore) {
+        hasMountedStore = true;
+        onStoreChange();
+      }
+      return () => undefined;
+    },
+    () => hasMountedStore,
     () => false,
   );
 };

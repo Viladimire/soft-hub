@@ -34,10 +34,34 @@ export type FilteredSoftwareOptions = {
 
 let supabaseSchemaMismatchDetected = false;
 
+const SCHEMA_MISMATCH_STORAGE_KEY = "supabase_schema_mismatch";
+
+const readSchemaMismatchFromStorage = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(SCHEMA_MISMATCH_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+const writeSchemaMismatchToStorage = () => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SCHEMA_MISMATCH_STORAGE_KEY, "1");
+  } catch {
+    // ignore
+  }
+};
+
 export const fetchFilteredSoftware = async (
   options: FilteredSoftwareOptions = {},
   client: Supabase,
 ): Promise<SoftwareListResponse> => {
+  if (!supabaseSchemaMismatchDetected && readSchemaMismatchFromStorage()) {
+    supabaseSchemaMismatchDetected = true;
+  }
+
   if (supabaseSchemaMismatchDetected) {
     const error = new Error("Supabase schema mismatch detected; skipping Supabase queries.") as Error & {
       code?: string;
@@ -121,6 +145,7 @@ export const fetchFilteredSoftware = async (
     // PostgREST returns 42703 (undefined_column). Degrade gracefully.
     if (error.code === "42703") {
       supabaseSchemaMismatchDetected = true;
+      writeSchemaMismatchToStorage();
 
       if (options.trending) {
         console.warn("Supabase column 'is_trending' missing. Falling back to dataset without trending filter.");
