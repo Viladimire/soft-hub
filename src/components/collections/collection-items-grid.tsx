@@ -4,11 +4,11 @@ import type { TranslationValues } from "next-intl";
 
 import type { Collection, CollectionItem } from "@/lib/types/collection";
 import { cn } from "@/lib/utils/cn";
-import { formatReleaseDate } from "@/lib/utils/format";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SoftwareCard } from "@/components/molecules/software-card";
 
 export type CollectionItemsGridProps = {
   collection: Collection;
@@ -64,13 +64,14 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
             const software = item.software;
             const href = buildSoftwareLink(item, locale);
             const highlight = buildHighlight(item, t);
-            const releaseDate = software ? formatReleaseDate(software.updatedAt ?? software.releaseDate, locale) : null;
-            const developerRecord = software?.developer as Record<string, unknown> | undefined;
-            const developerName = typeof developerRecord?.name === "string" ? (developerRecord.name as string) : null;
-            const rawFeatures = Array.isArray(software?.features) ? (software?.features as unknown[]) : [];
-            const featureBadges = rawFeatures
-              .filter((feature): feature is string => typeof feature === "string" && feature.trim().length > 0)
-              .slice(0, 3);
+
+            if (software) {
+              return (
+                <div key={`${collection.id}-${item.softwareId}-${item.position}`} className="h-full">
+                  <SoftwareCard software={software} />
+                </div>
+              );
+            }
 
             return (
               <Card
@@ -83,11 +84,8 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                 <CardHeader className="flex flex-row items-start justify-between gap-3">
                   <div>
                     <CardTitle className="text-lg text-white">
-                      {software?.name ?? item.softwareSlug ?? item.softwareId}
+                      {item.softwareSlug ?? item.softwareId}
                     </CardTitle>
-                    {developerName ? (
-                      <p className="text-xs text-neutral-400">{developerName}</p>
-                    ) : null}
                   </div>
                   <Badge className="rounded-full border border-white/15 bg-white/12 text-[11px]">
                     #{item.position + 1}
@@ -95,31 +93,6 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col gap-4 text-sm text-neutral-300">
                   <p className="line-clamp-3 leading-6 text-neutral-200">{highlight}</p>
-
-                  {software ? (
-                    <dl className="grid grid-cols-2 gap-3 text-xs text-neutral-400">
-                      <div>
-                        <dt className="uppercase tracking-wide text-neutral-500">{t("platformsLabel")}</dt>
-                        <dd className="text-neutral-200">
-                          {software.platforms.length ? software.platforms.join(", ") : t("missingSoftware")}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="uppercase tracking-wide text-neutral-500">{t("updatedLabel")}</dt>
-                        <dd className="text-neutral-200">{releaseDate ?? ""}</dd>
-                      </div>
-                    </dl>
-                  ) : null}
-
-                  {featureBadges.length ? (
-                    <div className="flex flex-wrap gap-2 text-xs text-neutral-300">
-                      {featureBadges.map((feature) => (
-                        <Badge key={feature} variant="outline" className="border-white/15 bg-white/5 text-white/80">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : null}
 
                   <div className="mt-auto flex flex-wrap gap-3">
                     {href ? (
@@ -133,13 +106,6 @@ export const CollectionItemsGrid = ({ collection, locale, t }: CollectionItemsGr
                         {t("backLink")}
                       </Button>
                     )}
-                    {software?.downloadUrl ? (
-                      <Button asChild variant="ghost" className="text-sm">
-                        <Link href={software.downloadUrl} target="_blank" rel="noopener">
-                          {t("downloadButton")}
-                        </Link>
-                      </Button>
-                    ) : null}
                   </div>
                 </CardContent>
               </Card>
