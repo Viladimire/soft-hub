@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { Search } from "lucide-react";
 
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils/cn";
+import { Input } from "@/components/ui/input";
 
 import brandMark from "../../../Logo/logo.png";
 
@@ -39,9 +41,12 @@ const DesktopNavLinks = ({ pathname, links }: { pathname: string; links: NavLink
 
 export const Navbar = () => {
   const dictionary = useTranslations("nav");
+  const filtersT = useTranslations("filters");
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const [brandMarkErrored, setBrandMarkErrored] = useState(false);
+  const [query, setQuery] = useState("");
 
   const navLinks = useMemo<NavLink[]>(
     () => [
@@ -51,6 +56,16 @@ export const Navbar = () => {
       { href: `/${locale}/insights`, label: dictionary("links.insights") },
     ],
     [dictionary, locale],
+  );
+
+  const handleSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const trimmed = query.trim();
+      if (!trimmed) return;
+      router.push(`/${locale}/search?query=${encodeURIComponent(trimmed)}`);
+    },
+    [locale, query, router],
   );
 
   return (
@@ -89,6 +104,19 @@ export const Navbar = () => {
         </div>
 
         <div className="ml-auto flex items-center gap-3">
+          <form
+            onSubmit={handleSubmit}
+            className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/10 md:flex"
+          >
+            <Search className="h-4 w-4 text-neutral-300" />
+            <Input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={filtersT("search.placeholder")}
+              className="h-6 w-56 border-0 bg-transparent p-0 text-sm text-white placeholder:text-neutral-400 focus-visible:ring-0"
+            />
+          </form>
           <ThemeToggle />
         </div>
       </div>
