@@ -79,7 +79,15 @@ body {
 
 @layer base {
   * {
-    @apply border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400 focus-visible:ring-offset-transparent;
+    @apply border-transparent focus-visible:outline-none;
+  }
+
+  :is(a, button, [role="button"], [tabindex]):focus-visible {
+    @apply ring-2 ring-offset-2 ring-blue-500/50 ring-offset-transparent;
+  }
+
+  :is(input, textarea, select):focus-visible {
+    @apply ring-0 ring-offset-0;
   }
 
   html {

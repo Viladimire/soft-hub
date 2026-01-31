@@ -7,7 +7,6 @@ import type { Collection } from "@/lib/types/collection";
 import { cn } from "@/lib/utils/cn";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 const FALLBACK_COVER = "/images/software/atlas-utilities/hero.jpg";
 
@@ -74,7 +73,7 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-[28px] border border-white/12 bg-neutral-950/70 backdrop-blur-xl",
+        "group relative flex h-full min-h-[440px] overflow-hidden rounded-[28px] border border-white/12 bg-neutral-950/70 backdrop-blur-xl",
         "shadow-[0_42px_120px_rgba(8,15,35,0.55)] transition-all duration-500 hover:-translate-y-1.5",
         className,
       )}
@@ -83,10 +82,12 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
       <div className="absolute inset-0 opacity-80" style={{ background: buildOverlay(collection) }} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_57%)]" />
 
-      <Link href={href} className="absolute inset-0 z-20" aria-label={labels.ariaLabel(collection.title)} prefetch />
+      <Link href={href} className="absolute inset-0 z-20" aria-label={labels.ariaLabel(collection.title)} prefetch>
+        <span className="sr-only">{labels.explore}</span>
+      </Link>
 
-      <div className="relative z-10 grid gap-6 p-6 md:grid-cols-[minmax(0,1fr)_240px] md:p-8">
-        <div className="space-y-5 text-white">
+      <div className="relative z-10 grid h-full gap-6 p-6 md:grid-cols-[minmax(0,1fr)_240px] md:p-8">
+        <div className="flex min-w-0 flex-col gap-5 text-white">
           <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-wide text-white/85">
             {collection.isFeatured ? (
               <Badge className="rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px]">
@@ -98,8 +99,8 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
             </Badge>
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold sm:text-3xl md:text-[32px]">{collection.title}</h2>
+          <div className="space-y-2 min-w-0">
+            <h2 className="text-2xl font-semibold sm:text-3xl md:text-[32px] line-clamp-2">{collection.title}</h2>
             {collection.subtitle ? <p className="text-sm text-white/85">{collection.subtitle}</p> : null}
             {collection.description ? (
               <p className="text-sm leading-6 text-white/75 line-clamp-3">{collection.description}</p>
@@ -117,15 +118,11 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
             ) : null}
           </div>
 
-          <Button
-            variant="secondary"
-            className="relative z-30 w-fit rounded-full bg-white px-5 text-sm font-semibold text-neutral-900 shadow-lg"
-            asChild
-          >
-            <Link href={href} prefetch>
+          <div className="mt-auto">
+            <span className="relative z-30 inline-flex w-fit items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-neutral-900 shadow-lg">
               {labels.explore}
-            </Link>
-          </Button>
+            </span>
+          </div>
         </div>
 
         <div className="relative flex flex-col gap-4">
@@ -154,7 +151,7 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 text-center text-xs text-white/70">
+          <div className="mt-auto grid grid-cols-3 gap-3 text-center text-xs text-white/70">
             <div className="rounded-2xl border border-white/12 bg-white/10 p-3">
               <p className="text-2xl font-semibold text-white">{collection.displayOrder}</p>
               <p>{labels.statPriority}</p>

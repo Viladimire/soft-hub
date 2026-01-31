@@ -8,7 +8,7 @@ import Link from "next/link";
 import { defaultLocale, supportedLocales } from "@/i18n/locales";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { fetchCollectionFromSupabase, getCollectionBySlug } from "@/lib/services/collectionsService";
+import { getCollectionBySlug } from "@/lib/services/collectionsService";
 import { listStaticCollectionSlugs } from "@/lib/services/staticCollectionsRepository";
 
 import { AppShell } from "@/components/layouts/app-shell";
@@ -42,9 +42,8 @@ export async function generateMetadata({
   const { locale: rawLocale, slug } = await params;
   const locale = rawLocale ?? defaultLocale;
 
-  const collection = isSupabaseConfigured()
-    ? await fetchCollectionFromSupabase(slug, createSupabaseServerClient(), true).catch(() => null)
-    : await getCollectionBySlug(slug);
+  const client = isSupabaseConfigured() ? createSupabaseServerClient() : undefined;
+  const collection = await getCollectionBySlug(slug, client);
 
   if (!collection) {
     return {};
@@ -108,9 +107,8 @@ export default async function CollectionDetailPage({
     tCollections(key, values);
   const translateDetail = (key: Parameters<typeof tDetail>[0], values?: TranslationValues) => tDetail(key, values);
 
-  const collection = isSupabaseConfigured()
-    ? await fetchCollectionFromSupabase(slug, createSupabaseServerClient(), true).catch(() => null)
-    : await getCollectionBySlug(slug);
+  const client = isSupabaseConfigured() ? createSupabaseServerClient() : undefined;
+  const collection = await getCollectionBySlug(slug, client);
 
   if (!collection || (!collection.publishedAt && !isSupabaseConfigured())) {
     notFound();
@@ -124,7 +122,7 @@ export default async function CollectionDetailPage({
     url: new URL(`/${locale}/collections/${collection.slug}`, SITE_URL).toString(),
     mainEntity: {
       "@type": "ItemList",
-      itemListElement: (collection.items ?? []).map((item, index) => ({
+      itemListElement: (collection.items ?? []).map((item: (typeof collection.items)[number], index: number) => ({
         "@type": "ListItem",
         position: item.position ?? index,
         name: item.software?.name ?? item.softwareSlug ?? item.softwareId,

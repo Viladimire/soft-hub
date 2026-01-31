@@ -153,7 +153,7 @@ export default async function CollectionsPage({
           </header>
 
           {hasCollections ? (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid auto-rows-fr items-stretch gap-6 md:grid-cols-2">
               {collections.map((collection) => (
                 <CollectionCard
                   key={collection.id}
