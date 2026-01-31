@@ -309,6 +309,12 @@
     animation: nebula-shift 22s ease-in-out infinite;
   }
 
+  .galaxy-nebula--subtle {
+    opacity: 0.22;
+    filter: blur(16px);
+    animation: none;
+  }
+
   .galaxy-nebula--strong {
     background:
       radial-gradient(circle at 18% 35%, rgba(56, 189, 248, 0.22), transparent 58%),

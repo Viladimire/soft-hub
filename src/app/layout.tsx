@@ -39,7 +39,7 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <GalaxySky />
-        <OrbitBackground />
+        <OrbitBackground enabled={false} />
         <div className="relative z-10">{children}</div>
       </body>
     </html>
