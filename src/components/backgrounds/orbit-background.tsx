@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 let hasMountedStore = false;
+const hasMountedListeners = new Set<() => void>();
 
 const mulberry32 = (seed: number) => {
   return () => {
@@ -40,17 +41,24 @@ const usePrefersReducedMotion = () => {
 };
 
 const useHasMounted = () => {
-  return useSyncExternalStore(
+  const mounted = useSyncExternalStore(
     (onStoreChange) => {
-      if (!hasMountedStore) {
-        hasMountedStore = true;
-        onStoreChange();
-      }
-      return () => undefined;
+      hasMountedListeners.add(onStoreChange);
+      return () => {
+        hasMountedListeners.delete(onStoreChange);
+      };
     },
     () => hasMountedStore,
     () => false,
   );
+
+  useEffect(() => {
+    if (hasMountedStore) return;
+    hasMountedStore = true;
+    hasMountedListeners.forEach((listener) => listener());
+  }, []);
+
+  return mounted;
 };
 
 const Orbs = ({ count = 24 }: { count?: number }) => {

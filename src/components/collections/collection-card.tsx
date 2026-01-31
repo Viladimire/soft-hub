@@ -86,9 +86,18 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
         <span className="sr-only">{labels.explore}</span>
       </Link>
 
-      <div className="relative z-10 grid h-full gap-6 p-6 md:grid-cols-[minmax(0,1fr)_240px] md:p-8">
-        <div className="flex min-w-0 flex-col gap-5 text-white">
-          <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-wide text-white/85">
+      <div className="relative z-10 flex h-full flex-col gap-6 p-6 md:p-8">
+        <div className="relative h-48 overflow-hidden rounded-2xl border border-white/12 bg-black/30">
+          <Image
+            src={collection.coverImageUrl || FALLBACK_COVER}
+            alt={collection.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, 480px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+
+          <div className="absolute left-4 right-4 top-4 flex flex-wrap items-center gap-3 text-xs uppercase tracking-wide text-white/85">
             {collection.isFeatured ? (
               <Badge className="rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px]">
                 {labels.featured}
@@ -99,22 +108,41 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
             </Badge>
           </div>
 
+          <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 p-4">
+            {previewItems.map((item) => (
+              <Badge
+                key={`${collection.id}-${item.softwareId}-${item.position}`}
+                className="max-w-full rounded-full border border-white/20 bg-white/12 text-[11px] text-white/90"
+              >
+                <span className="block max-w-[220px] truncate">
+                  {item.software?.name ?? item.softwareSlug ?? item.softwareId}
+                </span>
+              </Badge>
+            ))}
+            {extraCount > 0 ? (
+              <Badge className="rounded-full border border-white/20 bg-white/10 text-[11px] text-white/80">+{extraCount}</Badge>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-5 text-white">
+          <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-wide text-white/85">
+            <Badge className="rounded-full border border-white/18 bg-white/12 px-3 py-1">
+              {labels.items(collection.items.length)}
+            </Badge>
+
+            {collection.accentColor ? (
+              <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1" style={{ color: collection.accentColor }}>
+                {collection.accentColor}
+              </span>
+            ) : null}
+          </div>
+
           <div className="min-w-0 space-y-2">
             <h2 className="line-clamp-2 text-2xl font-semibold sm:text-3xl md:text-[32px]">{collection.title}</h2>
             {collection.subtitle ? <p className="line-clamp-2 text-sm text-white/85">{collection.subtitle}</p> : null}
             {collection.description ? (
               <p className="line-clamp-3 text-sm leading-6 text-white/75">{collection.description}</p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-xs text-white/70">
-            <span className="rounded-full border border-white/18 bg-white/12 px-3 py-1">
-              {labels.items(collection.items.length)}
-            </span>
-            {collection.accentColor ? (
-              <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1" style={{ color: collection.accentColor }}>
-                {collection.accentColor}
-              </span>
             ) : null}
           </div>
 
@@ -125,47 +153,18 @@ export const CollectionCard = ({ collection, locale, labels, className }: Collec
           </div>
         </div>
 
-        <div className="relative flex flex-col gap-4">
-          <div className="relative h-44 overflow-hidden rounded-2xl border border-white/12 bg-black/30">
-            <Image
-              src={collection.coverImageUrl || FALLBACK_COVER}
-              alt={collection.title}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, 240px"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+        <div className="grid grid-cols-3 gap-3 text-center text-xs text-white/70">
+          <div className="rounded-2xl border border-white/12 bg-white/10 p-3">
+            <p className="text-2xl font-semibold text-white">{collection.displayOrder}</p>
+            <p>{labels.statPriority}</p>
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            {previewItems.map((item) => (
-              <Badge
-                key={`${collection.id}-${item.softwareId}-${item.position}`}
-                className="max-w-full rounded-full border border-white/20 bg-white/12 text-[11px] text-white/90"
-              >
-                <span className="block max-w-[200px] truncate">
-                  {item.software?.name ?? item.softwareSlug ?? item.softwareId}
-                </span>
-              </Badge>
-            ))}
-            {extraCount > 0 ? (
-              <Badge className="rounded-full border border-white/20 bg-white/10 text-[11px] text-white/80">+{extraCount}</Badge>
-            ) : null}
+          <div className="rounded-2xl border border-white/12 bg-white/10 p-3">
+            <p className="text-2xl font-semibold text-white">{new Date(collection.createdAt).getUTCFullYear()}</p>
+            <p>{labels.statCreated}</p>
           </div>
-
-          <div className="mt-auto grid grid-cols-3 gap-3 text-center text-xs text-white/70">
-            <div className="rounded-2xl border border-white/12 bg-white/10 p-3">
-              <p className="text-2xl font-semibold text-white">{collection.displayOrder}</p>
-              <p>{labels.statPriority}</p>
-            </div>
-            <div className="rounded-2xl border border-white/12 bg-white/10 p-3">
-              <p className="text-2xl font-semibold text-white">{new Date(collection.createdAt).getFullYear()}</p>
-              <p>{labels.statCreated}</p>
-            </div>
-            <div className="rounded-2xl border border-white/12 bg-white/10 p-3">
-              <p className="text-2xl font-semibold text-white">{collection.items.length}</p>
-              <p>{labels.statItems}</p>
-            </div>
+          <div className="rounded-2xl border border-white/12 bg-white/10 p-3">
+            <p className="text-2xl font-semibold text-white">{collection.items.length}</p>
+            <p>{labels.statItems}</p>
           </div>
         </div>
       </div>

@@ -132,31 +132,33 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       </div>
 
       <div className="flex flex-1 flex-col gap-6 p-6">
-        <header className="flex items-start gap-4">
-          <div className="relative h-14 w-14 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
-            {logoImage ? (
-              <Image
-                src={logoImage}
-                alt={`${software.name} logo`}
-                fill
-                className="object-cover"
-                sizes="56px"
-                onError={() => setLogoErrored(true)}
-              />
-            ) : (
-              <Monitor className="absolute inset-0 m-auto h-6 w-6 text-white/70" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-lg font-semibold text-white">{software.name}</h3>
-            <p className="mt-1 text-sm text-neutral-300 line-clamp-2">{software.summary}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <RatingBadge rating={software.stats.rating} reviewsLabel={t("reviewsLabel", { count: software.stats.votes })} />
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
-                <Download className="h-3.5 w-3.5 text-indigo-200" />
-                <span className="font-semibold">{downloads}</span>
-              </span>
+        <header className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
+              {logoImage ? (
+                <Image
+                  src={logoImage}
+                  alt={`${software.name} logo`}
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                  onError={() => setLogoErrored(true)}
+                />
+              ) : (
+                <Monitor className="absolute inset-0 m-auto h-6 w-6 text-white/70" />
+              )}
             </div>
+            <h3 className="min-w-0 truncate text-lg font-semibold text-white">{software.name}</h3>
+          </div>
+
+          <p className="text-sm text-neutral-300 line-clamp-2">{software.summary}</p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <RatingBadge rating={software.stats.rating} reviewsLabel={t("reviewsLabel", { count: software.stats.votes })} />
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
+              <Download className="h-3.5 w-3.5 text-indigo-200" />
+              <span className="font-semibold">{downloads}</span>
+            </span>
           </div>
         </header>
 
