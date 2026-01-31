@@ -34,6 +34,11 @@ const buildHeroBackground = (collection: Collection) => {
 
 export const CollectionHero = ({ collection, labels }: CollectionHeroProps) => {
   const background = buildHeroBackground(collection);
+  const publishedLabel = collection.publishedAt
+    ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeZone: "UTC" }).format(
+        new Date(collection.publishedAt),
+      )
+    : null;
 
   return (
     <section
@@ -52,9 +57,9 @@ export const CollectionHero = ({ collection, labels }: CollectionHeroProps) => {
             {collection.isFeatured ? (
               <span className="rounded-full border border-white/25 bg-white/15 px-3 py-1">{labels.featuredBadge}</span>
             ) : null}
-            {collection.publishedAt ? (
+            {publishedLabel ? (
               <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1">
-                {new Date(collection.publishedAt).toLocaleDateString()}
+                {publishedLabel}
               </span>
             ) : null}
             <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1">

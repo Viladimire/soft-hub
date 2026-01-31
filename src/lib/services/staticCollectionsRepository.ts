@@ -6,7 +6,7 @@ const COLLECTIONS_DATA_BASE = process.env.NEXT_PUBLIC_COLLECTIONS_DATA_URL_BASE 
 const COLLECTIONS_FILENAME = "collections/index.json";
 const DEFAULT_REMOTE_BASE = "https://raw.githubusercontent.com/Viladimire/soft-hub/main/public/data";
 
-const FALLBACK_COVER_IMAGE = "/images/software/atlas-utilities/hero.jpg";
+const STABLE_NOW_ISO = "2024-01-01T00:00:00.000Z";
 
 let collectionsPromise: Promise<Collection[]> | null = null;
 
@@ -30,7 +30,6 @@ const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
 const sanitizeCoverUrl = (value: unknown) => {
   const raw = typeof value === "string" ? value.trim() : "";
   if (!raw) return null;
-  if (raw.includes("images.unsplash.com")) return FALLBACK_COVER_IMAGE;
   return raw;
 };
 
@@ -77,7 +76,8 @@ const normalizeCollectionItem = (value: unknown): RawCollectionItem | null => {
 
 const normalizeCollection = (entry: unknown): Collection => {
   const record = isPlainRecord(entry) ? entry : {};
-  const now = new Date().toISOString();
+  const now = STABLE_NOW_ISO;
+  const slug = typeof record.slug === "string" ? record.slug : "";
 
   const itemsRaw = Array.isArray(record.items) ? record.items : [];
   const itemsNormalized = itemsRaw
@@ -85,8 +85,8 @@ const normalizeCollection = (entry: unknown): Collection => {
     .filter((item): item is NonNullable<typeof item> => item !== null);
 
   return {
-    id: typeof record.id === "string" ? record.id : typeof record.slug === "string" ? record.slug : crypto.randomUUID(),
-    slug: typeof record.slug === "string" ? record.slug : "",
+    id: typeof record.id === "string" ? record.id : slug ? `collection-${slug}` : "collection-static",
+    slug,
     title: typeof record.title === "string" ? record.title : "Untitled collection",
     subtitle: typeof record.subtitle === "string" ? record.subtitle : null,
     description: typeof record.description === "string" ? record.description : null,
@@ -97,7 +97,7 @@ const normalizeCollection = (entry: unknown): Collection => {
     displayOrder: typeof record.displayOrder === "number" ? record.displayOrder : 0,
     publishedAt: typeof record.publishedAt === "string" ? record.publishedAt : null,
     createdAt: typeof record.createdAt === "string" ? record.createdAt : now,
-    updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : now,
+    updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : typeof record.createdAt === "string" ? record.createdAt : now,
     items: itemsNormalized.map((item, index) => ({
       collectionId: typeof record.id === "string" ? record.id : typeof record.slug === "string" ? record.slug : "",
       softwareId: item.softwareId ?? item.softwareSlug ?? "",
