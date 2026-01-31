@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { OrbitBackground } from "@/components/backgrounds/orbit-background";
 
 import { AdminTabs } from "@/components/admin/admin-tabs";
 import { AdminHeaderActions } from "@/components/admin/admin-header-actions";
@@ -52,7 +51,6 @@ export default async function AdminPage() {
   if (!isAuthorized) {
     return (
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-neutral-950 px-4 py-16">
-        <OrbitBackground />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.25),_transparent_55%)]" />
         <section className="relative z-10 w-full max-w-lg space-y-6 text-center">
           <header className="space-y-2">
@@ -127,7 +125,6 @@ export default async function AdminPage() {
 
   return (
     <main className="min-h-screen bg-neutral-950 py-12">
-      <OrbitBackground />
       <div className="mx-auto w-full max-w-6xl px-4">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>

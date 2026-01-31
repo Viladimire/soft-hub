@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 
+import { OrbitBackground } from "@/components/backgrounds/orbit-background";
+
 import "./globals.css";
 
 const inter = Inter({
@@ -32,10 +34,11 @@ export default async function RootLayout({
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${geistMono.variable} min-h-screen bg-[#050510] text-white antialiased`}
         suppressHydrationWarning
       >
-        {children}
+        <OrbitBackground />
+        <div className="relative z-10">{children}</div>
       </body>
     </html>
   );
