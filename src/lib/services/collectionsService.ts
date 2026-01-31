@@ -184,7 +184,11 @@ export const fetchCollectionSummariesFromSupabase = async (client: Supabase, inc
 export const getCollections = async (client?: Supabase) => {
   if (client) {
     try {
-      return await fetchCollectionsFromSupabase(client, false);
+      const live = await fetchCollectionsFromSupabase(client, false);
+
+      if (live.length > 0) {
+        return live;
+      }
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
         console.warn("Falling back to static collections dataset", error);
@@ -198,7 +202,11 @@ export const getCollections = async (client?: Supabase) => {
 export const getCollectionSummaries = async (client?: Supabase) => {
   if (client) {
     try {
-      return await fetchCollectionSummariesFromSupabase(client, false);
+      const live = await fetchCollectionSummariesFromSupabase(client, false);
+
+      if (live.length > 0) {
+        return live;
+      }
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
         console.warn("Falling back to static collection summaries", error);
