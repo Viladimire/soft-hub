@@ -1,4 +1,205 @@
-import { NextResponse, type NextRequest } from "next/server";
+
+const extractAnchorHrefs = (html: string) => {
+  const rx = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
+  const urls: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = rx.exec(html))) {
+    urls.push(match[1].trim());
+    if (urls.length >= 80) break;
+  }
+  return Array.from(new Set(urls.map((v) => v.trim()).filter(Boolean)));
+};
+
+const extractDownloadCandidateUrls = (html: string) => {
+  const urls: string[] = [];
+  urls.push(...extractAnchorHrefs(html));
+
+  // data-href / data-url
+  {
+    const rx = /\bdata-(?:href|url)=["']([^"']+)["']/gi;
+    let m: RegExpExecArray | null;
+    while ((m = rx.exec(html))) {
+      urls.push(m[1].trim());
+      if (urls.length >= 140) break;
+    }
+  }
+
+  // onclick navigation patterns
+  {
+    const rx = /\bonclick=["'][^"']*(?:location\.href|window\.location)\s*=\s*["']([^"']+)["'][^"']*["']/gi;
+    let m: RegExpExecArray | null;
+    while ((m = rx.exec(html))) {
+      urls.push(m[1].trim());
+      if (urls.length >= 200) break;
+    }
+  }
+
+  // form actions
+  {
+    const rx = /<form\s+[^>]*action=["']([^"']+)["'][^>]*>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = rx.exec(html))) {
+      urls.push(m[1].trim());
+      if (urls.length >= 240) break;
+    }
+  }
+
+  return uniqueUrls(urls);
+};
+
+const isLikelyDownloadUrl = (raw: string) => {
+  const lower = raw.toLowerCase();
+  if (!lower) return false;
+  if (lower.startsWith("javascript:")) return false;
+  if (lower.startsWith("mailto:")) return false;
+  if (lower.startsWith("tel:")) return false;
+
+  // direct file extensions
+  if (/\.(exe|msi|dmg|pkg|zip|7z|rar|tar|gz|tgz|apk|appimage)(\?|#|$)/i.test(lower)) return true;
+
+  // generic download pages
+  if (/\bdownload\b/i.test(lower)) return true;
+
+  return false;
+};
+
+const scoreDownloadUrl = (raw: string) => {
+  const lower = raw.toLowerCase();
+  let score = 0;
+  if (/\.(exe|msi|dmg|pkg|zip|7z|rar|tar|gz|tgz|apk|appimage)(\?|#|$)/i.test(lower)) score += 50;
+  if (/\b(download|dl)\b/i.test(lower)) score += 10;
+  if (/\b(setup|installer|install|release|latest|stable)\b/i.test(lower)) score += 10;
+  if (/\b(beta|trial)\b/i.test(lower)) score -= 5;
+  if (/\b(pricing|plans|checkout|login|register|account|blog|news)\b/i.test(lower)) score -= 30;
+  return score;
+};
+
+const resolveSizeViaHead = async (candidate: URL) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6_000);
+  try {
+    const head = await fetch(candidate.toString(), {
+      method: "HEAD",
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "user-agent": "soft-hub-scraper/1.0",
+        accept: "*/*",
+      },
+    });
+
+    const headType = (head.headers.get("content-type") ?? "").toLowerCase();
+    const headDisp = (head.headers.get("content-disposition") ?? "").toLowerCase();
+    const headLen = Number(head.headers.get("content-length") ?? 0);
+
+    if (!(headType.startsWith("text/html") && !headDisp.includes("attachment"))) {
+      if (head.ok && Number.isFinite(headLen) && headLen > 0) {
+        const mb = headLen / (1024 * 1024);
+        if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
+      }
+    }
+
+    const ranged = await fetch(candidate.toString(), {
+      method: "GET",
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "user-agent": "soft-hub-scraper/1.0",
+        range: "bytes=0-0",
+        accept: "*/*",
+      },
+    });
+
+    const rangedType = (ranged.headers.get("content-type") ?? "").toLowerCase();
+    const rangedDisp = (ranged.headers.get("content-disposition") ?? "").toLowerCase();
+    if (rangedType.startsWith("text/html") && !rangedDisp.includes("attachment")) return 0;
+
+    const contentRange = ranged.headers.get("content-range") ?? "";
+    const m = contentRange.match(/\/(\d+)\s*$/);
+    if (m) {
+      const total = Number(m[1]);
+      if (Number.isFinite(total) && total > 0) {
+        const mb = total / (1024 * 1024);
+        if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
+      }
+    }
+
+    const contentLength = Number(ranged.headers.get("content-length") ?? 0);
+    if (Number.isFinite(contentLength) && contentLength > 0) {
+      const mb = contentLength / (1024 * 1024);
+      if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
+    }
+
+    return 0;
+  } catch {
+    return 0;
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const fetchHtmlLight = async (url: URL) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6_000);
+  try {
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "user-agent": "soft-hub-scraper/1.0",
+        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+      },
+      signal: controller.signal,
+    });
+
+    if (!res.ok) return "";
+    const ct = (res.headers.get("content-type") ?? "").toLowerCase();
+    if (ct && !ct.includes("html")) return "";
+    const text = await res.text();
+    return text.length > 600_000 ? text.slice(0, 600_000) : text;
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
+  const visited = new Set<string>();
+
+  const resolveRecursive = async (currentBase: URL, currentHtml: string, depth: number): Promise<number> => {
+    const hrefs = extractDownloadCandidateUrls(currentHtml)
+      .map((href) => resolveUrl(currentBase, href))
+      .filter(Boolean)
+      .filter(isLikelyDownloadUrl)
+      .sort((a, b) => scoreDownloadUrl(b) - scoreDownloadUrl(a));
+
+    for (const href of hrefs.slice(0, 12)) {
+      if (visited.has(href)) continue;
+      visited.add(href);
+
+      try {
+        const allowed = assertUrlAllowed(href);
+        const mb = await resolveSizeViaHead(allowed);
+        if (isReasonableSizeInMb(mb)) return mb;
+
+        if (depth < 2) {
+          const nextHtml = await fetchHtmlLight(allowed);
+          if (nextHtml) {
+            const nested = await resolveRecursive(allowed, nextHtml, depth + 1);
+            if (isReasonableSizeInMb(nested)) return nested;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return 0;
+  };
+
+  return resolveRecursive(baseUrl, html, 0);
+};import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { isAdminRequestAuthorized, getAdminSecretOrThrow } from "@/lib/auth/admin-session";
 import net from "node:net";
@@ -144,128 +345,6 @@ const resolveUrl = (base: URL, candidate: string) => {
 };
 
 const uniqueUrls = (items: string[]) => Array.from(new Set(items.map((v) => v.trim()).filter(Boolean)));
-const extractAnchorHrefs = (html: string) => {
-  const rx = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
-  const urls: string[] = [];
-  let match: RegExpExecArray | null;
-  while ((match = rx.exec(html))) {
-    urls.push(match[1].trim());
-    if (urls.length >= 60) break;
-  }
-  return Array.from(new Set(urls.map((v) => v.trim()).filter(Boolean)));
-};
-
-const isLikelyDownloadUrl = (raw: string) => {
-  const lower = raw.toLowerCase();
-  if (!lower) return false;
-  if (lower.startsWith("javascript:")) return false;
-  if (lower.startsWith("mailto:")) return false;
-  if (lower.startsWith("tel:")) return false;
-
-  if (/\.(exe|msi|dmg|pkg|zip|7z|rar|tar|gz|tgz|apk|appimage)(\?|#|$)/i.test(lower)) return true;
-  if (/\bdownload\b/i.test(lower) && /\b(file|setup|installer|release|client)\b/i.test(lower)) return true;
-  return false;
-};
-const scoreDownloadUrl = (raw: string) => {
-  const lower = raw.toLowerCase();
-  let score = 0;
-  if (/\.(exe|msi|dmg|pkg|zip|7z|rar|tar|gz|tgz|apk|appimage)(\?|#|$)/i.test(lower)) score += 50;
-  if (/\b(download|dl)\b/i.test(lower)) score += 10;
-  if (/\b(setup|installer|install|release|latest)\b/i.test(lower)) score += 10;
-  if (/\b(beta|trial)\b/i.test(lower)) score -= 5;
-  if (/\b(pricing|plans|checkout|login|register|account|blog|news)\b/i.test(lower)) score -= 30;
-  return score;
-};
-
-const resolveSizeViaHead = async (candidate: URL) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6_000);
-  try {
-    const head = await fetch(candidate.toString(), {
-      method: "HEAD",
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "user-agent": "soft-hub-scraper/1.0",
-        accept: "*/*",
-      },
-    });
-
-    const headType = (head.headers.get("content-type") ?? "").toLowerCase();
-    const headDisp = (head.headers.get("content-disposition") ?? "").toLowerCase();
-    const headLen = Number(head.headers.get("content-length") ?? 0);
-
-    // Reject obvious HTML pages unless server suggests an attachment.
-    if (headType.startsWith("text/html") && !headDisp.includes("attachment")) {
-      // fall back to ranged request; some CDNs lie on HEAD
-    } else if (head.ok && Number.isFinite(headLen) && headLen > 0) {
-      const mb = headLen / (1024 * 1024);
-      // avoid landing pages / tiny assets
-      if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
-    }
-
-    // Range request fallback (some servers only report total via Content-Range)
-    const ranged = await fetch(candidate.toString(), {
-      method: "GET",
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "user-agent": "soft-hub-scraper/1.0",
-        range: "bytes=0-0",
-        accept: "*/*",
-      },
-    });
-
-    const rangedType = (ranged.headers.get("content-type") ?? "").toLowerCase();
-    const rangedDisp = (ranged.headers.get("content-disposition") ?? "").toLowerCase();
-
-    if (rangedType.startsWith("text/html") && !rangedDisp.includes("attachment")) {
-      return 0;
-    }
-
-    const contentRange = ranged.headers.get("content-range") ?? "";
-    const m = contentRange.match(/\/(\d+)\s*$/);
-    if (m) {
-      const total = Number(m[1]);
-      if (Number.isFinite(total) && total > 0) {
-        const mb = total / (1024 * 1024);
-        if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
-      }
-    }
-
-    const contentLength = Number(ranged.headers.get("content-length") ?? 0);
-    if (Number.isFinite(contentLength) && contentLength > 0) {
-      const mb = contentLength / (1024 * 1024);
-      if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
-    }
-
-    return 0;
-  } catch {
-    return 0;
-  } finally {
-    clearTimeout(timeout);
-  }
-};
-
-const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
-    const hrefs = extractAnchorHrefs(html)
-    .map((href) => resolveUrl(baseUrl, href))
-    .filter(Boolean)
-    .filter(isLikelyDownloadUrl)
-    .sort((a, b) => scoreDownloadUrl(b) - scoreDownloadUrl(a));
-
-  for (const href of hrefs.slice(0, 10)) {
-    try {
-      const allowed = assertUrlAllowed(href);
-      const mb = await resolveSizeViaHead(allowed);
-      if (isReasonableSizeInMb(mb)) return mb;
-    } catch {
-      // ignore
-    }
-  }
-
-  return 0;
-};
 
 const isFaviconUrl = (raw: string) => {
   try {
@@ -1078,7 +1157,6 @@ export const POST = async (request: NextRequest) => {
     return NextResponse.json({ message }, { status: 500 });
   }
 };
-
 
 
 
