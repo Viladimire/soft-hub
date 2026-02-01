@@ -427,11 +427,11 @@ const extractProductInfoMap = (lines: string[]) => {
 const parseDownloadsValue = (raw: string) => {
   const normalized = String(raw ?? "").trim();
   if (!normalized) return 0;
-  const match = normalized.match(/\b(\d{1,3}(?:,\d{3})+|\d{4,})\b/);
-  if (!match) return 0;
-  const parsed = Number(match[1].replace(/,/g, ""));
+
+  // Accept human forms such as: 12,345 | 120K | 5.2M
+  const parsed = parseHumanNumber(normalized);
   if (!Number.isFinite(parsed)) return 0;
-  if (parsed < 10_000) return 0;
+  if (parsed < 1) return 0;
   if (parsed > 2_000_000_000) return 0;
   return parsed;
 };
@@ -444,7 +444,7 @@ const pickDownloads = (lines: string[], productInfo: Map<string, string>) => {
   if (labeled) return labeled;
 
   const fallback = pickDownloadsFallback(lines);
-  return fallback >= 10_000 && fallback <= 2_000_000_000 ? fallback : 0;
+  return fallback >= 1 && fallback <= 2_000_000_000 ? fallback : 0;
 };
 
 const pickSizeInMb = (lines: string[]) => {
