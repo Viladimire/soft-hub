@@ -55,6 +55,13 @@ export const POST = async (request: NextRequest) => {
     if (payload.ref) metadata.ref = payload.ref;
     if (payload.slug) metadata.slug = payload.slug;
 
+    const vercelCountry = request.headers.get("x-vercel-ip-country");
+    const vercelRegion = request.headers.get("x-vercel-ip-country-region");
+    const vercelCity = request.headers.get("x-vercel-ip-city");
+    if (vercelCountry) metadata.country = vercelCountry;
+    if (vercelRegion) metadata.region = vercelRegion;
+    if (vercelCity) metadata.city = vercelCity;
+
     await recordAnalyticsEvent(supabase, {
       softwareId: software.id,
       eventType: "view",

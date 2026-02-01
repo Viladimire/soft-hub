@@ -30,10 +30,18 @@ type TrendingRow = {
   downloads: number;
 };
 
+type CountryRow = {
+  country: string;
+  total_events: number;
+  views: number;
+  downloads: number;
+};
+
 type AnalyticsResponse = {
   totals: AnalyticsTotals;
   popular: PopularRow[];
   trending: TrendingRow[];
+  countries: CountryRow[];
 };
 
 export const AnalyticsAdminPanel = () => {
@@ -80,6 +88,7 @@ export const AnalyticsAdminPanel = () => {
 
   const popularRows = useMemo(() => data?.popular ?? [], [data]);
   const trendingRows = useMemo(() => data?.trending ?? [], [data]);
+  const countryRows = useMemo(() => data?.countries ?? [], [data]);
 
   return (
     <div className="space-y-6">
@@ -183,6 +192,42 @@ export const AnalyticsAdminPanel = () => {
             ) : (
               <p className="text-sm text-neutral-400">No data yet.</p>
             )}
+          </CardContent>
+        </Card>
+      </section>
+
+      <section>
+        <Card className="border-white/10 bg-neutral-950/60">
+          <CardHeader>
+            <CardTitle className="text-base text-white">Top countries (30 days)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {countryRows.length ? (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {countryRows.map((row) => (
+                  <div
+                    key={row.country}
+                    className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-white">{row.country}</p>
+                      <p className="truncate text-xs text-neutral-400">Events: {row.total_events.toLocaleString("en-US")}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs text-neutral-400">Views / Downloads</p>
+                      <p className="font-semibold text-white">
+                        {row.views.toLocaleString("en-US")} / {row.downloads.toLocaleString("en-US")}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-400">No country data yet.</p>
+            )}
+            <p className="text-xs text-neutral-500">
+              Country is derived from Vercel edge geo headers and may be unavailable on local development.
+            </p>
           </CardContent>
         </Card>
       </section>

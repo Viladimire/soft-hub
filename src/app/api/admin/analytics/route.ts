@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
-import { getAnalyticsTotals, getPopularSoftware, getTrendingSoftware } from "@/lib/services/analytics.server";
+import { getAnalyticsTotals, getPopularSoftware, getTopCountries, getTrendingSoftware } from "@/lib/services/analytics.server";
 import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 
 const isErrorWithCode = (value: unknown): value is { code?: unknown; message?: unknown } =>
@@ -58,14 +58,20 @@ export const GET = async (request: NextRequest) => {
         autoRefreshToken: false,
       },
     });
-    const [totalsResult, popularResult, trendingResult] = await Promise.allSettled([
+    const [totalsResult, popularResult, trendingResult, countriesResult] = await Promise.allSettled([
       getAnalyticsTotals(supabase),
       getPopularSoftware(supabase, 10),
       getTrendingSoftware(supabase, { limit: 10, windowDays: 7 }),
+      getTopCountries(supabase, { limit: 12, windowDays: 30 }),
     ]);
 
-    if (totalsResult.status === "rejected" || popularResult.status === "rejected" || trendingResult.status === "rejected") {
-      const rejected = [totalsResult, popularResult, trendingResult].find(
+    if (
+      totalsResult.status === "rejected" ||
+      popularResult.status === "rejected" ||
+      trendingResult.status === "rejected" ||
+      countriesResult.status === "rejected"
+    ) {
+      const rejected = [totalsResult, popularResult, trendingResult, countriesResult].find(
         (result): result is PromiseRejectedResult => result.status === "rejected",
       );
 
@@ -84,6 +90,7 @@ export const GET = async (request: NextRequest) => {
       totals: totalsResult.status === "fulfilled" ? totalsResult.value : null,
       popular: popularResult.status === "fulfilled" ? popularResult.value : [],
       trending: trendingResult.status === "fulfilled" ? trendingResult.value : [],
+      countries: countriesResult.status === "fulfilled" ? countriesResult.value : [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load analytics";

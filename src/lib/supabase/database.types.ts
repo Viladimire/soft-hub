@@ -407,6 +407,18 @@ export type Database = {
           total_software: number;
         }[];
       };
+      analytics_top_countries: {
+        Args: {
+          p_limit?: number;
+          p_window_days?: number;
+        };
+        Returns: {
+          country: string | null;
+          total_events: number;
+          views: number;
+          downloads: number;
+        }[];
+      };
       collections_public: {
         Args: {
           published_only?: boolean;

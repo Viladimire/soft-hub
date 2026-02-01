@@ -117,6 +117,26 @@ export const getPopularSoftware = async (
   return data ?? [];
 };
 
+export const getTopCountries = async (
+  client: AnalyticsServerClient,
+  params: {
+    limit?: number;
+    windowDays?: number;
+  } = {},
+) => {
+  const { limit = 12, windowDays = 30 } = params;
+  const { data, error } = await client.rpc("analytics_top_countries", {
+    p_limit: limit,
+    p_window_days: windowDays,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+};
+
 export const getTrendingSoftware = async (
   client: AnalyticsServerClient,
   params: {
