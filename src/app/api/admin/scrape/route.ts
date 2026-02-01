@@ -389,9 +389,9 @@ const pickValueAfterLabel = (lines: string[], label: string) => {
 };
 
 const parseSizeFromText = (text: string) => {
-  const match = text.match(/\b(?:file\s*size|size)\b\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
-  if (!match) return 0;
-  return parseSizeToMb(`${match[1]} ${match[2]}`);
+  const candidates = extractSizeCandidatesFromText(text);
+  const best = pickBestSizeCandidate(candidates);
+  return isReasonableSizeInMb(best) ? best : 0;
 };
 
 const pickDownloadsFallback = (lines: string[]) => {
@@ -444,6 +444,21 @@ const parseSizeToMb = (raw: string) => {
 
 const isReasonableSizeInMb = (mb: number) => Number.isFinite(mb) && mb >= 1 && mb <= 200_000;
 
+const isRequirementsContext = (ctx: string) => {
+  const normalized = ctx.toLowerCase();
+  // Common system requirements signals that frequently contain numbers/sizes.
+  return /\b(?:system\s+requirements?|requirements?|minimum|recommended|min\.|rec\.|ram|memory|vram|gpu|cpu|processor|disk|storage|space|directx|opengl|windows|mac|linux|android|ios)\b/i.test(
+    normalized,
+  );
+};
+
+const isDownloadContext = (ctx: string) => {
+  const normalized = ctx.toLowerCase();
+  return /\b(?:download|installer|installation|setup|file\s*size|filesize|download\s*size|package|portable|mirror|direct\s*download|apk|exe|msi|dmg|pkg|zip|rar|7z|iso)\b/i.test(
+    normalized,
+  );
+};
+
 const extractSizeCandidatesFromText = (text: string) => {
   const candidates: number[] = [];
   const normalized = String(text || "");
@@ -452,6 +467,10 @@ const extractSizeCandidatesFromText = (text: string) => {
   const labelRx = /\b(?:file\s*size|filesize|download\s*size|size)\b[^\n\r]{0,80}?(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
   let m: RegExpExecArray | null;
   while ((m = labelRx.exec(normalized))) {
+    const hit = m[0] ?? "";
+    const isWeakLabel = /\bsize\b/i.test(hit) && !/\b(?:file\s*size|filesize|download\s*size)\b/i.test(hit);
+    if (isRequirementsContext(hit)) continue;
+    if (isWeakLabel && !isDownloadContext(hit)) continue;
     const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
     if (isReasonableSizeInMb(mb)) candidates.push(mb);
   }
@@ -461,6 +480,8 @@ const extractSizeCandidatesFromText = (text: string) => {
     const start = Math.max(0, m.index - 40);
     const ctx = normalized.slice(start, m.index + m[0].length + 40);
     if (!/\b(?:file\s*size|filesize|download\s*size|size)\b/i.test(ctx)) continue;
+    if (isRequirementsContext(ctx)) continue;
+    if (!isDownloadContext(ctx) && !/\b(?:file\s*size|filesize|download\s*size)\b/i.test(ctx)) continue;
     const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
     if (isReasonableSizeInMb(mb)) candidates.push(mb);
   }
