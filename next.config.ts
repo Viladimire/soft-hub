@@ -62,6 +62,16 @@ const nextConfig: NextConfig = {
         hostname: "opengraph.githubassets.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.wondershare.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "neveragain.allstatics.com",
+        pathname: "/**",
+      },
     ],
   },
 };

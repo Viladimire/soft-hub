@@ -468,6 +468,94 @@ const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<
   return response.json() as Promise<T>;
 };
 
+const drawOrbitWatermark = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+  ctx.save();
+  ctx.translate(x + size / 2, y + size / 2);
+  ctx.rotate((-18 * Math.PI) / 180);
+
+  const rx = size * 0.46;
+  const ry = size * 0.22;
+
+  ctx.globalAlpha = 0.72;
+  ctx.lineWidth = Math.max(2, size * 0.045);
+  const grad = ctx.createLinearGradient(-rx, 0, rx, 0);
+  grad.addColorStop(0, "rgba(34, 211, 238, 0)");
+  grad.addColorStop(0.2, "rgba(34, 211, 238, 0.75)");
+  grad.addColorStop(0.55, "rgba(99, 102, 241, 0.78)");
+  grad.addColorStop(0.8, "rgba(236, 72, 153, 0.62)");
+  grad.addColorStop(1, "rgba(236, 72, 153, 0)");
+  ctx.strokeStyle = grad;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+  ctx.shadowColor = "rgba(99, 102, 241, 0.35)";
+  ctx.shadowBlur = Math.max(6, size * 0.08);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.beginPath();
+  ctx.arc(rx, 0, Math.max(2, size * 0.04), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 0.14;
+  ctx.fillStyle = "rgba(34, 211, 238, 1)";
+  ctx.beginPath();
+  ctx.arc(rx, 0, Math.max(4, size * 0.085), 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+};
+
+const applyOrbitWatermarkToBlob = async (blob: Blob, mime: string) => {
+  if (typeof createImageBitmap !== "function") {
+    return blob;
+  }
+
+  const image = await createImageBitmap(blob);
+
+  const width = image.width;
+  const height = image.height;
+  if (!width || !height) {
+    return blob;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return blob;
+
+  const source = image as unknown as CanvasImageSource;
+  ctx.drawImage(source, 0, 0, width, height);
+
+  // Place watermark bottom-right.
+  const watermarkSize = Math.max(110, Math.round(Math.min(width, height) * 0.22));
+  const margin = Math.max(20, Math.round(watermarkSize * 0.18));
+  drawOrbitWatermark(ctx, width - watermarkSize - margin, height - watermarkSize - margin, watermarkSize);
+
+  const outMime = mime === "image/png" ? "image/png" : "image/webp";
+  const quality = outMime === "image/webp" ? 0.92 : undefined;
+
+  const outBlob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, outMime, quality),
+  );
+  return outBlob ?? blob;
+};
+
+const applyOrbitWatermarkToFile = async (file: File) => {
+  try {
+    const mime = file.type || "image/png";
+    const buffer = await file.arrayBuffer();
+    const blob = new Blob([buffer], { type: mime });
+    const out = await applyOrbitWatermarkToBlob(blob, mime);
+    const ext = out.type === "image/png" ? "png" : "webp";
+    const baseName = file.name.replace(/\.(png|jpe?g|webp|gif)$/i, "");
+    return new File([out], `${baseName}-orbit.${ext}`, { type: out.type });
+  } catch {
+    return file;
+  }
+};
+
 export const SoftwareAdminPanel = () => {
   const router = useRouter();
   const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -621,8 +709,10 @@ export const SoftwareAdminPanel = () => {
   };
 
   const uploadImage = async (file: File, type: "logo" | "hero" | "screenshot") => {
+    const processed = await applyOrbitWatermarkToFile(file);
+
     const form = new FormData();
-    form.append("file", file);
+    form.append("file", processed);
     form.append("type", type);
 
     const response = await fetch("/api/admin/upload", {
@@ -646,6 +736,29 @@ export const SoftwareAdminPanel = () => {
     }
 
     return String((payload as { url: unknown }).url);
+  };
+
+  const uploadFromUrlWithWatermark = async (
+    url: string,
+    type: "logo" | "hero" | "screenshot",
+  ): Promise<string> => {
+    const normalized = normalizeImageUrl(url);
+    if (!normalized) return "";
+
+    const response = await fetch(`/api/admin/fetch-image?url=${encodeURIComponent(normalized)}`);
+    if (!response.ok) {
+      return normalized;
+    }
+
+    const blob = await response.blob();
+    if (!blob.type.startsWith("image/")) {
+      return normalized;
+    }
+
+    const processed = await applyOrbitWatermarkToBlob(blob, blob.type);
+    const ext = processed.type === "image/png" ? "png" : "webp";
+    const file = new File([processed], `scrape-${type}-orbit.${ext}`, { type: processed.type });
+    return uploadImage(file, type);
   };
 
   const previewSoftware = useMemo<Software>(() => {
@@ -1071,17 +1184,43 @@ export const SoftwareAdminPanel = () => {
         body: JSON.stringify({ url }),
       });
 
-      setFormState((state) => {
-        const normalizedScreenshots = (data.screenshots ?? [])
-          .map((value) => normalizeImageUrl(value))
-          .filter(Boolean)
-          .slice(0, 6);
+      const normalizedScreenshots = (data.screenshots ?? [])
+        .map((value) => normalizeImageUrl(value))
+        .filter(Boolean)
+        .slice(0, 6);
 
-        const fallbackGallery = normalizedScreenshots.slice(0, 3).join("\n");
+      const nextHeroImage = normalizeImageUrl(data.heroImage ?? "");
+      const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "") || normalizedScreenshots[0] || nextHeroImage;
+
+      const safeUpload = async (raw: string, type: "logo" | "hero" | "screenshot") => {
+        try {
+          const uploaded = await uploadFromUrlWithWatermark(raw, type);
+          return uploaded || normalizeImageUrl(raw) || "";
+        } catch {
+          return normalizeImageUrl(raw) || "";
+        }
+      };
+
+      // Upload & watermark scraped assets so we store our own branded media.
+      const [uploadedLogo, uploadedHero, uploadedScreens] = await Promise.all([
+        nextLogoUrl ? safeUpload(nextLogoUrl, "logo") : Promise.resolve(""),
+        nextHeroImage ? safeUpload(nextHeroImage, "hero") : Promise.resolve(""),
+        Promise.all(
+          normalizedScreenshots
+            .slice(0, 3)
+            .map((shot) => safeUpload(shot, "screenshot")),
+        ),
+      ]);
+
+      setFormState((state) => {
+        const cleanedScreens = (uploadedScreens ?? []).filter(Boolean);
+        const fallbackGallery = cleanedScreens.length
+          ? cleanedScreens.join("\n")
+          : normalizedScreenshots.slice(0, 3).join("\n");
         const nextGallery = state.gallery.trim() ? state.gallery : fallbackGallery;
 
-        const nextHeroImage = normalizeImageUrl(data.heroImage ?? "");
-        const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "") || normalizedScreenshots[0] || nextHeroImage;
+        const resolvedHero = state.heroImage.trim() ? state.heroImage : (uploadedHero || nextHeroImage || state.heroImage);
+        const resolvedLogo = state.logoUrl.trim() ? state.logoUrl : (uploadedLogo || nextLogoUrl || state.logoUrl);
 
         const nextDownloads =
           parseNumber(state.statsDownloads, 0) > 0
@@ -1151,8 +1290,8 @@ export const SoftwareAdminPanel = () => {
           minRequirements: nextMinReq,
           recRequirements: nextRecReq,
           features: nextFeatures,
-          logoUrl: state.logoUrl.trim() ? state.logoUrl : nextLogoUrl || state.logoUrl,
-          heroImage: state.heroImage.trim() ? state.heroImage : nextHeroImage || state.heroImage,
+          logoUrl: resolvedLogo,
+          heroImage: resolvedHero,
           gallery: nextGallery,
           platforms: nextPlatforms,
           categories: nextCategories,
