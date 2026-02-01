@@ -1917,10 +1917,12 @@ export const SoftwareAdminPanel = () => {
                           type="number"
                           min="0"
                           value={formState.statsViews}
+                          disabled
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, statsViews: event.target.value }))
                           }
                         />
+                        <p className="text-xs text-neutral-500">Internal metric (tracked by SOFT-HUB analytics).</p>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm text-neutral-300">Rating</label>
@@ -1930,10 +1932,12 @@ export const SoftwareAdminPanel = () => {
                           max="5"
                           step="0.1"
                           value={formState.statsRating}
+                          disabled
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, statsRating: event.target.value }))
                           }
                         />
+                        <p className="text-xs text-neutral-500">Internal metric (calculated from votes).</p>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm text-neutral-300">Votes</label>
@@ -1941,10 +1945,12 @@ export const SoftwareAdminPanel = () => {
                           type="number"
                           min="0"
                           value={formState.statsVotes}
+                          disabled
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, statsVotes: event.target.value }))
                           }
                         />
+                        <p className="text-xs text-neutral-500">Internal metric (tracked by SOFT-HUB).</p>
                       </div>
                     </section>
 

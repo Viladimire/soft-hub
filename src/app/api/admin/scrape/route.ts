@@ -281,6 +281,24 @@ const extractSizeCandidatesFromText = (text: string) => {
     if (isReasonableSizeInMb(mb)) candidates.push(mb);
   }
 
+  // Generic bytes without label (common in inline JSON): 585157376 bytes
+  const genericBytesRx = /\b([0-9]{6,})\s*bytes\b/gi;
+  while ((m = genericBytesRx.exec(normalized))) {
+    const bytes = Number(m[1]);
+    if (!Number.isFinite(bytes) || bytes <= 0) continue;
+    const mb = bytes / (1024 * 1024);
+    if (isReasonableSizeInMb(mb)) candidates.push(mb);
+  }
+
+  // Other common size keys.
+  const moreKeysRx = /\b(?:contentLength|content_length|downloadBytes|packageSize)\b\s*[:=]\s*([0-9]{6,})\b/gi;
+  while ((m = moreKeysRx.exec(normalized))) {
+    const bytes = Number(m[1]);
+    if (!Number.isFinite(bytes) || bytes <= 0) continue;
+    const mb = bytes / (1024 * 1024);
+    if (isReasonableSizeInMb(mb)) candidates.push(mb);
+  }
+
   return candidates;
 };
 
