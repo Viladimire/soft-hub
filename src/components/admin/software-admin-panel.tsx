@@ -1257,6 +1257,20 @@ export const SoftwareAdminPanel = () => {
         };
         const scrapedDate = data.releaseDate ? normalizeDate(data.releaseDate) : "";
 
+        const changelogJson = (() => {
+          if (state.changelogJson.trim()) return state.changelogJson;
+          const version = (state.version.trim() && state.version !== "1.0.0")
+            ? state.version
+            : (data.version?.trim() || state.version);
+          const dateIso = new Date((scrapedDate || state.releaseDate || today).trim() || today).toISOString();
+          const entry = {
+            version: version || "1.0.0",
+            date: dateIso,
+            highlights: ["Imported from official website", "Media assets watermarked automatically"],
+          };
+          return JSON.stringify([entry], null, 2);
+        })();
+
         const nextSizeInMb =
           parseNumber(state.sizeInMb, 0) > 0 && state.sizeInMb !== "250"
             ? state.sizeInMb
@@ -1295,6 +1309,7 @@ export const SoftwareAdminPanel = () => {
           gallery: nextGallery,
           platforms: nextPlatforms,
           categories: nextCategories,
+          changelogJson,
         };
       });
 

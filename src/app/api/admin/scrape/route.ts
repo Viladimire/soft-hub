@@ -264,6 +264,23 @@ const extractSizeCandidatesFromText = (text: string) => {
     if (isReasonableSizeInMb(mb)) candidates.push(mb);
   }
 
+  // Bytes patterns: "fileSize": 585157376 | size: 585157376 bytes
+  const bytesLabelRx = /\b(?:file\s*size|filesize|download\s*size|size)\b[^\n\r]{0,80}?(\d{6,})(?:\s*bytes\b)?/gi;
+  while ((m = bytesLabelRx.exec(normalized))) {
+    const bytes = Number(String(m[1]).replace(/,/g, ""));
+    if (!Number.isFinite(bytes) || bytes <= 0) continue;
+    const mb = bytes / (1024 * 1024);
+    if (isReasonableSizeInMb(mb)) candidates.push(mb);
+  }
+
+  const jsonBytesRx = /\b(?:fileSize|filesize|downloadSize|sizeInBytes|bytes)\b\s*[:=]\s*([0-9]{6,})\b/gi;
+  while ((m = jsonBytesRx.exec(normalized))) {
+    const bytes = Number(m[1]);
+    if (!Number.isFinite(bytes) || bytes <= 0) continue;
+    const mb = bytes / (1024 * 1024);
+    if (isReasonableSizeInMb(mb)) candidates.push(mb);
+  }
+
   return candidates;
 };
 
