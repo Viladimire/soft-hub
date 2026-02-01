@@ -1075,18 +1075,35 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
 
   const downloads = pickDownloads(lines, productInfo);
 
-  const sizeInMb = (() => {
+  const sizeCandidate = (() => {
     const fromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
     const parsed = fromProductInfo ? parseSizeToMb(fromProductInfo) : 0;
-    if (parsed > 0) return parsed;
+    if (parsed > 0) return { mb: parsed, confidence: "high" as const };
+
     const picked = pickSizeInMb(lines);
-    if (picked > 0) return picked;
+    if (picked > 0) return { mb: picked, confidence: "medium" as const };
+
     const fromLines = parseSizeFromText(lines.join("\n"));
-    if (fromLines > 0) return fromLines;
-    return extractSizeInMbFromHtml(html);
+    if (fromLines > 0) return { mb: fromLines, confidence: "low" as const };
+
+    const fromHtml = extractSizeInMbFromHtml(html);
+    if (fromHtml > 0) return { mb: fromHtml, confidence: "low" as const };
+
+    return { mb: 0, confidence: "none" as const };
   })();
 
-  const resolvedSizeInMb = sizeInMb > 0 ? sizeInMb : await resolveDownloadSizeFromHtml(baseUrl, html);
+  const resolvedSizeInMb = await (async () => {
+    if (sizeCandidate.mb <= 0) {
+      return await resolveDownloadSizeFromHtml(baseUrl, html);
+    }
+
+    if (sizeCandidate.confidence === "high") {
+      return sizeCandidate.mb;
+    }
+
+    const resolved = await resolveDownloadSizeFromHtml(baseUrl, html);
+    return resolved > 0 ? resolved : sizeCandidate.mb;
+  })();
 
   const requirements = extractRequirementsBlock(lines);
   const requirementsEnglish = {
