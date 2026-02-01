@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Search, Sparkles, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 
 import { GalaxyLogo } from "@/components/branding/galaxy-logo";
 import { Starfield } from "@/components/backgrounds/starfield";
@@ -48,10 +48,6 @@ export const Navbar = () => {
   const [query, setQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isCinematic, setIsCinematic] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("soft-hub.skyMode") === "cinematic";
-  });
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const navLinks = useMemo<NavLink[]>(
@@ -134,29 +130,6 @@ export const Navbar = () => {
               <span>+</span>
               <span>K</span>
             </kbd>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              const next = !isCinematic;
-              setIsCinematic(next);
-              if (typeof window !== "undefined") {
-                window.localStorage.setItem("soft-hub.skyMode", next ? "cinematic" : "subtle");
-                window.dispatchEvent(new Event("soft-hub:sky-mode"));
-              }
-            }}
-            className={cn(
-              "hidden items-center gap-2 rounded-full border px-4 py-2 backdrop-blur-xl transition md:flex",
-              isCinematic
-                ? "border-cyan-300/30 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/15"
-                : "border-black/10 bg-black/5 text-neutral-700 hover:border-black/20 hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:text-neutral-200 dark:hover:border-white/20 dark:hover:bg-white/10",
-            )}
-            aria-pressed={isCinematic}
-            aria-label="Toggle cinematic background"
-          >
-            <Sparkles className="h-4 w-4" />
-            <span className="text-sm">Cinematic</span>
           </button>
 
           <button

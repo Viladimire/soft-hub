@@ -310,7 +310,7 @@
   }
 
   .galaxy-nebula--subtle {
-    opacity: 0.22;
+    opacity: 0.14;
     filter: blur(16px);
     animation: none;
   }
@@ -352,14 +352,14 @@
 
   .galaxy-dim {
     background:
-      radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.55) 60%, rgba(0, 0, 0, 0.72) 100%);
+      radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.72) 60%, rgba(0, 0, 0, 0.84) 100%);
     opacity: 1;
   }
 
   .galaxy-vignette {
     background:
       radial-gradient(circle at center, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.45) 100%);
-    opacity: 0.9;
+    opacity: 0.96;
   }
 
   .meteor-layer {
