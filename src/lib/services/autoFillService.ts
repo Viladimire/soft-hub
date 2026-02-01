@@ -156,7 +156,7 @@ const generateGenericRequirements = () => ({
 export const autoDetectCategory = (name: string) => {
   const lower = name.toLowerCase();
 
-  if (/(game|fortnite|minecraft|valorant|league|apex)/i.test(lower)) {
+  if (/(game|gamer|gaming|steam|epic\s*games|playstation|xbox|nintendo|fps|rpg|moba|battle\s*royale|multiplayer|single\s*player|fortnite|minecraft|valorant|league|apex)/i.test(lower)) {
     return "games";
   }
 
@@ -470,7 +470,9 @@ const mergeData = (params: {
     ...(wiki ? { source: "wikipedia", wikiTitle: wiki.title, wikiUrl: wiki.pageUrl } : {}),
   };
 
-  const categories = [autoDetectCategory(name)];
+  const categorySeed = `${name}\n${wiki?.summary ?? ""}\n${wiki?.description ?? ""}\n${github?.description ?? ""}`.toLowerCase();
+
+  const categories = [autoDetectCategory(categorySeed)];
 
   return {
     summary,

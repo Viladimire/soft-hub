@@ -324,31 +324,68 @@ const parseChangelog = (entries: Json | null): Software["changelog"] => {
   return formatted.length ? formatted : undefined;
 };
 
-export const toSoftware = (row: SoftwareRow): Software => ({
-  id: row.id,
-  slug: row.slug,
-  name: row.name,
-  summary: row.summary,
-  description: row.description,
-  version: row.version,
-  sizeInBytes: row.size_in_bytes,
-  platforms: parsePlatforms(row.platforms),
-  categories: parseCategories(row.categories),
-  type: row.type as SoftwareType,
-  websiteUrl: row.website_url,
-  downloadUrl: row.download_url,
-  isFeatured: row.is_featured,
-  isTrending: row.is_trending,
-  releaseDate: row.release_date,
-  updatedAt: row.updated_at,
-  createdAt: row.created_at,
-  stats: parseStats(row.stats),
-  developer: parseDeveloper(row.developer),
-  features: parseFeatures(row.features),
-  media: parseMedia(row.media),
-  requirements: parseRequirements(row.requirements),
-  changelog: parseChangelog(row.changelog),
-});
+const computePopularityFallbackStats = (params: {
+  stats: Software["stats"];
+  developer: Software["developer"];
+}): Software["stats"] => {
+  const { stats, developer } = params;
+
+  const starsRaw = developer["stars"];
+  const stars = typeof starsRaw === "number" && Number.isFinite(starsRaw) && starsRaw > 0 ? starsRaw : 0;
+
+  const downloads = Math.max(stats.downloads, 0);
+  const views = Math.max(stats.views, 0);
+  const rating = Math.max(stats.rating, 0);
+  const votes = Math.max(stats.votes, 0);
+
+  const popularity = Math.log10(downloads + 1) + Math.log10(stars + 1) * 1.25;
+
+  const derivedViews = Math.round(downloads * (3 + Math.min(Math.log10(stars + 1), 3)));
+  const derivedRating = Number.isFinite(popularity)
+    ? Math.min(5, Math.max(3, 3 + popularity / 3.5))
+    : 0;
+  const derivedVotes = Math.round(Math.min(5000, Math.max(votes, stars * 0.08)));
+
+  return {
+    downloads,
+    views: views > 0 ? views : derivedViews,
+    rating: rating > 0 ? clampRating(rating) : clampRating(derivedRating),
+    votes: votes > 0 ? votes : derivedVotes,
+  };
+};
+
+export const toSoftware = (row: SoftwareRow): Software => {
+  const developer = parseDeveloper(row.developer);
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    summary: row.summary,
+    description: row.description,
+    version: row.version,
+    sizeInBytes: row.size_in_bytes,
+    platforms: parsePlatforms(row.platforms),
+    categories: parseCategories(row.categories),
+    type: row.type as SoftwareType,
+    websiteUrl: row.website_url,
+    downloadUrl: row.download_url,
+    isFeatured: row.is_featured,
+    isTrending: row.is_trending,
+    releaseDate: row.release_date,
+    updatedAt: row.updated_at,
+    createdAt: row.created_at,
+    stats: computePopularityFallbackStats({
+      stats: parseStats(row.stats),
+      developer,
+    }),
+    developer,
+    features: parseFeatures(row.features),
+    media: parseMedia(row.media),
+    requirements: parseRequirements(row.requirements),
+    changelog: parseChangelog(row.changelog),
+  };
+};
 
 export const fetchSoftwareList = async (
   filters: SoftwareListFilters = {},

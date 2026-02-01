@@ -197,6 +197,10 @@ const toFormState = (software: Software): FormState => {
     ? JSON.stringify(software.changelog, null, 2)
     : "";
 
+  const starsRaw = (software.developer as Record<string, unknown>)["stars"];
+  const stars = typeof starsRaw === "number" && Number.isFinite(starsRaw) ? starsRaw : undefined;
+  const derived = computePopularityStats({ downloads: software.stats.downloads, stars });
+
   return {
     id: software.id,
     name: software.name,
@@ -218,9 +222,9 @@ const toFormState = (software: Software): FormState => {
     features,
     developerJson,
     statsDownloads: software.stats.downloads.toString(),
-    statsViews: software.stats.views.toString(),
-    statsRating: software.stats.rating.toString(),
-    statsVotes: software.stats.votes.toString(),
+    statsViews: (software.stats.views > 0 ? software.stats.views : derived.views).toString(),
+    statsRating: (software.stats.rating > 0 ? software.stats.rating : derived.rating).toString(),
+    statsVotes: (software.stats.votes > 0 ? software.stats.votes : derived.votes).toString(),
     minRequirements,
     recRequirements,
     changelogJson,
@@ -347,6 +351,22 @@ const parseCsvLine = (line: string) => {
   return result.map((v) => v.trim());
 };
 
+const computePopularityStats = (params: { downloads: number; stars?: number }) => {
+  const downloads = Number.isFinite(params.downloads) ? Math.max(params.downloads, 0) : 0;
+  const stars = typeof params.stars === "number" && Number.isFinite(params.stars) ? Math.max(params.stars, 0) : 0;
+
+  const popularity = Math.log10(downloads + 1) + Math.log10(stars + 1) * 1.25;
+  const views = Math.round(downloads * (3 + Math.min(Math.log10(stars + 1), 3)));
+  const rating = Math.min(5, Math.max(3, 3 + popularity / 3.5));
+  const votes = Math.round(Math.min(5000, Math.max(0, stars * 0.08)));
+
+  return {
+    views: Math.max(views, 0),
+    rating: Number.isFinite(rating) ? Math.round(rating * 10) / 10 : 0,
+    votes: Math.max(votes, 0),
+  };
+};
+
 const toCsvCell = (value: string) => {
   const normalized = value.replace(/\r?\n/g, " ").trim();
   if (/[",\n]/.test(normalized)) {
@@ -369,6 +389,16 @@ const buildSoftwarePayload = (form: FormState) => {
     .filter(Boolean)
     .slice(0, 3);
 
+  const downloads = parseNumber(form.statsDownloads, 0);
+  const views = parseNumber(form.statsViews, 0);
+  const rating = parseNumber(form.statsRating, 0);
+  const votes = parseNumber(form.statsVotes, 0);
+
+  const developer = parseDeveloperJson(form.developerJson);
+  const starsRaw = (developer as Record<string, unknown>)["stars"];
+  const stars = typeof starsRaw === "number" && Number.isFinite(starsRaw) ? starsRaw : undefined;
+  const derived = computePopularityStats({ downloads, stars });
+
   return {
     id: form.id,
     name: form.name.trim(),
@@ -384,13 +414,13 @@ const buildSoftwarePayload = (form: FormState) => {
     categories: form.categories,
     type: STANDARD_TYPE,
     isFeatured: form.isFeatured,
-    developer: parseDeveloperJson(form.developerJson),
+    developer,
     features: splitLines(form.features),
     stats: {
-      downloads: parseNumber(form.statsDownloads, 0),
-      views: parseNumber(form.statsViews, 0),
-      rating: parseNumber(form.statsRating, 0),
-      votes: parseNumber(form.statsVotes, 0),
+      downloads,
+      views: views > 0 ? views : derived.views,
+      rating: rating > 0 ? rating : derived.rating,
+      votes: votes > 0 ? votes : derived.votes,
     },
     media: {
       logoUrl: normalizedLogoUrl,
@@ -1136,9 +1166,32 @@ export const SoftwareAdminPanel = () => {
       }
 
       setFormState((state) => {
-        const nextCategories = state.categories.length
+        const isDefaultCategories =
+          state.categories.length === DEFAULT_FORM.categories.length &&
+          state.categories.every((value, index) => value === DEFAULT_FORM.categories[index]);
+
+        const nextCategories = !isDefaultCategories
           ? state.categories
           : (data.categories ?? []).filter(isSoftwareCategory);
+
+        const nextDownloadsValue =
+          parseNumber(state.statsDownloads, 0) > 0
+            ? state.statsDownloads
+            : typeof data.downloads === "number" && Number.isFinite(data.downloads) && data.downloads > 0
+              ? String(Math.floor(data.downloads))
+              : state.statsDownloads;
+
+        const nextDeveloperJson = state.developerJson.trim()
+          ? state.developerJson
+          : data.developer && Object.keys(data.developer).length > 0
+            ? JSON.stringify(data.developer, null, 2)
+            : state.developerJson;
+
+        const parsedDownloads = parseNumber(nextDownloadsValue, 0);
+        const parsedDeveloper = parseDeveloperJson(nextDeveloperJson);
+        const starsRaw = (parsedDeveloper as Record<string, unknown>)["stars"];
+        const stars = typeof starsRaw === "number" && Number.isFinite(starsRaw) ? starsRaw : undefined;
+        const derived = computePopularityStats({ downloads: parsedDownloads, stars });
 
         const cleanedScreens = (uploadedScreens ?? []).map((s) => s.url).filter(Boolean);
         const fallbackGallery = cleanedScreens.length
@@ -1176,12 +1229,10 @@ export const SoftwareAdminPanel = () => {
               : shouldApplySize
                 ? String(Math.round(candidateSize * 10) / 10)
                 : state.sizeInMb,
-          statsDownloads:
-            parseNumber(state.statsDownloads, 0) > 0
-              ? state.statsDownloads
-              : typeof data.downloads === "number" && Number.isFinite(data.downloads) && data.downloads > 0
-                ? String(Math.floor(data.downloads))
-                : state.statsDownloads,
+          statsDownloads: nextDownloadsValue,
+          statsViews: parseNumber(state.statsViews, 0) > 0 ? state.statsViews : String(derived.views),
+          statsRating: parseNumber(state.statsRating, 0) > 0 ? state.statsRating : String(derived.rating),
+          statsVotes: parseNumber(state.statsVotes, 0) > 0 ? state.statsVotes : String(derived.votes),
           websiteUrl: state.websiteUrl.trim() ? state.websiteUrl : data.websiteUrl ?? state.websiteUrl,
           logoUrl: resolvedLogo,
           heroImage: resolvedHero,
@@ -1195,11 +1246,7 @@ export const SoftwareAdminPanel = () => {
           features: state.features.trim()
             ? state.features
             : sanitizeFeaturesText((data.features ?? []).join("\n")) || state.features,
-          developerJson: state.developerJson.trim()
-            ? state.developerJson
-            : data.developer && Object.keys(data.developer).length > 0
-              ? JSON.stringify(data.developer, null, 2)
-              : state.developerJson,
+          developerJson: nextDeveloperJson,
           categories: nextCategories.length ? nextCategories : state.categories,
         };
       });
