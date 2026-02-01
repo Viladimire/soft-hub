@@ -166,6 +166,16 @@ const isLikelyDownloadUrl = (raw: string) => {
   if (/\bdownload\b/i.test(lower) && /\b(file|setup|installer|release|client)\b/i.test(lower)) return true;
   return false;
 };
+const scoreDownloadUrl = (raw: string) => {
+  const lower = raw.toLowerCase();
+  let score = 0;
+  if (/\.(exe|msi|dmg|pkg|zip|7z|rar|tar|gz|tgz|apk|appimage)(\?|#|$)/i.test(lower)) score += 50;
+  if (/\b(download|dl)\b/i.test(lower)) score += 10;
+  if (/\b(setup|installer|install|release|latest)\b/i.test(lower)) score += 10;
+  if (/\b(beta|trial)\b/i.test(lower)) score -= 5;
+  if (/\b(pricing|plans|checkout|login|register|account|blog|news)\b/i.test(lower)) score -= 30;
+  return score;
+};
 
 const resolveSizeViaHead = async (candidate: URL) => {
   const controller = new AbortController();
@@ -181,13 +191,20 @@ const resolveSizeViaHead = async (candidate: URL) => {
       },
     });
 
-    if (head.ok) {
-      const contentLength = Number(head.headers.get("content-length") ?? 0);
-      if (Number.isFinite(contentLength) && contentLength > 0) {
-        return contentLength / (1024 * 1024);
-      }
+    const headType = (head.headers.get("content-type") ?? "").toLowerCase();
+    const headDisp = (head.headers.get("content-disposition") ?? "").toLowerCase();
+    const headLen = Number(head.headers.get("content-length") ?? 0);
+
+    // Reject obvious HTML pages unless server suggests an attachment.
+    if (headType.startsWith("text/html") && !headDisp.includes("attachment")) {
+      // fall back to ranged request; some CDNs lie on HEAD
+    } else if (head.ok && Number.isFinite(headLen) && headLen > 0) {
+      const mb = headLen / (1024 * 1024);
+      // avoid landing pages / tiny assets
+      if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
     }
 
+    // Range request fallback (some servers only report total via Content-Range)
     const ranged = await fetch(candidate.toString(), {
       method: "GET",
       redirect: "follow",
@@ -199,18 +216,27 @@ const resolveSizeViaHead = async (candidate: URL) => {
       },
     });
 
+    const rangedType = (ranged.headers.get("content-type") ?? "").toLowerCase();
+    const rangedDisp = (ranged.headers.get("content-disposition") ?? "").toLowerCase();
+
+    if (rangedType.startsWith("text/html") && !rangedDisp.includes("attachment")) {
+      return 0;
+    }
+
     const contentRange = ranged.headers.get("content-range") ?? "";
     const m = contentRange.match(/\/(\d+)\s*$/);
     if (m) {
       const total = Number(m[1]);
       if (Number.isFinite(total) && total > 0) {
-        return total / (1024 * 1024);
+        const mb = total / (1024 * 1024);
+        if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
       }
     }
 
     const contentLength = Number(ranged.headers.get("content-length") ?? 0);
     if (Number.isFinite(contentLength) && contentLength > 0) {
-      return contentLength / (1024 * 1024);
+      const mb = contentLength / (1024 * 1024);
+      if (isReasonableSizeInMb(mb) && mb >= 1) return mb;
     }
 
     return 0;
@@ -222,10 +248,11 @@ const resolveSizeViaHead = async (candidate: URL) => {
 };
 
 const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
-  const hrefs = extractAnchorHrefs(html)
+    const hrefs = extractAnchorHrefs(html)
     .map((href) => resolveUrl(baseUrl, href))
     .filter(Boolean)
-    .filter(isLikelyDownloadUrl);
+    .filter(isLikelyDownloadUrl)
+    .sort((a, b) => scoreDownloadUrl(b) - scoreDownloadUrl(a));
 
   for (const href of hrefs.slice(0, 10)) {
     try {
@@ -978,7 +1005,9 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
     const fromLines = parseSizeFromText(lines.join("\n"));
     if (fromLines > 0) return fromLines;
     return extractSizeInMbFromHtml(html);
-  })();  const resolvedSizeInMb = sizeInMb > 0 ? sizeInMb : await resolveDownloadSizeFromHtml(baseUrl, html);
+  })();
+
+  const resolvedSizeInMb = sizeInMb > 0 ? sizeInMb : await resolveDownloadSizeFromHtml(baseUrl, html);
 
   const requirements = extractRequirementsBlock(lines);
   const requirementsEnglish = {
@@ -1049,6 +1078,9 @@ export const POST = async (request: NextRequest) => {
     return NextResponse.json({ message }, { status: 500 });
   }
 };
+
+
+
 
 
 
