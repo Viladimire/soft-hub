@@ -144,6 +144,101 @@ const resolveUrl = (base: URL, candidate: string) => {
 };
 
 const uniqueUrls = (items: string[]) => Array.from(new Set(items.map((v) => v.trim()).filter(Boolean)));
+const extractAnchorHrefs = (html: string) => {
+  const rx = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
+  const urls: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = rx.exec(html))) {
+    urls.push(match[1].trim());
+    if (urls.length >= 60) break;
+  }
+  return Array.from(new Set(urls.map((v) => v.trim()).filter(Boolean)));
+};
+
+const isLikelyDownloadUrl = (raw: string) => {
+  const lower = raw.toLowerCase();
+  if (!lower) return false;
+  if (lower.startsWith("javascript:")) return false;
+  if (lower.startsWith("mailto:")) return false;
+  if (lower.startsWith("tel:")) return false;
+
+  if (/\.(exe|msi|dmg|pkg|zip|7z|rar|tar|gz|tgz|apk|appimage)(\?|#|$)/i.test(lower)) return true;
+  if (/\bdownload\b/i.test(lower) && /\b(file|setup|installer|release|client)\b/i.test(lower)) return true;
+  return false;
+};
+
+const resolveSizeViaHead = async (candidate: URL) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6_000);
+  try {
+    const head = await fetch(candidate.toString(), {
+      method: "HEAD",
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "user-agent": "soft-hub-scraper/1.0",
+        accept: "*/*",
+      },
+    });
+
+    if (head.ok) {
+      const contentLength = Number(head.headers.get("content-length") ?? 0);
+      if (Number.isFinite(contentLength) && contentLength > 0) {
+        return contentLength / (1024 * 1024);
+      }
+    }
+
+    const ranged = await fetch(candidate.toString(), {
+      method: "GET",
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "user-agent": "soft-hub-scraper/1.0",
+        range: "bytes=0-0",
+        accept: "*/*",
+      },
+    });
+
+    const contentRange = ranged.headers.get("content-range") ?? "";
+    const m = contentRange.match(/\/(\d+)\s*$/);
+    if (m) {
+      const total = Number(m[1]);
+      if (Number.isFinite(total) && total > 0) {
+        return total / (1024 * 1024);
+      }
+    }
+
+    const contentLength = Number(ranged.headers.get("content-length") ?? 0);
+    if (Number.isFinite(contentLength) && contentLength > 0) {
+      return contentLength / (1024 * 1024);
+    }
+
+    return 0;
+  } catch {
+    return 0;
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
+  const hrefs = extractAnchorHrefs(html)
+    .map((href) => resolveUrl(baseUrl, href))
+    .filter(Boolean)
+    .filter(isLikelyDownloadUrl);
+
+  for (const href of hrefs.slice(0, 10)) {
+    try {
+      const allowed = assertUrlAllowed(href);
+      const mb = await resolveSizeViaHead(allowed);
+      if (isReasonableSizeInMb(mb)) return mb;
+    } catch {
+      // ignore
+    }
+  }
+
+  return 0;
+};
 
 const isFaviconUrl = (raw: string) => {
   try {
@@ -739,7 +834,7 @@ const extractImgSources = (html: string) => {
     }
     if (urls.length >= 12) break;
   }
-  return uniqueUrls(urls);
+  return Array.from(new Set(urls.map((v) => v.trim()).filter(Boolean)));
 };
 
 const fetchHtml = async (url: URL) => {
@@ -777,7 +872,7 @@ const fetchHtml = async (url: URL) => {
   }
 };
 
-const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "strict"): ScrapeResult => {
+const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | "strict"): Promise<ScrapeResult> => {
   const rawLines = htmlToTextLines(html);
 
   const ogTitle = extractMeta(html, { attr: "property", value: "og:title" });
@@ -883,7 +978,7 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
     const fromLines = parseSizeFromText(lines.join("\n"));
     if (fromLines > 0) return fromLines;
     return extractSizeInMbFromHtml(html);
-  })();
+  })();  const resolvedSizeInMb = sizeInMb > 0 ? sizeInMb : await resolveDownloadSizeFromHtml(baseUrl, html);
 
   const requirements = extractRequirementsBlock(lines);
   const requirementsEnglish = {
@@ -901,7 +996,7 @@ const toScrapeResult = (baseUrl: URL, html: string, englishMode: "soft" | "stric
     version: clampText(versionFallback, 60) || undefined,
     releaseDate: normalizeReleaseDateToIso(clampText(releaseDateRaw ?? "", 80)) || undefined,
     downloads: downloads > 0 ? downloads : undefined,
-    sizeInMb: sizeInMb > 0 ? sizeInMb : undefined,
+    sizeInMb: resolvedSizeInMb > 0 ? resolvedSizeInMb : undefined,
     developer: clampText(developerRaw ?? "", 80) || undefined,
     ...(features.length ? { features } : {}),
     requirements:
@@ -942,7 +1037,7 @@ export const POST = async (request: NextRequest) => {
 
     const html = await fetchHtml(targetUrl);
     const mode = payload.englishMode ?? "soft";
-    const data = toScrapeResult(targetUrl, html, mode);
+    const data = await toScrapeResult(targetUrl, html, mode);
 
     return NextResponse.json(data);
   } catch (error) {
@@ -954,3 +1049,6 @@ export const POST = async (request: NextRequest) => {
     return NextResponse.json({ message }, { status: 500 });
   }
 };
+
+
+

@@ -1612,6 +1612,69 @@ export const SoftwareAdminPanel = () => {
                           }}
                         />
                       </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm text-neutral-300">Type</label>
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-neutral-400">Primary type</span>
+                            {primaryCategoryOptions.map((option) => {
+                              const selected = formState.categories[0] === option.value;
+                              return (
+                                <Button
+                                  key={option.value}
+                                  type="button"
+                                  variant={selected ? "primary" : "outline"}
+                                  className={selected ? "bg-primary-500" : undefined}
+                                  onClick={() =>
+                                    setFormState((state) => ({
+                                      ...state,
+                                      categories: [option.value],
+                                    }))
+                                  }
+                                >
+                                  {option.label}
+                                </Button>
+                              );
+                            })}
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="ml-auto text-xs text-neutral-300"
+                              onClick={() => setShowAdvancedCategories((v) => !v)}
+                            >
+                              {showAdvancedCategories ? "Hide advanced" : "Advanced"}
+                            </Button>
+                          </div>
+
+                          {showAdvancedCategories ? (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {categoryOptions.map((category) => {
+                                const selected = formState.categories.includes(category);
+                                return (
+                                  <Button
+                                    key={category}
+                                    type="button"
+                                    variant={selected ? "primary" : "outline"}
+                                    className={selected ? "bg-primary-500" : undefined}
+                                    onClick={() =>
+                                      setFormState((state) => ({
+                                        ...state,
+                                        categories: selected
+                                          ? state.categories.filter((item) => item !== category)
+                                          : [...state.categories, category],
+                                      }))
+                                    }
+                                  >
+                                    {category}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
                       <div className="space-y-2">
                         <label className="text-sm text-neutral-300">Version</label>
                         <Input
