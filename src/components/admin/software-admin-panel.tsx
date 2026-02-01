@@ -1806,14 +1806,22 @@ export const SoftwareAdminPanel = () => {
 
                   <TabsContent value="media">
                     <section className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Logo</label>
+                      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <label className="text-sm font-medium text-neutral-200">Logo</label>
+                          {uploadingType === "logo" ? (
+                            <span className="rounded-full border border-primary-400/40 bg-primary-500/10 px-2 py-0.5 text-[11px] text-primary-200">
+                              Uploading…
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="flex flex-wrap gap-2">
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => logoUploadRef.current?.click()}
                             disabled={uploadingType !== null}
+                            className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]"
                           >
                             <Upload className="ms-2 h-4 w-4" />
                             Upload logo
@@ -1850,9 +1858,10 @@ export const SoftwareAdminPanel = () => {
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, logoUrl: event.target.value }))
                           }
+                          className="bg-white/[0.02]"
                         />
                         {normalizeImageUrl(formState.logoUrl) ? (
-                          <div className="relative mt-3 h-28 w-28 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                          <div className="relative mt-2 h-28 w-28 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_10px_25px_rgba(0,0,0,0.35)]">
                             <Image
                               src={normalizeImageUrl(formState.logoUrl)}
                               alt="logo"
@@ -1864,8 +1873,8 @@ export const SoftwareAdminPanel = () => {
                             <Button
                               type="button"
                               size="sm"
-                              variant="outline"
-                              className="absolute right-2 top-2 h-7 w-7 rounded-full p-0"
+                              variant="ghost"
+                              className="absolute right-2 top-2 h-7 w-7 rounded-full bg-black/40 p-0 text-neutral-100 hover:bg-black/60"
                               onClick={() => setFormState((state) => ({ ...state, logoUrl: "" }))}
                             >
                               <X className="h-3.5 w-3.5" />
@@ -1874,14 +1883,22 @@ export const SoftwareAdminPanel = () => {
                         ) : null}
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Hero image</label>
+                      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <label className="text-sm font-medium text-neutral-200">Hero image</label>
+                          {uploadingType === "hero" ? (
+                            <span className="rounded-full border border-primary-400/40 bg-primary-500/10 px-2 py-0.5 text-[11px] text-primary-200">
+                              Uploading…
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="flex flex-wrap gap-2">
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => heroUploadRef.current?.click()}
                             disabled={uploadingType !== null}
+                            className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]"
                           >
                             <Upload className="ms-2 h-4 w-4" />
                             Upload hero
@@ -1917,9 +1934,10 @@ export const SoftwareAdminPanel = () => {
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, heroImage: event.target.value }))
                           }
+                          className="bg-white/[0.02]"
                         />
                         {normalizeImageUrl(formState.heroImage) ? (
-                          <div className="relative mt-3 h-28 w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                          <div className="relative mt-2 h-28 w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_10px_25px_rgba(0,0,0,0.35)]">
                             <Image
                               src={normalizeImageUrl(formState.heroImage)}
                               alt="hero"
@@ -1931,8 +1949,8 @@ export const SoftwareAdminPanel = () => {
                             <Button
                               type="button"
                               size="sm"
-                              variant="outline"
-                              className="absolute right-2 top-2 h-7 w-7 rounded-full p-0"
+                              variant="ghost"
+                              className="absolute right-2 top-2 h-7 w-7 rounded-full bg-black/40 p-0 text-neutral-100 hover:bg-black/60"
                               onClick={() => setFormState((state) => ({ ...state, heroImage: "" }))}
                             >
                               <X className="h-3.5 w-3.5" />
@@ -1941,14 +1959,18 @@ export const SoftwareAdminPanel = () => {
                         ) : null}
                       </div>
 
-                      <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">Gallery (one URL per line)</label>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:col-span-2">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-sm font-medium text-neutral-200">Gallery</label>
+                          <p className="text-xs text-neutral-500">One URL per line. We’ll preview the first 3.</p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => screenshotUploadRef.current?.click()}
                             disabled={uploadingType !== null}
+                            className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]"
                           >
                             <Upload className="ms-2 h-4 w-4" />
                             Upload screenshot
@@ -1981,12 +2003,15 @@ export const SoftwareAdminPanel = () => {
                               }
                             }}
                           />
-                          {uploadingType ? <p className="text-xs text-neutral-500">Uploading...</p> : null}
+                          {uploadingType === "screenshot" ? (
+                            <span className="text-xs text-neutral-500">Uploading…</span>
+                          ) : null}
                         </div>
                         <Textarea
                           value={formState.gallery}
                           onChange={(event) => setFormState((state) => ({ ...state, gallery: event.target.value }))}
                           rows={3}
+                          className="bg-white/[0.02]"
                         />
 
                         {splitLines(formState.gallery).map((value) => normalizeImageUrl(value)).filter(Boolean).length ? (
@@ -1998,14 +2023,14 @@ export const SoftwareAdminPanel = () => {
                               .map((url, index) => (
                                 <div
                                   key={`${url}-${index}`}
-                                  className="relative h-24 overflow-hidden rounded-2xl border border-white/10 bg-white/5"
+                                  className="relative h-24 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_10px_25px_rgba(0,0,0,0.35)]"
                                 >
                                   <Image src={url} alt="gallery" fill className="object-cover" sizes="200px" unoptimized />
                                   <Button
                                     type="button"
                                     size="sm"
-                                    variant="outline"
-                                    className="absolute right-2 top-2 h-7 w-7 rounded-full p-0"
+                                    variant="ghost"
+                                    className="absolute right-2 top-2 h-7 w-7 rounded-full bg-black/40 p-0 text-neutral-100 hover:bg-black/60"
                                     onClick={() =>
                                       setFormState((state) => ({
                                         ...state,
