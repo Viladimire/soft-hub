@@ -14,6 +14,7 @@ const enMessages = {
     links: {
       home: "Home",
       software: "Library",
+      games: "Games",
       collections: "Collections",
       insights: "Insights",
     },

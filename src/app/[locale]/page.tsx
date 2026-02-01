@@ -117,9 +117,9 @@ export default async function HomePage({
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { name: "Software", icon: "💻", href: `/${locale}/software?category=software`, color: "from-blue-500/20 to-cyan-500/20" },
-            { name: "Games", icon: "🎮", href: `/${locale}/software?category=games`, color: "from-purple-500/20 to-pink-500/20" },
+            { name: "Games", icon: "🎮", href: `/${locale}/games`, color: "from-purple-500/20 to-pink-500/20" },
             { name: "Utilities", icon: "🛠️", href: `/${locale}/software?category=utilities`, color: "from-orange-500/20 to-red-500/20" },
-            { name: "Multimedia", icon: "🎬", href: `/${locale}/software?category=multimedia`, color: "from-emerald-500/20 to-green-500/20" },
+            { name: "Multimedia", icon: "🎬", href: `/${locale}/multimedia`, color: "from-emerald-500/20 to-green-500/20" },
           ].map((category) => (
             <Link
               key={category.name}

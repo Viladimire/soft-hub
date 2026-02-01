@@ -54,6 +54,7 @@ export const Navbar = () => {
     () => [
       { href: `/${locale}`, label: dictionary("links.home") },
       { href: `/${locale}/software`, label: dictionary("links.software") },
+      { href: `/${locale}/games`, label: dictionary("links.games") },
       { href: `/${locale}/collections`, label: dictionary("links.collections") },
       { href: `/${locale}/insights`, label: dictionary("links.insights") },
     ],
