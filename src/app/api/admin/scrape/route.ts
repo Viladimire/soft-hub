@@ -479,9 +479,9 @@ const extractSizeCandidatesFromText = (text: string) => {
   while ((m = looseRx.exec(normalized))) {
     const start = Math.max(0, m.index - 40);
     const ctx = normalized.slice(start, m.index + m[0].length + 40);
-    if (!/\b(?:file\s*size|filesize|download\s*size|size)\b/i.test(ctx)) continue;
     if (isRequirementsContext(ctx)) continue;
-    if (!isDownloadContext(ctx) && !/\b(?:file\s*size|filesize|download\s*size)\b/i.test(ctx)) continue;
+    const hasExplicitSizeLabel = /\b(?:file\s*size|filesize|download\s*size|size)\b/i.test(ctx);
+    if (!isDownloadContext(ctx) && !hasExplicitSizeLabel) continue;
     const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
     if (isReasonableSizeInMb(mb)) candidates.push(mb);
   }
@@ -531,9 +531,63 @@ const pickBestSizeCandidate = (candidates: number[]) => {
   return sorted[Math.floor(sorted.length / 2)] ?? 0;
 };
 
+const extractPlainNumberSizeMbFromHtml = (html: string) => {
+  const candidates: number[] = [];
+
+  const pushCandidate = (value: number) => {
+    if (!Number.isFinite(value)) return;
+    if (value < 5 || value > 200_000) return;
+    candidates.push(value);
+  };
+
+  // Many sites render download size as a plain number inside a specific element.
+  // Examples:
+  // <div class="download-size">632</div>
+  // <span id="file-size">1200</span>
+  const elementRx = /<(?:div|span|p|strong|b|small)\b[^>]*(?:class|id)\s*=\s*(["'])[^"']*(?:download[-_\s]*size|file[-_\s]*size|filesize)[^"']*\1[^>]*>([\s\S]*?)<\/(?:div|span|p|strong|b|small)>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = elementRx.exec(html))) {
+    const inner = stripTags(m[2] ?? "").replace(/["']/g, "").trim();
+    if (!inner) continue;
+
+    // Allow: 632 | 632 mb | 1.40 gb
+    const unitMatch = inner.match(/\b(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
+    if (unitMatch) {
+      const mb = parseSizeToMb(`${unitMatch[1]} ${unitMatch[2]}`);
+      if (isReasonableSizeInMb(mb)) {
+        candidates.push(mb);
+      }
+      continue;
+    }
+
+    const numMatch = inner.match(/^\s*(\d{1,6})\s*$/i);
+    if (!numMatch) continue;
+    const value = Number(numMatch[1]);
+    if (!Number.isFinite(value) || value <= 0) continue;
+    pushCandidate(value);
+  }
+
+  // Also support patterns where "download-size" is used nearby without being on the element itself.
+  // This is a conservative windowed scan to avoid confusing with downloads counters.
+  const nearbyRx = /download[-_\s]*size[\s\S]{0,120}?(\d{1,6})\b/gi;
+  while ((m = nearbyRx.exec(html))) {
+    const window = (m[0] ?? "").toLowerCase();
+    if (isRequirementsContext(window)) continue;
+    if (!isDownloadContext(window) && !/download[-_\s]*size/i.test(window)) continue;
+    const value = Number(m[1]);
+    if (!Number.isFinite(value) || value <= 0) continue;
+    pushCandidate(value);
+  }
+
+  const best = pickBestSizeCandidate(candidates);
+  return isReasonableSizeInMb(best) ? best : 0;
+};
+
 const extractSizeInMbFromHtml = (html: string) => {
   const text = stripTags(html);
   const fromText = extractSizeCandidatesFromText(text);
+
+  const plainNumberMb = extractPlainNumberSizeMbFromHtml(html);
 
   const scripts: string[] = [];
   const scriptRx = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
@@ -548,7 +602,7 @@ const extractSizeInMbFromHtml = (html: string) => {
   }
 
   const fromScripts = extractSizeCandidatesFromText(scripts.join("\n"));
-  const best = pickBestSizeCandidate([...fromText, ...fromScripts]);
+  const best = pickBestSizeCandidate([...fromText, ...fromScripts, ...(plainNumberMb > 0 ? [plainNumberMb] : [])]);
   return isReasonableSizeInMb(best) ? best : 0;
 };
 
@@ -710,10 +764,10 @@ const pickSizeInMb = (lines: string[]) => {
   if (directMb > 0) return directMb;
 
   for (const line of lines) {
-    if (/\bfile\s*size\b/i.test(line)) {
-      const mb = parseSizeToMb(line);
-      if (mb > 0) return mb;
-    }
+    if (!/\bfile\s*size\b/i.test(line)) continue;
+    if (isRequirementsContext(line)) continue;
+    const mb = parseSizeToMb(line);
+    if (mb > 0) return mb;
   }
   return 0;
 };
@@ -1101,14 +1155,16 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
     const parsed = fromProductInfo ? parseSizeToMb(fromProductInfo) : 0;
     if (parsed > 0) return { mb: parsed, confidence: "high" as const };
 
+    // Prefer explicit HTML size markers (e.g. <div class="download-size">632</div>) over line heuristics.
+    // These often omit units and are more reliable than generic "file size" text inside requirements sections.
+    const fromHtml = extractSizeInMbFromHtml(html);
+    if (fromHtml > 0) return { mb: fromHtml, confidence: "high" as const };
+
     const picked = pickSizeInMb(lines);
     if (picked > 0) return { mb: picked, confidence: "medium" as const };
 
     const fromLines = parseSizeFromText(lines.join("\n"));
     if (fromLines > 0) return { mb: fromLines, confidence: "low" as const };
-
-    const fromHtml = extractSizeInMbFromHtml(html);
-    if (fromHtml > 0) return { mb: fromHtml, confidence: "low" as const };
 
     return { mb: 0, confidence: "none" as const };
   })();
