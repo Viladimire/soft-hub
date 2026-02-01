@@ -25,6 +25,13 @@ const OrbitMark = ({ size }: { size: number }) => {
           <stop offset="0.55" stopColor="#6366f1" />
           <stop offset="1" stopColor="#ec4899" />
         </linearGradient>
+        <linearGradient id="sh-orbit" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#22d3ee" stopOpacity="0" />
+          <stop offset="0.18" stopColor="#22d3ee" stopOpacity="0.85" />
+          <stop offset="0.52" stopColor="#6366f1" stopOpacity="0.9" />
+          <stop offset="0.82" stopColor="#ec4899" stopOpacity="0.75" />
+          <stop offset="1" stopColor="#ec4899" stopOpacity="0" />
+        </linearGradient>
         <radialGradient id="sh-glow" cx="50%" cy="35%" r="70%">
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.32" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
@@ -32,9 +39,27 @@ const OrbitMark = ({ size }: { size: number }) => {
         <filter id="soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
           <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0b1220" floodOpacity="0.55" />
         </filter>
+        <filter id="orbit-glow" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#6366f1" floodOpacity="0.28" />
+        </filter>
       </defs>
 
       <circle cx="50" cy="50" r="46" fill="url(#sh-glow)" />
+
+      <g transform="rotate(-18 50 50)" filter="url(#orbit-glow)">
+        <ellipse
+          cx="50"
+          cy="50"
+          rx="38"
+          ry="18"
+          fill="none"
+          stroke="url(#sh-orbit)"
+          strokeWidth="2.1"
+          opacity="0.95"
+        />
+        <circle cx="86" cy="50" r="2.6" fill="#ffffff" opacity="0.92" />
+        <circle cx="86" cy="50" r="5.4" fill="#22d3ee" opacity="0.12" />
+      </g>
 
       <g filter="url(#soft-shadow)">
         <text
@@ -50,21 +75,6 @@ const OrbitMark = ({ size }: { size: number }) => {
           SH
         </text>
       </g>
-
-      <circle
-        cx="80"
-        cy="28"
-        r="3.25"
-        fill="#ffffff"
-        opacity="0.9"
-      />
-      <circle
-        cx="80"
-        cy="28"
-        r="5.5"
-        fill="#22d3ee"
-        opacity="0.12"
-      />
 
       <rect x={padding} y={padding} width={view - padding * 2} height={view - padding * 2} rx="22" ry="22" fill="none" />
     </svg>
