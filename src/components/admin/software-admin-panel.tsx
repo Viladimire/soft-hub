@@ -748,24 +748,25 @@ export const SoftwareAdminPanel = () => {
   const uploadFromUrlWithWatermark = async (
     url: string,
     type: "logo" | "hero" | "screenshot",
-  ): Promise<string> => {
+  ): Promise<{ url: string; uploaded: boolean }> => {
     const normalized = normalizeImageUrl(url);
-    if (!normalized) return "";
+    if (!normalized) return { url: "", uploaded: false };
 
     const response = await fetch(`/api/admin/fetch-image?url=${encodeURIComponent(normalized)}`);
     if (!response.ok) {
-      return normalized;
+      return { url: normalized, uploaded: false };
     }
 
     const blob = await response.blob();
     if (!blob.type.startsWith("image/")) {
-      return normalized;
+      return { url: normalized, uploaded: false };
     }
 
     const processed = await applyOrbitWatermarkToBlob(blob, blob.type);
     const ext = processed.type === "image/png" ? "png" : "webp";
     const file = new File([processed], `scrape-${type}-orbit.${ext}`, { type: processed.type });
-    return uploadImage(file, type);
+    const uploadedUrl = await uploadImage(file, type);
+    return { url: uploadedUrl, uploaded: true };
   };
 
   const previewSoftware = useMemo<Software>(() => {
@@ -1102,17 +1103,56 @@ export const SoftwareAdminPanel = () => {
         body: JSON.stringify({ name: formState.name }),
       });
 
+      const normalizedScreenshots = (data.screenshots ?? [])
+        .map((value) => normalizeImageUrl(value))
+        .filter(Boolean)
+        .slice(0, 6);
+
+      const nextHeroImage = normalizeImageUrl(data.heroImage ?? "");
+      const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "") || normalizedScreenshots[0] || nextHeroImage;
+
+      const safeUpload = async (raw: string, type: "logo" | "hero" | "screenshot") => {
+        try {
+          return await uploadFromUrlWithWatermark(raw, type);
+        } catch {
+          return { url: normalizeImageUrl(raw) || "", uploaded: false };
+        }
+      };
+
+      const [uploadedLogo, uploadedHero, uploadedScreens] = await Promise.all([
+        nextLogoUrl ? safeUpload(nextLogoUrl, "logo") : Promise.resolve({ url: "", uploaded: false }),
+        nextHeroImage ? safeUpload(nextHeroImage, "hero") : Promise.resolve({ url: "", uploaded: false }),
+        Promise.all(normalizedScreenshots.slice(0, 3).map((shot) => safeUpload(shot, "screenshot"))),
+      ]);
+
+      const failedUploads = [uploadedLogo, uploadedHero, ...(uploadedScreens ?? [])].filter((item) =>
+        item.url && !item.uploaded,
+      );
+      if (failedUploads.length) {
+        pushNotification(
+          "error",
+          "Some images could not be uploaded to Supabase — external URLs were kept. Check Admin session/env and retry.",
+        );
+      }
+
       setFormState((state) => {
         const nextCategories = state.categories.length
           ? state.categories
-          : data.categories.filter(isSoftwareCategory);
+          : (data.categories ?? []).filter(isSoftwareCategory);
 
-        const nextGallery = state.gallery.trim()
-          ? state.gallery
-          : data.screenshots?.map((url) => normalizeImageUrl(url)).filter(Boolean).slice(0, 3).join("\n") ?? "";
+        const cleanedScreens = (uploadedScreens ?? []).map((s) => s.url).filter(Boolean);
+        const fallbackGallery = cleanedScreens.length
+          ? cleanedScreens.join("\n")
+          : normalizedScreenshots.slice(0, 3).join("\n");
+        const nextGallery = state.gallery.trim() ? state.gallery : fallbackGallery;
 
-        const nextLogoUrl = normalizeImageUrl(data.logoUrl ?? "");
-        const nextHeroImage = normalizeImageUrl(data.heroImage ?? "");
+        const resolvedHero = state.heroImage.trim()
+          ? state.heroImage
+          : (uploadedHero.url || nextHeroImage || state.heroImage);
+
+        const resolvedLogo = state.logoUrl.trim()
+          ? state.logoUrl
+          : (uploadedLogo.url || nextLogoUrl || state.logoUrl);
 
         const candidateVersion = (data.version ?? "").trim();
         const shouldApplyVersion = Boolean(candidateVersion) && /\d/.test(candidateVersion);
@@ -1143,8 +1183,8 @@ export const SoftwareAdminPanel = () => {
                 ? String(Math.floor(data.downloads))
                 : state.statsDownloads,
           websiteUrl: state.websiteUrl.trim() ? state.websiteUrl : data.websiteUrl ?? state.websiteUrl,
-          logoUrl: state.logoUrl.trim() ? state.logoUrl : nextLogoUrl || state.logoUrl,
-          heroImage: state.heroImage.trim() ? state.heroImage : nextHeroImage || state.heroImage,
+          logoUrl: resolvedLogo,
+          heroImage: resolvedHero,
           gallery: nextGallery,
           minRequirements: state.minRequirements.trim()
             ? state.minRequirements
@@ -1201,33 +1241,40 @@ export const SoftwareAdminPanel = () => {
 
       const safeUpload = async (raw: string, type: "logo" | "hero" | "screenshot") => {
         try {
-          const uploaded = await uploadFromUrlWithWatermark(raw, type);
-          return uploaded || normalizeImageUrl(raw) || "";
+          const result = await uploadFromUrlWithWatermark(raw, type);
+          return result;
         } catch {
-          return normalizeImageUrl(raw) || "";
+          return { url: normalizeImageUrl(raw) || "", uploaded: false };
         }
       };
 
       // Upload & watermark scraped assets so we store our own branded media.
       const [uploadedLogo, uploadedHero, uploadedScreens] = await Promise.all([
-        nextLogoUrl ? safeUpload(nextLogoUrl, "logo") : Promise.resolve(""),
-        nextHeroImage ? safeUpload(nextHeroImage, "hero") : Promise.resolve(""),
-        Promise.all(
-          normalizedScreenshots
-            .slice(0, 3)
-            .map((shot) => safeUpload(shot, "screenshot")),
-        ),
+        nextLogoUrl ? safeUpload(nextLogoUrl, "logo") : Promise.resolve({ url: "", uploaded: false }),
+        nextHeroImage ? safeUpload(nextHeroImage, "hero") : Promise.resolve({ url: "", uploaded: false }),
+        Promise.all(normalizedScreenshots.slice(0, 3).map((shot) => safeUpload(shot, "screenshot"))),
       ]);
 
+      const failedUploads = [uploadedLogo, uploadedHero, ...(uploadedScreens ?? [])].filter((item) =>
+        item.url && !item.uploaded,
+      );
+
+      if (failedUploads.length) {
+        pushNotification(
+          "error",
+          "Some scraped images could not be uploaded to Supabase — external URLs were kept. Check Admin session/env and retry.",
+        );
+      }
+
       setFormState((state) => {
-        const cleanedScreens = (uploadedScreens ?? []).filter(Boolean);
+        const cleanedScreens = (uploadedScreens ?? []).map((item) => item.url).filter(Boolean);
         const fallbackGallery = cleanedScreens.length
           ? cleanedScreens.join("\n")
           : normalizedScreenshots.slice(0, 3).join("\n");
         const nextGallery = state.gallery.trim() ? state.gallery : fallbackGallery;
 
-        const resolvedHero = state.heroImage.trim() ? state.heroImage : (uploadedHero || nextHeroImage || state.heroImage);
-        const resolvedLogo = state.logoUrl.trim() ? state.logoUrl : (uploadedLogo || nextLogoUrl || state.logoUrl);
+        const resolvedHero = state.heroImage.trim() ? state.heroImage : (uploadedHero.url || nextHeroImage || state.heroImage);
+        const resolvedLogo = state.logoUrl.trim() ? state.logoUrl : (uploadedLogo.url || nextLogoUrl || state.logoUrl);
 
         const nextDownloads =
           parseNumber(state.statsDownloads, 0) > 0
