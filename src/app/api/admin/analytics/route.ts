@@ -58,20 +58,14 @@ export const GET = async (request: NextRequest) => {
         autoRefreshToken: false,
       },
     });
-    const [totalsResult, popularResult, trendingResult, countriesResult] = await Promise.allSettled([
+    const [totalsResult, popularResult, trendingResult] = await Promise.allSettled([
       getAnalyticsTotals(supabase),
       getPopularSoftware(supabase, 10),
       getTrendingSoftware(supabase, { limit: 10, windowDays: 7 }),
-      getTopCountries(supabase, { limit: 12, windowDays: 30 }),
     ]);
 
-    if (
-      totalsResult.status === "rejected" ||
-      popularResult.status === "rejected" ||
-      trendingResult.status === "rejected" ||
-      countriesResult.status === "rejected"
-    ) {
-      const rejected = [totalsResult, popularResult, trendingResult, countriesResult].find(
+    if (totalsResult.status === "rejected" || popularResult.status === "rejected" || trendingResult.status === "rejected") {
+      const rejected = [totalsResult, popularResult, trendingResult].find(
         (result): result is PromiseRejectedResult => result.status === "rejected",
       );
 
@@ -86,11 +80,20 @@ export const GET = async (request: NextRequest) => {
       throw reason;
     }
 
+    const countries = await getTopCountries(supabase, { limit: 12, windowDays: 30 }).catch((error: unknown) => {
+      const code = getErrorCode(error);
+      const message = getErrorMessage(error);
+      if (code === "PGRST202" || message.includes("schema cache") || message.includes("Could not find the function")) {
+        return [];
+      }
+      throw error;
+    });
+
     return NextResponse.json({
       totals: totalsResult.status === "fulfilled" ? totalsResult.value : null,
       popular: popularResult.status === "fulfilled" ? popularResult.value : [],
       trending: trendingResult.status === "fulfilled" ? trendingResult.value : [],
-      countries: countriesResult.status === "fulfilled" ? countriesResult.value : [],
+      countries,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load analytics";
