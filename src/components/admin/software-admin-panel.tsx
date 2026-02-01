@@ -1410,16 +1410,30 @@ export const SoftwareAdminPanel = () => {
   );
 
   return (
-    <div className="relative space-y-6">
+    <div className="relative space-y-8">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-primary-500/10 blur-3xl" />
-        <div className="absolute -bottom-24 left-1/4 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-purple-500/10 blur-3xl" />
+        <div className="absolute -top-24 left-1/2 h-[560px] w-[560px] -translate-x-1/2 rounded-full bg-primary-500/12 blur-3xl" />
+        <div className="absolute -bottom-24 left-1/4 h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-purple-500/12 blur-3xl" />
+        <div className="absolute -bottom-40 right-10 h-[420px] w-[420px] rounded-full bg-sky-500/8 blur-3xl" />
       </div>
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold text-neutral-100">Software admin</h1>
-        <p className="text-sm text-neutral-400">
-          Manage the software catalog stored on GitHub. Review changes before saving.
-        </p>
+      <header className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-neutral-950/60 p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-semibold tracking-tight text-neutral-100">Software admin</h1>
+            <p className="text-sm text-neutral-400">
+              Manage your catalog, scrape official pages, and publish to GitHub with Orbit-watermarked media.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={openCreateForm} className="bg-gradient-to-r from-primary-500 to-purple-600 text-white hover:from-primary-400 hover:to-purple-500">
+              <Plus className="ms-2 h-4 w-4" />
+              New software
+            </Button>
+            <Button variant="outline" onClick={syncDataset} disabled={loading} className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]">
+              Refresh
+            </Button>
+          </div>
+        </div>
       </header>
 
       {notifications.length > 0 && (
@@ -1441,7 +1455,7 @@ export const SoftwareAdminPanel = () => {
 
       <section className="space-y-6">
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="bg-neutral-900/60">
+          <Card className="border-white/10 bg-neutral-900/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-neutral-400">Total software</CardTitle>
             </CardHeader>
@@ -1449,7 +1463,7 @@ export const SoftwareAdminPanel = () => {
               <p className="text-2xl font-semibold text-neutral-100">{dataset.length}</p>
             </CardContent>
           </Card>
-          <Card className="bg-neutral-900/60">
+          <Card className="border-white/10 bg-neutral-900/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-neutral-400">Total downloads</CardTitle>
             </CardHeader>
@@ -1459,7 +1473,7 @@ export const SoftwareAdminPanel = () => {
               </p>
             </CardContent>
           </Card>
-          <Card className="bg-neutral-900/60">
+          <Card className="border-white/10 bg-neutral-900/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-neutral-400">Last update</CardTitle>
             </CardHeader>
@@ -1474,28 +1488,21 @@ export const SoftwareAdminPanel = () => {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h2 className="text-xl font-semibold text-neutral-200">Software list</h2>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={openCreateForm} className="bg-primary-500 text-white hover:bg-primary-400">
-              <Plus className="ms-2 h-4 w-4" />
-              New software
-            </Button>
-            <Button variant="outline" onClick={syncDataset} disabled={loading}>
-              Refresh
-            </Button>
-            <Button type="button" variant="outline" onClick={exportCsv}>
+            <Button type="button" variant="outline" onClick={exportCsv} className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]">
               <Download className="ms-2 h-4 w-4" />
               Export CSV
             </Button>
-            <Button type="button" variant="outline" onClick={openImportDialog}>
+            <Button type="button" variant="outline" onClick={openImportDialog} className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]">
               <Upload className="ms-2 h-4 w-4" />
               Import CSV
             </Button>
             {selectedSlugs.length ? (
               <>
-                <Button type="button" variant="outline" onClick={openBulkEdit}>
+                <Button type="button" variant="outline" onClick={openBulkEdit} className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]">
                   <Pencil className="ms-2 h-4 w-4" />
                   Bulk Edit ({selectedSlugs.length})
                 </Button>
-                <Button type="button" variant="outline" onClick={clearSelection}>
+                <Button type="button" variant="outline" onClick={clearSelection} className="border-white/15 bg-white/[0.02] hover:bg-white/[0.06]">
                   Clear selection
                 </Button>
               </>
@@ -1511,7 +1518,10 @@ export const SoftwareAdminPanel = () => {
 
         <div className="grid gap-4 lg:grid-cols-2">
           {dataset.map((software) => (
-            <Card key={software.id} className="border-white/10 bg-neutral-900/70">
+            <Card
+              key={software.id}
+              className="group border-white/10 bg-neutral-900/70 transition hover:-translate-y-[1px] hover:border-white/20 hover:bg-neutral-900/80 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-lg text-neutral-50">
                   <span className="flex items-center gap-3">
@@ -1555,7 +1565,7 @@ export const SoftwareAdminPanel = () => {
                   <span>Rating: {software.stats.rating.toFixed(1)} ⭐</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" onClick={() => openEditForm(software)}>
+                  <Button size="sm" onClick={() => openEditForm(software)} className="bg-white/10 hover:bg-white/15">
                     Edit
                   </Button>
                   <Button
@@ -1583,7 +1593,7 @@ export const SoftwareAdminPanel = () => {
 
       {isFormOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-full w-full max-w-6xl overflow-y-auto rounded-2xl border border-white/10 bg-neutral-950/95 p-6 shadow-2xl backdrop-blur">
+          <div className="max-h-full w-full max-w-6xl overflow-y-auto rounded-2xl border border-white/10 bg-neutral-950/95 p-6 shadow-[0_40px_120px_rgba(0,0,0,0.65)] backdrop-blur">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold text-neutral-100">
                 {formState.id ? "Edit software" : "Create software"}
@@ -1596,7 +1606,7 @@ export const SoftwareAdminPanel = () => {
             <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
               <form onSubmit={handleFormSubmit} className="space-y-6">
                 <Tabs defaultValue="basic">
-                  <TabsList className="w-full justify-start">
+                  <TabsList className="w-full justify-start border border-white/10 bg-white/[0.03]">
                     <TabsTrigger value="basic">Basic</TabsTrigger>
                     <TabsTrigger value="media">Media</TabsTrigger>
                     <TabsTrigger value="stats">Stats</TabsTrigger>
