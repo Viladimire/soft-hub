@@ -5,6 +5,7 @@ import type {
   Platform,
   Software,
   SoftwareCategory,
+  SoftwareRelease,
   SoftwareType,
 } from "@/lib/types/software";
 
@@ -195,6 +196,7 @@ export type SoftwareListResponse = {
 };
 
 export type SoftwareRow = Database["public"]["Tables"]["software"]["Row"];
+export type SoftwareReleaseRow = Database["public"]["Tables"]["software_releases"]["Row"];
 
 type Supabase = SupabaseClient<Database>;
 
@@ -251,6 +253,44 @@ const parseMedia = (media: Json | null): Software["media"] => {
     gallery,
     heroImage: typeof media.heroImage === "string" ? media.heroImage : undefined,
   };
+};
+
+const toSoftwareRelease = (row: SoftwareReleaseRow): SoftwareRelease => {
+  return {
+    id: row.id,
+    softwareId: row.software_id,
+    version: row.version,
+    fileName: row.file_name,
+    additionalInfo: row.additional_info,
+    downloadUrl: row.download_url,
+    sizeInBytes: row.size_in_bytes,
+    releaseDate: row.release_date,
+    downloadsCount: row.downloads_count,
+    createdAt: row.created_at,
+  };
+};
+
+const isMissingTableError = (error: unknown) => {
+  const maybe = error as { code?: string } | null;
+  return maybe?.code === "42P01";
+};
+
+const fetchSoftwareReleases = async (softwareId: string, client: Supabase): Promise<SoftwareRelease[]> => {
+  const { data, error } = await client
+    .from("software_releases")
+    .select("*")
+    .eq("software_id", softwareId)
+    .order("release_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if (isMissingTableError(error)) {
+      return [];
+    }
+    throw error;
+  }
+
+  return ((data ?? []) as SoftwareReleaseRow[]).map(toSoftwareRelease);
 };
 
 const PLATFORM_VALUES: Platform[] = ["windows", "mac", "linux", "android", "ios", "web"];
@@ -433,7 +473,16 @@ export const fetchSoftwareBySlug = async (slug: string, client: Supabase) => {
 
   const record = data as SoftwareRow | null;
 
-  return record ? toSoftware(record) : null;
+  if (!record) {
+    return null;
+  }
+
+  const software = toSoftware(record);
+  const releases = await fetchSoftwareReleases(software.id, supabase).catch(() => []);
+  return {
+    ...software,
+    releases,
+  };
 };
 
 export const fetchSoftwareStats = async (client: Supabase) => {
@@ -575,7 +624,42 @@ export const createSoftware = async (
 
   const record = data as SoftwareRow | null;
 
-  return record ? toSoftware(record) : null;
+  if (!record) {
+    return null;
+  }
+
+  const software = toSoftware(record);
+
+  try {
+    await supabase
+      .from("software_releases")
+      .insert({
+        software_id: software.id,
+        version: software.version,
+        file_name: `${software.name} ${software.version}`,
+        additional_info: null,
+        download_url: software.downloadUrl,
+        size_in_bytes: software.sizeInBytes,
+        release_date: software.releaseDate,
+        downloads_count: 0,
+      })
+      .throwOnError();
+  } catch (insertError: unknown) {
+    const maybe = insertError as { code?: string } | null;
+    if (isMissingTableError(insertError)) {
+      // Ignore on older schemas.
+    } else if (maybe?.code === "23505") {
+      // Ignore unique constraint violations.
+    } else {
+      throw insertError;
+    }
+  }
+
+  const releases = await fetchSoftwareReleases(software.id, supabase).catch(() => []);
+  return {
+    ...software,
+    releases,
+  };
 };
 
 export const updateSoftware = async (
@@ -584,6 +668,16 @@ export const updateSoftware = async (
   client: Supabase,
 ) => {
   const supabase = client;
+
+  const { data: existing, error: existingError } = await supabase
+    .from("software")
+    .select("id, version, download_url, size_in_bytes, release_date, name")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
 
   const { data, error } = await supabase
     .from("software")
@@ -618,7 +712,80 @@ export const updateSoftware = async (
 
   const record = data as SoftwareRow | null;
 
-  return record ? toSoftware(record) : null;
+  if (!record) {
+    return null;
+  }
+
+  const software = toSoftware(record);
+
+  const previous = existing as
+    | Pick<SoftwareRow, "id" | "version" | "download_url" | "size_in_bytes" | "release_date" | "name">
+    | null;
+
+  if (previous) {
+    const versionChanged = payload.version !== undefined && payload.version !== previous.version;
+    const downloadChanged = payload.downloadUrl !== undefined && payload.downloadUrl !== previous.download_url;
+    const sizeChanged = payload.sizeInBytes !== undefined && payload.sizeInBytes !== previous.size_in_bytes;
+    const dateChanged = payload.releaseDate !== undefined && payload.releaseDate !== previous.release_date;
+
+    if (versionChanged || downloadChanged || sizeChanged || dateChanged) {
+      try {
+        await supabase
+          .from("software_releases")
+          .insert({
+            software_id: previous.id,
+            version: previous.version,
+            file_name: `${previous.name} ${previous.version}`,
+            additional_info: null,
+            download_url: previous.download_url,
+            size_in_bytes: previous.size_in_bytes,
+            release_date: previous.release_date,
+            downloads_count: 0,
+          })
+          .throwOnError();
+      } catch (insertError: unknown) {
+        const maybe = insertError as { code?: string } | null;
+        if (isMissingTableError(insertError)) {
+          // Ignore on older schemas.
+        } else if (maybe?.code === "23505") {
+          // Ignore unique constraint violations.
+        } else {
+          throw insertError;
+        }
+      }
+    }
+  }
+
+  try {
+    await supabase
+      .from("software_releases")
+      .insert({
+        software_id: software.id,
+        version: software.version,
+        file_name: `${software.name} ${software.version}`,
+        additional_info: null,
+        download_url: software.downloadUrl,
+        size_in_bytes: software.sizeInBytes,
+        release_date: software.releaseDate,
+        downloads_count: 0,
+      })
+      .throwOnError();
+  } catch (insertError: unknown) {
+    const maybe = insertError as { code?: string } | null;
+    if (isMissingTableError(insertError)) {
+      // Ignore on older schemas.
+    } else if (maybe?.code === "23505") {
+      // Ignore unique constraint violations.
+    } else {
+      throw insertError;
+    }
+  }
+
+  const releases = await fetchSoftwareReleases(software.id, supabase).catch(() => []);
+  return {
+    ...software,
+    releases,
+  };
 };
 
 export const deleteSoftware = async (id: string, client: Supabase) => {

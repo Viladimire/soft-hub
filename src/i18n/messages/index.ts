@@ -830,13 +830,15 @@ const enMessages = {
   },
 } as const;
 
+const arMessages = enMessages;
+
 const cloneMessages = () => JSON.parse(JSON.stringify(enMessages)) as typeof enMessages;
 
-const typedEnMessages: AbstractIntlMessages = enMessages;
 void cloneMessages;
 
-const catalog: Partial<Record<SupportedLocale, AbstractIntlMessages>> = {
-  en: typedEnMessages,
+const messagesByLocale: Record<SupportedLocale, AbstractIntlMessages> = {
+  en: enMessages,
+  ar: arMessages,
 };
 
 const isSupportedLocale = (value: string): value is SupportedLocale =>
@@ -847,7 +849,7 @@ export const loadMessages = async (locale: string): Promise<AbstractIntlMessages
     ? locale
     : (defaultLocale as SupportedLocale);
 
-  const typedCatalog = catalog as Partial<Record<SupportedLocale, AbstractIntlMessages>>;
+  const typedCatalog = messagesByLocale as Partial<Record<SupportedLocale, AbstractIntlMessages>>;
   const fallbackLocale = defaultLocale as SupportedLocale;
   const messages = typedCatalog[normalizedLocale] ?? typedCatalog[fallbackLocale];
 

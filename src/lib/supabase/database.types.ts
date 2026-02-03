@@ -66,6 +66,41 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["software"]["Insert"]>;
         Relationships: [];
       };
+      software_releases: {
+        Row: {
+          id: string;
+          software_id: string;
+          version: string;
+          file_name: string | null;
+          additional_info: string | null;
+          download_url: string;
+          size_in_bytes: number | null;
+          release_date: string | null;
+          downloads_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          software_id: string;
+          version: string;
+          file_name?: string | null;
+          additional_info?: string | null;
+          download_url: string;
+          size_in_bytes?: number | null;
+          release_date?: string | null;
+          downloads_count?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["software_releases"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "software_releases_software_id_fkey";
+            columns: ["software_id"];
+            referencedRelation: "software";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       categories: {
         Row: {
           id: string;

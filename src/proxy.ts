@@ -12,13 +12,6 @@ const intlMiddleware = createMiddleware({
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const localePrefix = pathname.match(/^\/([a-z]{2})(?:-[A-Z]{2})?(?:\/|$)/);
-  if (localePrefix && localePrefix[1] !== defaultLocale) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/${defaultLocale}${pathname.slice(localePrefix[0].length - 1)}`;
-    return NextResponse.redirect(url);
-  }
-
   const match = pathname.match(/^\/([a-z]{2})(?:-[A-Z]{2})?\/trends\/?$/);
   if (match) {
     const locale = match[1];

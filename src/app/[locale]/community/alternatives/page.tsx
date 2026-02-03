@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { AppShell } from "@/components/layouts/app-shell";
 import { SideBar } from "@/components/layouts/sidebar";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ComingSoonHero, type ComingSoonFeature, type ComingSoonInfoCard } from "@/components/templates/coming-soon-hero";
 
 export default async function AlternativesPage() {
+  const locale = await getLocale();
   const t = await getTranslations("pages.communityAlternatives");
 
   const HERO_FEATURES: ComingSoonFeature[] = [
@@ -54,14 +55,14 @@ export default async function AlternativesPage() {
           actions={[
             {
               label: t("hero.actions.primary"),
-              href: "../../software",
+              href: `/${locale}/software`,
               variant: "secondary",
             },
           ]}
           secondaryActions={[
             {
               label: t("hero.actions.secondary"),
-              href: "../../",
+              href: `/${locale}`,
               variant: "ghost",
             },
           ]}
@@ -89,7 +90,7 @@ export default async function AlternativesPage() {
               <p className="mt-1 text-sm text-neutral-300">{t("checklist.items.reviews.description")}</p>
             </div>
             <Button asChild variant="outline" className="rounded-full border-white/20 px-6 text-sm text-neutral-100 hover:border-white/40 hover:bg-white/10">
-              <Link href="../../community/forums">{t("checklist.cta")}</Link>
+              <Link href={`/${locale}/community/forums`}>{t("checklist.cta")}</Link>
             </Button>
           </CardContent>
         </Card>

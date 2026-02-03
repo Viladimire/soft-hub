@@ -15,6 +15,19 @@ export type ReleaseStatus = "draft" | "published" | "archived";
 
 export type SoftwareType = "standard";
 
+export type SoftwareRelease = {
+  id: string;
+  softwareId: string;
+  version: string;
+  fileName: string | null;
+  additionalInfo: string | null;
+  downloadUrl: string;
+  sizeInBytes: number | null;
+  releaseDate: string | null;
+  downloadsCount: number;
+  createdAt: string;
+};
+
 export type Software = {
   id: string;
   slug: string;
@@ -33,6 +46,7 @@ export type Software = {
   releaseDate: string | null;
   createdAt: string;
   updatedAt: string;
+  releases?: SoftwareRelease[];
   stats: {
     downloads: number;
     views: number;

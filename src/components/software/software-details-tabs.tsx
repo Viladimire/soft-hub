@@ -1,15 +1,17 @@
 "use client";
 
 import { useLocale } from "next-intl";
+import Link from "next/link";
 
 import type { Software } from "@/lib/types/software";
-import { formatReleaseDate } from "@/lib/utils/format";
+import { formatBytes, formatReleaseDate } from "@/lib/utils/format";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
   const locale = useLocale();
+  const releases = software.releases ?? [];
 
   return (
     <Tabs defaultValue="about" className="space-y-4">
@@ -17,6 +19,7 @@ export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
         <TabsTrigger value="about">About</TabsTrigger>
         <TabsTrigger value="requirements">Requirements</TabsTrigger>
         <TabsTrigger value="changelog">Changelog</TabsTrigger>
+        <TabsTrigger value="versions">Versions</TabsTrigger>
       </TabsList>
 
       <TabsContent value="about">
@@ -71,6 +74,50 @@ export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
             {!software.changelog?.length ? (
               <p className="text-sm text-neutral-300">No changelog available yet.</p>
             ) : null}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="versions">
+        <Card className="border-white/10 bg-white/5">
+          <CardContent className="space-y-3 p-6">
+            {releases.length ? (
+              <div className="space-y-3">
+                {releases.map((release) => (
+                  <div
+                    key={release.id}
+                    className="grid gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-200"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold text-white">v{release.version}</span>
+                      <span className="text-xs text-neutral-400">
+                        {release.releaseDate ? formatReleaseDate(release.releaseDate, locale) : ""}
+                      </span>
+                    </div>
+                    {release.fileName ? (
+                      <div className="text-xs text-neutral-300">File Name: {release.fileName}</div>
+                    ) : null}
+                    {release.additionalInfo ? (
+                      <div className="text-xs text-neutral-300">Additional info: {release.additionalInfo}</div>
+                    ) : null}
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-300">
+                      <span>Size: {formatBytes(release.sizeInBytes)}</span>
+                      <span>Downloads: {release.downloadsCount}</span>
+                    </div>
+                    <div>
+                      <Link
+                        href={release.downloadUrl}
+                        className="text-xs font-semibold text-white underline decoration-white/20 underline-offset-4 hover:decoration-white/60"
+                      >
+                        Download this version
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-300">No previous versions available yet.</p>
+            )}
           </CardContent>
         </Card>
       </TabsContent>
