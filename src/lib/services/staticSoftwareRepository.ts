@@ -4,7 +4,7 @@ import type { Software, SoftwareCategory, SoftwareType } from "@/lib/types/softw
 
 const DATA_BASE_ENV = process.env.NEXT_PUBLIC_SOFTWARE_DATA_URL_BASE ?? process.env.NEXT_PUBLIC_DATA_BASE_URL ?? "";
 const DATA_FILENAME = "software/index.json";
-const DEFAULT_REMOTE_BASE = "https://raw.githubusercontent.com/Viladimire/soft-hub/main/public/data";
+const DEFAULT_REMOTE_BASE = "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/data";
 
 let datasetPromise: Promise<Software[]> | null = null;
 
@@ -214,7 +214,11 @@ const loadDataset = async () => {
 
   const url = resolveDatasetUrl();
   try {
-    const response = await fetch(url, { cache: "no-store" });
+    const response = await fetch(url, {
+      cache: "force-cache",
+      // Cache the dataset for a while to reduce GitHub/CDN hits globally.
+      next: { revalidate: 60 * 60 },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch software dataset from ${url} (status ${response.status})`);

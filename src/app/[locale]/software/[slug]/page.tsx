@@ -113,6 +113,13 @@ export default async function SoftwareDetailPage({
 
   const related = await getStaticRelatedSoftware(slug, 3);
 
+  const latestRelease = software.releases?.[0];
+  const resolvedVersion = latestRelease?.version ?? software.version;
+  const resolvedDownloadUrl = latestRelease?.downloadUrl ?? software.downloadUrl;
+  const resolvedReleaseDate = latestRelease?.releaseDate ?? software.releaseDate;
+  const resolvedSize = latestRelease?.sizeInBytes ?? software.sizeInBytes;
+  const screenshots = (software.media?.gallery ?? []).filter(Boolean).slice(0, 8);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -120,9 +127,37 @@ export default async function SoftwareDetailPage({
     operatingSystem: software.platforms?.join(", ") ?? undefined,
     applicationCategory: software.categories?.join(", ") ?? undefined,
     description: software.summary ?? software.description ?? undefined,
-    softwareVersion: software.version,
+    softwareVersion: resolvedVersion,
     url: new URL(`/${locale}/software/${software.slug}`, SITE_URL).toString(),
-    downloadUrl: software.downloadUrl,
+    downloadUrl: resolvedDownloadUrl,
+    datePublished: resolvedReleaseDate,
+    dateModified: software.updatedAt,
+    fileSize: typeof resolvedSize === "number" && resolvedSize > 0 ? `${resolvedSize}` : undefined,
+    screenshot: screenshots.length
+      ? screenshots.map((value) => new URL(value, SITE_URL).toString())
+      : undefined,
+    publisher: {
+      "@type": "Organization",
+      name: "SOFT-HUB",
+      url: new URL(`/${locale}`, SITE_URL).toString(),
+    },
+    offers: resolvedDownloadUrl
+      ? {
+          "@type": "Offer",
+          price: 0,
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: resolvedDownloadUrl,
+        }
+      : undefined,
+    aggregateRating:
+      software.stats?.rating && software.stats.rating > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: software.stats.rating,
+            ratingCount: software.stats.votes ?? 0,
+          }
+        : undefined,
   } as const;
 
   return (
