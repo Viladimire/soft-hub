@@ -20,8 +20,13 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Print Node & npm versions
+        run: |
+          node --version
+          npm --version
+
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --verbose
 
       - name: Run ESLint
         run: npm run lint
@@ -46,8 +51,13 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Print Node & npm versions
+        run: |
+          node --version
+          npm --version
+
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --verbose
 
       - name: Build project
         run: npm run build
