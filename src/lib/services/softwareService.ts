@@ -631,28 +631,29 @@ export const createSoftware = async (
   const software = toSoftware(record);
 
   try {
-    await supabase
-      .from("software_releases")
-      .insert({
-        software_id: software.id,
-        version: software.version,
-        file_name: `${software.name} ${software.version}`,
-        additional_info: null,
-        download_url: software.downloadUrl,
-        size_in_bytes: software.sizeInBytes,
-        release_date: software.releaseDate,
-        downloads_count: 0,
-      })
-      .throwOnError();
-  } catch (insertError: unknown) {
-    const maybe = insertError as { code?: string } | null;
-    if (isMissingTableError(insertError)) {
-      // Ignore on older schemas.
-    } else if (maybe?.code === "23505") {
-      // Ignore unique constraint violations.
-    } else {
-      throw insertError;
+    const { error: insertError } = await supabase.from("software_releases").insert({
+      software_id: software.id,
+      version: software.version,
+      file_name: `${software.name} ${software.version}`,
+      additional_info: null,
+      download_url: software.downloadUrl,
+      size_in_bytes: software.sizeInBytes,
+      release_date: software.releaseDate,
+      downloads_count: 0,
+    });
+
+    if (insertError) {
+      const maybe = insertError as { code?: string } | null;
+      if (isMissingTableError(insertError)) {
+        // Ignore on older schemas.
+      } else if (maybe?.code === "23505") {
+        // Ignore unique constraint violations.
+      } else {
+        throw insertError;
+      }
     }
+  } catch (insertError: unknown) {
+    throw insertError;
   }
 
   const releases = await fetchSoftwareReleases(software.id, supabase).catch(() => []);
@@ -730,55 +731,57 @@ export const updateSoftware = async (
 
     if (versionChanged || downloadChanged || sizeChanged || dateChanged) {
       try {
-        await supabase
-          .from("software_releases")
-          .insert({
-            software_id: previous.id,
-            version: previous.version,
-            file_name: `${previous.name} ${previous.version}`,
-            additional_info: null,
-            download_url: previous.download_url,
-            size_in_bytes: previous.size_in_bytes,
-            release_date: previous.release_date,
-            downloads_count: 0,
-          })
-          .throwOnError();
-      } catch (insertError: unknown) {
-        const maybe = insertError as { code?: string } | null;
-        if (isMissingTableError(insertError)) {
-          // Ignore on older schemas.
-        } else if (maybe?.code === "23505") {
-          // Ignore unique constraint violations.
-        } else {
-          throw insertError;
+        const { error: insertError } = await supabase.from("software_releases").insert({
+          software_id: previous.id,
+          version: previous.version,
+          file_name: `${previous.name} ${previous.version}`,
+          additional_info: null,
+          download_url: previous.download_url,
+          size_in_bytes: previous.size_in_bytes,
+          release_date: previous.release_date,
+          downloads_count: 0,
+        });
+
+        if (insertError) {
+          const maybe = insertError as { code?: string } | null;
+          if (isMissingTableError(insertError)) {
+            // Ignore on older schemas.
+          } else if (maybe?.code === "23505") {
+            // Ignore unique constraint violations.
+          } else {
+            throw insertError;
+          }
         }
+      } catch (insertError: unknown) {
+        throw insertError;
       }
     }
   }
 
   try {
-    await supabase
-      .from("software_releases")
-      .insert({
-        software_id: software.id,
-        version: software.version,
-        file_name: `${software.name} ${software.version}`,
-        additional_info: null,
-        download_url: software.downloadUrl,
-        size_in_bytes: software.sizeInBytes,
-        release_date: software.releaseDate,
-        downloads_count: 0,
-      })
-      .throwOnError();
-  } catch (insertError: unknown) {
-    const maybe = insertError as { code?: string } | null;
-    if (isMissingTableError(insertError)) {
-      // Ignore on older schemas.
-    } else if (maybe?.code === "23505") {
-      // Ignore unique constraint violations.
-    } else {
-      throw insertError;
+    const { error: insertError } = await supabase.from("software_releases").insert({
+      software_id: software.id,
+      version: software.version,
+      file_name: `${software.name} ${software.version}`,
+      additional_info: null,
+      download_url: software.downloadUrl,
+      size_in_bytes: software.sizeInBytes,
+      release_date: software.releaseDate,
+      downloads_count: 0,
+    });
+
+    if (insertError) {
+      const maybe = insertError as { code?: string } | null;
+      if (isMissingTableError(insertError)) {
+        // Ignore on older schemas.
+      } else if (maybe?.code === "23505") {
+        // Ignore unique constraint violations.
+      } else {
+        throw insertError;
+      }
     }
+  } catch (insertError: unknown) {
+    throw insertError;
   }
 
   const releases = await fetchSoftwareReleases(software.id, supabase).catch(() => []);
