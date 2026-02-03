@@ -28,6 +28,19 @@ jobs:
       - name: Install dependencies
         run: npm ci --verbose
 
+      - name: Dump npm logs on failure
+        if: ${{ failure() }}
+        run: |
+          echo "## npm debug logs"
+          ls -la ~/.npm/_logs || true
+          latest_log=$(ls -t ~/.npm/_logs/*-debug-0.log 2>/dev/null | head -n 1)
+          if [ -n "$latest_log" ]; then
+            echo "--- Showing tail of $latest_log ---"
+            tail -n 200 "$latest_log" || true
+          else
+            echo "No npm debug log file found."
+          fi
+
       - name: Run ESLint
         run: npm run lint
 
@@ -58,6 +71,19 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --verbose
+
+      - name: Dump npm logs on failure
+        if: ${{ failure() }}
+        run: |
+          echo "## npm debug logs"
+          ls -la ~/.npm/_logs || true
+          latest_log=$(ls -t ~/.npm/_logs/*-debug-0.log 2>/dev/null | head -n 1)
+          if [ -n "$latest_log" ]; then
+            echo "--- Showing tail of $latest_log ---"
+            tail -n 200 "$latest_log" || true
+          else
+            echo "No npm debug log file found."
+          fi
 
       - name: Build project
         run: npm run build
