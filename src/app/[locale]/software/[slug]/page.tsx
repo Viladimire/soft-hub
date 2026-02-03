@@ -41,9 +41,11 @@ export async function generateMetadata({
   const { locale: rawLocale, slug } = await params;
   const locale = rawLocale ?? defaultLocale;
 
-  const software = isSupabaseConfigured()
+  const softwareFromSupabase = isSupabaseConfigured()
     ? await fetchSoftwareBySlug(slug, createSupabaseServerClient()).catch(() => null)
-    : await getStaticSoftwareBySlug(slug);
+    : null;
+
+  const software = softwareFromSupabase ?? (await getStaticSoftwareBySlug(slug));
 
   if (!software) {
     return {};
@@ -103,9 +105,11 @@ export default async function SoftwareDetailPage({
     notFound();
   }
 
-  const software = isSupabaseConfigured()
+  const softwareFromSupabase = isSupabaseConfigured()
     ? await fetchSoftwareBySlug(slug, createSupabaseServerClient()).catch(() => null)
-    : await getStaticSoftwareBySlug(slug);
+    : null;
+
+  const software = softwareFromSupabase ?? (await getStaticSoftwareBySlug(slug));
 
   if (!software) {
     notFound();

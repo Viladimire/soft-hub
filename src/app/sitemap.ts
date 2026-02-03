@@ -5,7 +5,9 @@ import { listStaticCollectionSlugs } from "@/lib/services/staticCollectionsRepos
 import { listStaticSoftwareSlugs } from "@/lib/services/staticSoftwareRepository";
 import { fetchStaticSoftwareDataset } from "@/lib/services/staticSoftwareRepository";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
