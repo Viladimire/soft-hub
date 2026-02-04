@@ -3,19 +3,12 @@
 import { useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { fetchFilteredSoftware, type FilteredSoftwareOptions, type SoftwareListResponse } from "@/lib/services/softwareService";
-import { queryStaticSoftware } from "@/lib/services/staticSoftwareRepository";
+import type { FilteredSoftwareOptions, SoftwareListResponse } from "@/lib/services/softwareService";
 
-import { useSupabase } from "@/lib/hooks/useSupabase";
 import { useFilters } from "@/lib/hooks/useFilters";
 
-let disableSupabaseReads = false;
-
 type SoftwareQueryPage = SoftwareListResponse & {
-  usedFallback: boolean;
-  source: "supabase" | "fallback";
-  originError?: string;
+  source: "api";
 };
 
 const sanitizeFilters = (snapshot: ReturnType<typeof useFilters>["snapshot"]): Omit<FilteredSoftwareOptions, "page"> => {
@@ -42,7 +35,6 @@ const buildQueryKey = (filters: FilteredSoftwareOptions) => [
 ];
 
 export const useSoftwareFiltered = () => {
-  const supabase = useSupabase();
   const filtersState = useFilters();
   const filters = useMemo(() => sanitizeFilters(filtersState.snapshot), [filtersState.snapshot]);
 
@@ -57,93 +49,38 @@ export const useSoftwareFiltered = () => {
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
     queryFn: async ({ pageParam }) => {
       const page = typeof pageParam === "number" && pageParam > 0 ? pageParam : 1;
-      const perPage = filters.perPage ?? 24;
+      const perPage = filters.perPage ?? 20;
 
-      if (!isSupabaseConfigured()) {
-        const response = await queryStaticSoftware({ ...filters, page, perPage });
+      const url = new URL("/api/software", window.location.origin);
+      if (filters.query) url.searchParams.set("query", filters.query);
+      if (filters.category) url.searchParams.set("category", filters.category);
+      if (filters.platforms?.length) url.searchParams.set("platforms", filters.platforms.join(","));
+      if (filters.types?.length) url.searchParams.set("types", filters.types.join(","));
+      if (filters.sortBy) url.searchParams.set("sort", filters.sortBy);
+      url.searchParams.set("page", String(page));
+      url.searchParams.set("perPage", String(perPage));
 
-        return {
-          ...response,
-          usedFallback: true,
-          source: "fallback",
-        } satisfies SoftwareQueryPage;
+      const response = await fetch(url.toString(), { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Software request failed (${response.status})`);
       }
 
-      if (!supabase) {
-        const response = await queryStaticSoftware({ ...filters, page, perPage });
-
-        return {
-          ...response,
-          usedFallback: true,
-          source: "fallback",
-          originError: "Supabase client not ready. Using fallback dataset.",
-        } satisfies SoftwareQueryPage;
-      }
-
-      if (disableSupabaseReads) {
-        const response = await queryStaticSoftware({ ...filters, page, perPage });
-
-        return {
-          ...response,
-          usedFallback: true,
-          source: "fallback",
-          originError: "Supabase schema mismatch detected previously. Using fallback dataset.",
-        } satisfies SoftwareQueryPage;
-      }
-
-      try {
-        const response = await fetchFilteredSoftware({ ...filters, page }, supabase);
-
-        return {
-          ...response,
-          usedFallback: false,
-          source: "supabase",
-        } satisfies SoftwareQueryPage;
-      } catch (error) {
-        const maybeCode = (error as { code?: string; status?: number } | null)?.code;
-        const maybeStatus = (error as { code?: string; status?: number } | null)?.status;
-
-        // PostgREST schema mismatch = 400s. Disable further Supabase reads to stop spam.
-        if (maybeCode === "42703" || maybeStatus === 400) {
-          disableSupabaseReads = true;
-        }
-
-        const response = await queryStaticSoftware({ ...filters, page, perPage });
-
-        return {
-          ...response,
-          usedFallback: true,
-          source: "fallback",
-          originError:
-            error instanceof Error
-              ? `Supabase request failed. Using fallback dataset. (${error.message})`
-              : "Supabase request failed. Using fallback dataset.",
-        } satisfies SoftwareQueryPage;
-      }
+      const payload = (await response.json()) as SoftwareListResponse;
+      return {
+        ...payload,
+        source: "api",
+      } satisfies SoftwareQueryPage;
     },
   });
 
   const pages = useMemo(() => query.data?.pages ?? [], [query.data?.pages]);
   const combinedItems = pages.flatMap((page) => page.items);
   const total = pages.at(0)?.total ?? 0;
-  const usedFallback = pages.some((page) => page.usedFallback);
-  const lastError = useMemo(() => {
-    for (let index = pages.length - 1; index >= 0; index -= 1) {
-      const message = pages[index]?.originError;
-      if (message) {
-        return message;
-      }
-    }
-    return undefined;
-  }, [pages]);
-
   return {
     ...query,
     items: combinedItems,
     total,
-    usedFallback,
     filters,
     filtersState,
-    lastError,
   } as const;
 };

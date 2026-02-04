@@ -87,6 +87,75 @@ export const searchStaticSoftwareViaChunks = async (params: {
   };
 };
 
+export const filterStaticSoftwareViaChunks = async (params: {
+  query?: string;
+  category?: string | null;
+  platforms?: string[];
+  types?: string[];
+  page: number;
+  perPage: number;
+  maxChunksToScan?: number;
+}) => {
+  const query = (params.query ?? "").trim();
+  const category = params.category ?? null;
+  const platforms = params.platforms ?? [];
+  const types = params.types ?? [];
+  const page = Math.max(params.page, 1);
+  const perPage = Math.max(Math.min(params.perPage, 50), 1);
+  const maxChunksToScan = Math.max(params.maxChunksToScan ?? 25, 1);
+
+  const meta = await fetchLatestMeta();
+  if (!meta || meta.perPage <= 0 || meta.chunkSize <= 0 || meta.chunks <= 0) {
+    return queryStaticSoftware({ query, category: category ?? undefined, platforms, types, sortBy: "latest", page, perPage });
+  }
+
+  const targetStart = (page - 1) * perPage;
+  const targetEnd = targetStart + perPage;
+
+  let seenMatches = 0;
+  const pageItems: Software[] = [];
+  let scannedAll = false;
+
+  const chunksToScan = Math.min(meta.chunks, maxChunksToScan);
+
+  for (let chunkIndex = 1; chunkIndex <= chunksToScan; chunkIndex += 1) {
+    const chunkItems = await fetchLatestChunk(chunkIndex);
+    for (const item of chunkItems) {
+      if (query && !matchesQuery(item, query)) continue;
+      if (category && !matchesCategory(item, category)) continue;
+      if (platforms.length && !matchesPlatforms(item, platforms)) continue;
+      if (types.length && !matchesTypes(item, types)) continue;
+
+      if (seenMatches >= targetStart && seenMatches < targetEnd) {
+        pageItems.push(item);
+      }
+      seenMatches += 1;
+      if (seenMatches >= targetEnd) {
+        break;
+      }
+    }
+
+    if (seenMatches >= targetEnd) {
+      break;
+    }
+
+    if (chunkIndex === meta.chunks) {
+      scannedAll = true;
+    }
+  }
+
+  const hasMore = !scannedAll || seenMatches > targetEnd;
+  const total = scannedAll ? seenMatches : Math.max(targetStart + pageItems.length + 1, seenMatches);
+
+  return {
+    items: pageItems,
+    total,
+    page,
+    perPage,
+    hasMore,
+  };
+};
+
 const resolveLatestPagesBase = () => {
   if (DATA_BASE_ENV) {
     return appendVersion(`${sanitizeBaseUrl(DATA_BASE_ENV)}/${LATEST_PAGES_DIR}`);

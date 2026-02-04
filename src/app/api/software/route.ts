@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchFilteredSoftware } from "@/lib/services/softwareService";
+import { filterStaticSoftwareViaChunks } from "@/lib/services/staticSoftwareRepository";
 
 const querySchema = z.object({
   q: z.string().optional(),
@@ -47,20 +48,40 @@ export const GET = async (request: NextRequest) => {
 
     const supabase = createSupabaseServerClient();
 
-    const result = await fetchFilteredSoftware(
-      {
-        query: parsed.query ?? parsed.q,
-        category: parsed.category ?? null,
-        platforms: splitCsv(parsed.platforms),
-        types: splitCsv(parsed.types),
-        sortBy: parsed.sort ?? parsed.sortBy,
-        page: parsed.page,
-        perPage: parsed.perPage,
-      },
-      supabase,
-    );
+    const query = parsed.query ?? parsed.q ?? "";
+    const page = parsed.page ?? 1;
+    const perPage = parsed.perPage ?? 20;
+    const platforms = splitCsv(parsed.platforms);
+    const types = splitCsv(parsed.types);
 
-    return NextResponse.json(result);
+    try {
+      const result = await fetchFilteredSoftware(
+        {
+          query,
+          category: parsed.category ?? null,
+          platforms,
+          types,
+          sortBy: parsed.sort ?? parsed.sortBy,
+          page,
+          perPage,
+        },
+        supabase,
+      );
+
+      return NextResponse.json(result);
+    } catch (error) {
+      // Chunk fallback supports latest ordering. For non-latest sorts, still return latest-ordered matches.
+      const fallback = await filterStaticSoftwareViaChunks({
+        query,
+        category: parsed.category ?? null,
+        platforms,
+        types,
+        page,
+        perPage,
+        maxChunksToScan: 50,
+      });
+      return NextResponse.json(fallback);
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });

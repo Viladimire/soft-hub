@@ -50,7 +50,6 @@ export const SoftwareGrid = () => {
   const {
     items,
     total,
-    usedFallback,
     filtersState,
     fetchNextPage,
     hasNextPage,
@@ -60,6 +59,8 @@ export const SoftwareGrid = () => {
     isError,
     refetch,
   } = useSoftwareFiltered();
+
+  const usedFallback = false;
 
   const t = useTranslations("softwareGrid");
   const emptyT = useTranslations("emptyState");
