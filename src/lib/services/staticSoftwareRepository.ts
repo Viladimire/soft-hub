@@ -12,7 +12,7 @@ const DATA_VERSION = process.env.NEXT_PUBLIC_DATA_VERSION ?? process.env.DATA_VE
 const LATEST_PAGES_DIR = "software/pages/latest";
 
 let datasetPromise: Promise<Software[]> | null = null;
-let latestMetaPromise: Promise<{ perPage: number; total: number; pages: number } | null> | null = null;
+let latestMetaPromise: Promise<{ perPage: number; total: number; chunks: number; chunkSize: number } | null> | null = null;
 
 const isProductionBuild = process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
 
@@ -50,12 +50,13 @@ const fetchLatestMeta = async () => {
         }
         const raw = (await response.json()) as unknown;
         if (!raw || typeof raw !== "object") return null;
-        const meta = raw as { perPage?: unknown; total?: unknown; pages?: unknown };
+        const meta = raw as { perPage?: unknown; total?: unknown; chunks?: unknown; chunkSize?: unknown };
         const perPage = typeof meta.perPage === "number" ? meta.perPage : NaN;
         const total = typeof meta.total === "number" ? meta.total : NaN;
-        const pages = typeof meta.pages === "number" ? meta.pages : NaN;
-        if (!Number.isFinite(perPage) || !Number.isFinite(total) || !Number.isFinite(pages)) return null;
-        return { perPage, total, pages };
+        const chunks = typeof meta.chunks === "number" ? meta.chunks : NaN;
+        const chunkSize = typeof meta.chunkSize === "number" ? meta.chunkSize : NaN;
+        if (!Number.isFinite(perPage) || !Number.isFinite(total) || !Number.isFinite(chunks) || !Number.isFinite(chunkSize)) return null;
+        return { perPage, total, chunks, chunkSize };
       } catch {
         return null;
       }
@@ -64,16 +65,16 @@ const fetchLatestMeta = async () => {
   return latestMetaPromise;
 };
 
-const fetchLatestPage = async (page: number) => {
+const fetchLatestChunk = async (chunkIndex: number) => {
   const base = resolveLatestPagesBase();
-  const pageNo = String(page).padStart(4, "0");
-  const response = await fetch(`${base}/page-${pageNo}.json`, {
+  const chunkNo = String(chunkIndex).padStart(4, "0");
+  const response = await fetch(`${base}/chunk-${chunkNo}.json`, {
     cache: "force-cache",
     next: { revalidate: 60 * 5 },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch latest page ${page} (status ${response.status})`);
+    throw new Error(`Failed to fetch latest chunk ${chunkIndex} (status ${response.status})`);
   }
 
   const raw = await response.json();
@@ -404,14 +405,35 @@ export const queryStaticSoftware = async (
 
   if (isPureLatest) {
     const meta = await fetchLatestMeta();
-    if (meta && meta.perPage === perPage && page >= 1 && page <= meta.pages) {
-      const items = await fetchLatestPage(page);
+    if (meta && meta.perPage === perPage && page >= 1) {
+      const from = (page - 1) * perPage;
+      const totalPages = Math.ceil(meta.total / perPage);
+      const safePage = Math.min(page, Math.max(totalPages, 1));
+      const safeFrom = (safePage - 1) * perPage;
+
+      const chunkIndex = Math.floor(safeFrom / meta.chunkSize) + 1;
+      const chunkOffset = safeFrom % meta.chunkSize;
+
+      if (chunkIndex >= 1 && chunkIndex <= meta.chunks) {
+        const chunkItems = await fetchLatestChunk(chunkIndex);
+        const items = chunkItems.slice(chunkOffset, chunkOffset + perPage);
+        const hasMore = safeFrom + perPage < meta.total;
+
+        return {
+          items,
+          total: meta.total,
+          page: safePage,
+          perPage,
+          hasMore,
+        };
+      }
+
       return {
-        items,
+        items: [],
         total: meta.total,
-        page,
+        page: safePage,
         perPage,
-        hasMore: page < meta.pages,
+        hasMore: false,
       };
     }
   }

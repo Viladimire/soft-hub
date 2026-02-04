@@ -13,6 +13,7 @@ const JSDELIVR_BASE = "https://cdn.jsdelivr.net/gh";
 
 const LATEST_PAGES_DIR = process.env.GITHUB_SOFTWARE_LATEST_PAGES_DIR ?? "public/data/software/pages/latest";
 const LATEST_PAGE_SIZE = Number(process.env.GITHUB_SOFTWARE_LATEST_PAGE_SIZE ?? "20") || 20;
+const LATEST_CHUNK_SIZE = Number(process.env.GITHUB_SOFTWARE_LATEST_CHUNK_SIZE ?? "1000") || 1000;
 
 export class GitHubConfigError extends Error {
   constructor(message: string) {
@@ -324,8 +325,9 @@ export const deleteSoftwareFromGitHub = async (slug: string) => {
 type LatestPagesMeta = {
   generatedAt: string;
   perPage: number;
+  chunkSize: number;
   total: number;
-  pages: number;
+  chunks: number;
 };
 
 const sortLatest = (items: Software[]) =>
@@ -346,14 +348,16 @@ export const publishLatestSoftwarePagesToGitHub = async () => {
   const { items } = await fetchSoftwareDatasetFromGitHub();
 
   const perPage = Math.min(Math.max(LATEST_PAGE_SIZE, 1), 50);
+  const chunkSize = Math.min(Math.max(LATEST_CHUNK_SIZE, perPage), 5000);
   const sorted = sortLatest(items);
-  const pages = chunk(sorted, perPage);
+  const chunks = chunk(sorted, chunkSize);
 
   const meta: LatestPagesMeta = {
     generatedAt: new Date().toISOString(),
     perPage,
+    chunkSize,
     total: sorted.length,
-    pages: pages.length,
+    chunks: chunks.length,
   };
 
   await upsertTextFileToGitHub({
@@ -362,14 +366,14 @@ export const publishLatestSoftwarePagesToGitHub = async () => {
     message: "chore: publish software latest pages meta",
   });
 
-  // Upload each page (best effort). 1-indexed page names.
-  for (let index = 0; index < pages.length; index += 1) {
-    const pageNo = String(index + 1).padStart(4, "0");
-    const path = `${LATEST_PAGES_DIR}/page-${pageNo}.json`;
+  // Upload each chunk (best effort). 1-indexed chunk names.
+  for (let index = 0; index < chunks.length; index += 1) {
+    const chunkNo = String(index + 1).padStart(4, "0");
+    const path = `${LATEST_PAGES_DIR}/chunk-${chunkNo}.json`;
     await upsertTextFileToGitHub({
       path,
-      text: JSON.stringify(pages[index], null, 2),
-      message: `chore: publish software latest page ${pageNo}`,
+      text: JSON.stringify(chunks[index], null, 2),
+      message: `chore: publish software latest chunk ${chunkNo}`,
     });
   }
 
@@ -379,7 +383,8 @@ export const publishLatestSoftwarePagesToGitHub = async () => {
     ok: true as const,
     perPage,
     total: sorted.length,
-    pages: pages.length,
+    // Backward compatible field name (used by the publish endpoint UI)
+    pages: chunks.length,
     metaUrl: `${JSDELIVR_BASE}/${config.owner}/${config.repo}@${config.branch}/${LATEST_PAGES_DIR}/meta.json`,
   };
 };
