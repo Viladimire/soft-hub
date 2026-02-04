@@ -11,6 +11,9 @@ const COMMITTER_EMAIL = process.env.GITHUB_COMMITTER_EMAIL ?? "bot@soft-hub.loca
 const API_BASE = "https://api.github.com";
 const JSDELIVR_BASE = "https://cdn.jsdelivr.net/gh";
 
+const LATEST_PAGES_DIR = process.env.GITHUB_SOFTWARE_LATEST_PAGES_DIR ?? "public/data/software/pages/latest";
+const LATEST_PAGE_SIZE = Number(process.env.GITHUB_SOFTWARE_LATEST_PAGE_SIZE ?? "20") || 20;
+
 export class GitHubConfigError extends Error {
   constructor(message: string) {
     super(message);
@@ -99,6 +102,46 @@ const githubFetchRaw = async (input: string, init?: RequestInit) => {
       ...(init?.headers ?? {}),
     },
     cache: "no-store",
+  });
+};
+
+const getContentUrl = (path: string, config: GitHubRuntimeConfig) =>
+  `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeGitHubPath(path)}`;
+
+const tryGetContentSha = async (path: string, config: GitHubRuntimeConfig): Promise<string | null> => {
+  const response = await githubFetchRaw(getContentUrl(path, config));
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`GitHub API request failed (${response.status}): ${errorBody}`);
+  }
+
+  const payload = (await response.json()) as Partial<GitHubContentResponse>;
+  return typeof payload.sha === "string" && payload.sha ? payload.sha : null;
+};
+
+const upsertTextFileToGitHub = async (params: {
+  path: string;
+  text: string;
+  message: string;
+}) => {
+  const config = await resolveGitHubConfig();
+  const sha = await tryGetContentSha(params.path, config);
+  const url = getContentUrl(params.path, config);
+  const content = Buffer.from(params.text).toString("base64");
+
+  await githubFetch(url, {
+    method: "PUT",
+    body: JSON.stringify({
+      message: params.message,
+      content,
+      sha: sha ?? undefined,
+      branch: config.branch,
+      committer: {
+        name: COMMITTER_NAME,
+        email: COMMITTER_EMAIL,
+      },
+    }),
   });
 };
 
@@ -276,6 +319,69 @@ export const deleteSoftwareFromGitHub = async (slug: string) => {
   });
 
   return removed;
+};
+
+type LatestPagesMeta = {
+  generatedAt: string;
+  perPage: number;
+  total: number;
+  pages: number;
+};
+
+const sortLatest = (items: Software[]) =>
+  [...items].sort(
+    (a, b) => new Date(b.releaseDate ?? 0).getTime() - new Date(a.releaseDate ?? 0).getTime(),
+  );
+
+const chunk = <T,>(items: T[], size: number) => {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
+  return out;
+};
+
+export const publishLatestSoftwarePagesToGitHub = async () => {
+  const config = await resolveGitHubConfig();
+  const { items } = await fetchSoftwareDatasetFromGitHub();
+
+  const perPage = Math.min(Math.max(LATEST_PAGE_SIZE, 1), 50);
+  const sorted = sortLatest(items);
+  const pages = chunk(sorted, perPage);
+
+  const meta: LatestPagesMeta = {
+    generatedAt: new Date().toISOString(),
+    perPage,
+    total: sorted.length,
+    pages: pages.length,
+  };
+
+  await upsertTextFileToGitHub({
+    path: `${LATEST_PAGES_DIR}/meta.json`,
+    text: JSON.stringify(meta, null, 2),
+    message: "chore: publish software latest pages meta",
+  });
+
+  // Upload each page (best effort). 1-indexed page names.
+  for (let index = 0; index < pages.length; index += 1) {
+    const pageNo = String(index + 1).padStart(4, "0");
+    const path = `${LATEST_PAGES_DIR}/page-${pageNo}.json`;
+    await upsertTextFileToGitHub({
+      path,
+      text: JSON.stringify(pages[index], null, 2),
+      message: `chore: publish software latest page ${pageNo}`,
+    });
+  }
+
+  invalidateStaticSoftwareCache();
+
+  return {
+    ok: true as const,
+    perPage,
+    total: sorted.length,
+    pages: pages.length,
+    metaUrl: `${JSDELIVR_BASE}/${config.owner}/${config.repo}@${config.branch}/${LATEST_PAGES_DIR}/meta.json`,
+  };
 };
 
 const guessExtension = (mime: string) => {

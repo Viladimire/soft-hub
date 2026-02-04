@@ -4,7 +4,7 @@ import { isAdminRequestAuthorized } from "@/lib/auth/admin-session";
 import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 import { fetchCollectionsDatasetFromGitHub } from "@/lib/services/github/collectionsDataStore";
 import { fetchRequestsDatasetFromGitHub } from "@/lib/services/github/requestsDataStore";
-import { fetchSoftwareDatasetFromGitHub } from "@/lib/services/github/softwareDataStore";
+import { fetchSoftwareDatasetFromGitHub, publishLatestSoftwarePagesToGitHub } from "@/lib/services/github/softwareDataStore";
 
 export const POST = async (request: NextRequest) => {
   if (!isAdminRequestAuthorized(request)) {
@@ -42,6 +42,15 @@ export const POST = async (request: NextRequest) => {
         );
       }
       return NextResponse.json({ message: "GitHub verification failed", steps }, { status: 500 });
+    }
+
+    try {
+      const result = await publishLatestSoftwarePagesToGitHub();
+      steps.push({ step: `GitHub: software latest pages (${result.pages} pages)`, ok: true });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      steps.push({ step: "GitHub: software latest pages", ok: false, details: message.slice(0, 2000) });
+      return NextResponse.json({ message: "GitHub publish pages failed", steps }, { status: 500 });
     }
 
     try {

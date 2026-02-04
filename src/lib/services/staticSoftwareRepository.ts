@@ -9,7 +9,10 @@ const DATA_FILENAME = "software/index.json";
 const DEFAULT_REMOTE_BASE = "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/data";
 const DATA_VERSION = process.env.NEXT_PUBLIC_DATA_VERSION ?? process.env.DATA_VERSION ?? "";
 
+const LATEST_PAGES_DIR = "software/pages/latest";
+
 let datasetPromise: Promise<Software[]> | null = null;
+let latestMetaPromise: Promise<{ perPage: number; total: number; pages: number } | null> | null = null;
 
 const isProductionBuild = process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
 
@@ -19,6 +22,62 @@ const appendVersion = (url: string) => {
   if (!DATA_VERSION) return url;
   const sep = url.includes("?") ? "&" : "?";
   return `${url}${sep}v=${encodeURIComponent(DATA_VERSION)}`;
+};
+
+const resolveLatestPagesBase = () => {
+  if (DATA_BASE_ENV) {
+    return appendVersion(`${sanitizeBaseUrl(DATA_BASE_ENV)}/${LATEST_PAGES_DIR}`);
+  }
+
+  if (typeof window !== "undefined") {
+    return appendVersion(`/data/${LATEST_PAGES_DIR}`);
+  }
+
+  return appendVersion(`${DEFAULT_REMOTE_BASE}/${LATEST_PAGES_DIR}`);
+};
+
+const fetchLatestMeta = async () => {
+  if (!latestMetaPromise) {
+    latestMetaPromise = (async () => {
+      try {
+        const base = resolveLatestPagesBase();
+        const response = await fetch(`${base}/meta.json`, {
+          cache: "force-cache",
+          next: { revalidate: 60 * 5 },
+        });
+        if (!response.ok) {
+          return null;
+        }
+        const raw = (await response.json()) as unknown;
+        if (!raw || typeof raw !== "object") return null;
+        const meta = raw as { perPage?: unknown; total?: unknown; pages?: unknown };
+        const perPage = typeof meta.perPage === "number" ? meta.perPage : NaN;
+        const total = typeof meta.total === "number" ? meta.total : NaN;
+        const pages = typeof meta.pages === "number" ? meta.pages : NaN;
+        if (!Number.isFinite(perPage) || !Number.isFinite(total) || !Number.isFinite(pages)) return null;
+        return { perPage, total, pages };
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return latestMetaPromise;
+};
+
+const fetchLatestPage = async (page: number) => {
+  const base = resolveLatestPagesBase();
+  const pageNo = String(page).padStart(4, "0");
+  const response = await fetch(`${base}/page-${pageNo}.json`, {
+    cache: "force-cache",
+    next: { revalidate: 60 * 5 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch latest page ${page} (status ${response.status})`);
+  }
+
+  const raw = await response.json();
+  return parseSoftwareArray(raw);
 };
 
 const resolveDatasetUrl = () => {
@@ -334,8 +393,30 @@ const paginate = (collection: Software[], page: number, perPage: number) => {
 export const queryStaticSoftware = async (
   options: FilteredSoftwareOptions & { page: number; perPage: number },
 ) => {
-  const dataset = await fetchStaticSoftwareDataset();
   const { query, category, platforms = [], types = [], sortBy, page, perPage } = options;
+
+  const isPureLatest =
+    (sortBy ?? "latest") === "latest" &&
+    !query &&
+    !category &&
+    platforms.length === 0 &&
+    types.length === 0;
+
+  if (isPureLatest) {
+    const meta = await fetchLatestMeta();
+    if (meta && meta.perPage === perPage && page >= 1 && page <= meta.pages) {
+      const items = await fetchLatestPage(page);
+      return {
+        items,
+        total: meta.total,
+        page,
+        perPage,
+        hasMore: page < meta.pages,
+      };
+    }
+  }
+
+  const dataset = await fetchStaticSoftwareDataset();
 
   let filtered = dataset;
 

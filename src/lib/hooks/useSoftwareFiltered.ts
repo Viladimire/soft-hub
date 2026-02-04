@@ -27,7 +27,7 @@ const sanitizeFilters = (snapshot: ReturnType<typeof useFilters>["snapshot"]): O
     platforms: platforms.length ? platforms : undefined,
     types: undefined,
     sortBy: snapshot.sortBy,
-    perPage: 24,
+    perPage: 20,
   };
 };
 
