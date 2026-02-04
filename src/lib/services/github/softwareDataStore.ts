@@ -9,6 +9,7 @@ const COMMITTER_NAME = process.env.GITHUB_COMMITTER_NAME ?? "SOFT-HUB Bot";
 const COMMITTER_EMAIL = process.env.GITHUB_COMMITTER_EMAIL ?? "bot@soft-hub.local";
 
 const API_BASE = "https://api.github.com";
+const JSDELIVR_BASE = "https://cdn.jsdelivr.net/gh";
 
 export class GitHubConfigError extends Error {
   constructor(message: string) {
@@ -57,6 +58,13 @@ type GitHubContentResponse = {
   sha: string;
 };
 
+const encodeGitHubPath = (path: string) =>
+  path
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
 const githubFetch = async (input: string, init?: RequestInit) => {
   const { token } = await resolveGitHubConfig();
 
@@ -89,7 +97,7 @@ const decodeContent = (payload: GitHubContentResponse) => {
 };
 
 const getFileUrl = (path: string, config: GitHubRuntimeConfig) =>
-  `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeURIComponent(path)}?ref=${config.branch}`;
+  `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeGitHubPath(path)}?ref=${config.branch}`;
 
 export const fetchSoftwareDatasetFromGitHub = async (): Promise<{ items: Software[]; sha: string }> => {
   const config = await resolveGitHubConfig();
@@ -214,4 +222,44 @@ export const deleteSoftwareFromGitHub = async (slug: string) => {
   });
 
   return removed;
+};
+
+const guessExtension = (mime: string) => {
+  if (mime === "image/png") return "png";
+  if (mime === "image/jpeg") return "jpg";
+  if (mime === "image/webp") return "webp";
+  if (mime === "image/gif") return "gif";
+  return "bin";
+};
+
+export const uploadImageAssetToGitHub = async (params: {
+  bytes: Uint8Array;
+  mime: string;
+  type: "logo" | "hero" | "screenshot";
+  filenameBase?: string;
+}) => {
+  const config = await resolveGitHubConfig();
+  const ext = guessExtension(params.mime);
+  const safeBase = (params.filenameBase ?? "asset").replace(/[^a-z0-9_-]/gi, "-");
+  const path = `public/assets/admin/${params.type}/${safeBase}-${Date.now()}.${ext}`;
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeGitHubPath(path)}`;
+  const content = Buffer.from(params.bytes).toString("base64");
+
+  await githubFetch(url, {
+    method: "PUT",
+    body: JSON.stringify({
+      message: `chore: upload ${params.type} asset`,
+      content,
+      branch: config.branch,
+      committer: {
+        name: COMMITTER_NAME,
+        email: COMMITTER_EMAIL,
+      },
+    }),
+  });
+
+  return {
+    path,
+    url: `${JSDELIVR_BASE}/${config.owner}/${config.repo}@${config.branch}/${path}`,
+  };
 };

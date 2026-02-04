@@ -14,7 +14,6 @@ import type { Json } from "@/lib/supabase/database.types";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
 import { softwareSchema } from "@/lib/validations/software.schema";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
-import { supabaseConfig } from "@/lib/supabase/config";
 
 const platformValues = ["windows", "mac", "linux", "android", "ios", "web"] as const satisfies readonly Platform[];
 const categoryValues = [
@@ -67,16 +66,6 @@ const handleError = (error: unknown, fallbackMessage: string) => {
 
   if (error instanceof z.ZodError) {
     return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });
-  }
-
-  if (!supabaseConfig.serviceRoleKey) {
-    return NextResponse.json(
-      {
-        message:
-          "Supabase service role key is missing. Set SUPABASE_SERVICE_ROLE_KEY on the server (Vercel env) to allow admin writes.",
-      },
-      { status: 501 },
-    );
   }
 
   const maybe = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
@@ -205,29 +194,33 @@ export const POST = async (request: NextRequest) => {
 
     const warnings: string[] = [];
 
+    // GitHub is the source of truth (DB-free scaling)
     if (previousSlug && previousSlug !== record.slug) {
       try {
-        await deleteSoftwareFromSupabase(previousSlug);
+        await deleteSoftwareFromGitHub(previousSlug);
       } catch (error) {
-        console.error("Failed to remove previous slug from Supabase", error);
+        console.error("GitHub delete for previous slug failed", error);
       }
     }
 
-    await upsertSoftwareToSupabase(record);
+    await saveSoftwareToGitHub(record);
 
-    try {
+    // Supabase sync is optional (best-effort)
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       if (previousSlug && previousSlug !== record.slug) {
         try {
-          await deleteSoftwareFromGitHub(previousSlug);
+          await deleteSoftwareFromSupabase(previousSlug);
         } catch (error) {
-          console.error("GitHub delete for previous slug failed", error);
+          console.error("Failed to remove previous slug from Supabase", error);
         }
       }
 
-      await saveSoftwareToGitHub(record);
-    } catch (error) {
-      console.error("GitHub save failed (best effort)", error);
-      warnings.push("Failed to update GitHub automatically, but the change was saved in the database.");
+      try {
+        await upsertSoftwareToSupabase(record);
+      } catch (error) {
+        console.error("Supabase upsert failed (best effort)", error);
+        warnings.push("Saved to GitHub, but failed to sync Supabase.");
+      }
     }
 
     return NextResponse.json({ item: record, warnings }, { status: 201 });
@@ -251,15 +244,19 @@ export const DELETE = async (request: NextRequest) => {
 
   try {
     const { slug: validatedSlug } = deleteSchema.parse({ slug });
-    await deleteSoftwareFromSupabase(validatedSlug);
-
     const warnings: string[] = [];
 
-    try {
-      await deleteSoftwareFromGitHub(validatedSlug);
-    } catch (error) {
-      console.error("GitHub delete failed (best effort)", error);
-      warnings.push("Deleted from the database, but failed to update GitHub automatically.");
+    // GitHub is the source of truth
+    await deleteSoftwareFromGitHub(validatedSlug);
+
+    // Supabase delete is optional (best-effort)
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        await deleteSoftwareFromSupabase(validatedSlug);
+      } catch (error) {
+        console.error("Supabase delete failed (best effort)", error);
+        warnings.push("Deleted from GitHub, but failed to sync Supabase.");
+      }
     }
 
     return NextResponse.json({ slug: validatedSlug, warnings });

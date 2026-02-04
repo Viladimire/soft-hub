@@ -632,7 +632,7 @@ export const SoftwareAdminPanel = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const data = await request<AdminDatasetResponse>("/api/admin/software/supabase", { signal: controller.signal });
+        const data = await request<AdminDatasetResponse>("/api/admin/software", { signal: controller.signal });
         setDataset(data.items);
         setError(null);
       } catch (err) {
@@ -1069,14 +1069,11 @@ export const SoftwareAdminPanel = () => {
   const syncDataset = async () => {
     try {
       setLoading(true);
-      const data = await request<AdminDatasetResponse>("/api/admin/software/supabase");
+      const data = await request<AdminDatasetResponse>("/api/admin/software");
       setDataset(data.items);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to refresh list";
-      setError(message);
-      if ((err as RequestError).status === 401) {
-        router.refresh();
-      }
+      pushNotification("error", message);
     } finally {
       setLoading(false);
     }
