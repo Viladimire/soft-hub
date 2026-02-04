@@ -24,6 +24,69 @@ const appendVersion = (url: string) => {
   return `${url}${sep}v=${encodeURIComponent(DATA_VERSION)}`;
 };
 
+export const searchStaticSoftwareViaChunks = async (params: {
+  query: string;
+  page: number;
+  perPage: number;
+  maxChunksToScan?: number;
+}) => {
+  const query = params.query.trim();
+  const page = Math.max(params.page, 1);
+  const perPage = Math.max(Math.min(params.perPage, 50), 1);
+  const maxChunksToScan = Math.max(params.maxChunksToScan ?? 25, 1);
+
+  if (!query) {
+    return { items: [], total: 0, page, perPage, hasMore: false };
+  }
+
+  const meta = await fetchLatestMeta();
+  if (!meta || meta.perPage <= 0 || meta.chunkSize <= 0 || meta.chunks <= 0) {
+    return queryStaticSoftware({ query, page, perPage, sortBy: "latest" });
+  }
+
+  const targetStart = (page - 1) * perPage;
+  const targetEnd = targetStart + perPage;
+
+  let seenMatches = 0;
+  const pageItems: Software[] = [];
+  let scannedAll = false;
+
+  const chunksToScan = Math.min(meta.chunks, maxChunksToScan);
+
+  for (let chunkIndex = 1; chunkIndex <= chunksToScan; chunkIndex += 1) {
+    const chunkItems = await fetchLatestChunk(chunkIndex);
+    for (const item of chunkItems) {
+      if (!matchesQuery(item, query)) continue;
+      if (seenMatches >= targetStart && seenMatches < targetEnd) {
+        pageItems.push(item);
+      }
+      seenMatches += 1;
+      if (seenMatches >= targetEnd) {
+        break;
+      }
+    }
+
+    if (seenMatches >= targetEnd) {
+      break;
+    }
+
+    if (chunkIndex === meta.chunks) {
+      scannedAll = true;
+    }
+  }
+
+  const hasMore = !scannedAll || seenMatches > targetEnd;
+  const total = scannedAll ? seenMatches : Math.max(targetStart + pageItems.length + 1, seenMatches);
+
+  return {
+    items: pageItems,
+    total,
+    page,
+    perPage,
+    hasMore,
+  };
+};
+
 const resolveLatestPagesBase = () => {
   if (DATA_BASE_ENV) {
     return appendVersion(`${sanitizeBaseUrl(DATA_BASE_ENV)}/${LATEST_PAGES_DIR}`);

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchFilteredSoftware } from "@/lib/services/softwareService";
+import { searchStaticSoftwareViaChunks } from "@/lib/services/staticSoftwareRepository";
 import { rateLimit } from "@/lib/utils/rate-limit";
 
 const querySchema = z.object({
@@ -63,20 +64,29 @@ export const GET = async (request: NextRequest) => {
 
     const supabase = createSupabaseServerClient();
 
-    const result = await fetchFilteredSoftware(
-      {
-        query: parsed.query ?? parsed.q,
-        category: parsed.category ?? null,
-        platforms: splitCsv(parsed.platforms),
-        types: splitCsv(parsed.types),
-        sortBy: parsed.sort ?? parsed.sortBy,
-        page: parsed.page,
-        perPage: parsed.perPage,
-      },
-      supabase,
-    );
+    const query = parsed.query ?? parsed.q ?? "";
+    const page = parsed.page ?? 1;
+    const perPage = parsed.perPage ?? 20;
 
-    return NextResponse.json(result);
+    try {
+      const result = await fetchFilteredSoftware(
+        {
+          query,
+          category: parsed.category ?? null,
+          platforms: splitCsv(parsed.platforms),
+          types: splitCsv(parsed.types),
+          sortBy: parsed.sort ?? parsed.sortBy,
+          page,
+          perPage,
+        },
+        supabase,
+      );
+
+      return NextResponse.json(result);
+    } catch (error) {
+      const fallback = await searchStaticSoftwareViaChunks({ query, page, perPage, maxChunksToScan: 25 });
+      return NextResponse.json(fallback);
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });

@@ -4,9 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useFilters } from "@/lib/hooks/useFilters";
-import { useSupabase } from "@/lib/hooks/useSupabase";
-import { searchSoftware } from "@/lib/services/searchService";
-import { queryStaticSoftware } from "@/lib/services/staticSoftwareRepository";
 import type { Software } from "@/lib/types/software";
 
 const DEFAULT_LIMIT = 12;
@@ -34,7 +31,6 @@ const isCacheValid = (entry: SearchCacheEntry | undefined) => {
 
 export const useSearch = () => {
   const filters = useFilters();
-  const supabase = useSupabase();
 
   const [results, setResults] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,29 +63,24 @@ export const useSearch = () => {
       setError(null);
 
       try {
-        if (supabase) {
-          const response = await searchSoftware(trimmed, supabase, { limit: DEFAULT_LIMIT });
-          if (isCancelled) return;
-
-          const next: SearchResult = {
-            items: response.items,
-            total: response.total,
-            hasMore: response.hasMore,
-          };
-          cache.set(cacheKey, { timestamp: Date.now(), result: next });
-          setResults(next);
-        } else {
-          const fallback = await queryStaticSoftware({ query: trimmed, page: 1, perPage: DEFAULT_LIMIT });
-          if (isCancelled) return;
-
-          const next: SearchResult = {
-            items: fallback.items,
-            total: fallback.total,
-            hasMore: fallback.hasMore,
-          };
-          cache.set(cacheKey, { timestamp: Date.now(), result: next });
-          setResults(next);
+        const response = await fetch(
+          `/api/search?query=${encodeURIComponent(trimmed)}&page=1&perPage=${DEFAULT_LIMIT}`,
+          { cache: "no-store" },
+        );
+        if (isCancelled) return;
+        if (!response.ok) {
+          throw new Error(`Search request failed (${response.status})`);
         }
+
+        const payload = (await response.json()) as unknown;
+        const data = payload as { items?: unknown; total?: unknown; hasMore?: unknown };
+        const items = Array.isArray(data.items) ? (data.items as Software[]) : [];
+        const total = typeof data.total === "number" ? data.total : items.length;
+        const hasMore = Boolean(data.hasMore);
+
+        const next: SearchResult = { items, total, hasMore };
+        cache.set(cacheKey, { timestamp: Date.now(), result: next });
+        setResults(next);
       } catch (searchError) {
         if (isCancelled) return;
 
@@ -111,7 +102,7 @@ export const useSearch = () => {
     return () => {
       isCancelled = true;
     };
-  }, [cacheKey, debouncedQuery, supabase]);
+  }, [cacheKey, debouncedQuery]);
 
   const hasQuery = Boolean(debouncedQuery.trim());
   const hasResults = Boolean(results && results.items.length);
