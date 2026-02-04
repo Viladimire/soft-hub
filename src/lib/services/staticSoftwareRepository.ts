@@ -7,6 +7,7 @@ import { PHASE_PRODUCTION_BUILD } from "next/constants";
 const DATA_BASE_ENV = process.env.NEXT_PUBLIC_SOFTWARE_DATA_URL_BASE ?? process.env.NEXT_PUBLIC_DATA_BASE_URL ?? "";
 const DATA_FILENAME = "software/index.json";
 const DEFAULT_REMOTE_BASE = "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/data";
+const DATA_VERSION = process.env.NEXT_PUBLIC_DATA_VERSION ?? process.env.DATA_VERSION ?? "";
 
 let datasetPromise: Promise<Software[]> | null = null;
 
@@ -14,16 +15,22 @@ const isProductionBuild = process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
 
 const sanitizeBaseUrl = (value: string) => value.replace(/\/+$/, "");
 
+const appendVersion = (url: string) => {
+  if (!DATA_VERSION) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}v=${encodeURIComponent(DATA_VERSION)}`;
+};
+
 const resolveDatasetUrl = () => {
   if (DATA_BASE_ENV) {
-    return `${sanitizeBaseUrl(DATA_BASE_ENV)}/${DATA_FILENAME}`;
+    return appendVersion(`${sanitizeBaseUrl(DATA_BASE_ENV)}/${DATA_FILENAME}`);
   }
 
   if (typeof window !== "undefined") {
-    return `/data/${DATA_FILENAME}`;
+    return appendVersion(`/data/${DATA_FILENAME}`);
   }
 
-  return `${DEFAULT_REMOTE_BASE}/${DATA_FILENAME}`;
+  return appendVersion(`${DEFAULT_REMOTE_BASE}/${DATA_FILENAME}`);
 };
 
 const normalizePlatform = (value: unknown): Software["platforms"][number] | null => {
@@ -217,7 +224,7 @@ const loadDataset = async () => {
     const response = await fetch(url, {
       cache: "force-cache",
       // Cache the dataset for a while to reduce GitHub/CDN hits globally.
-      next: { revalidate: 60 * 60 },
+      next: { revalidate: 60 * 5 },
     });
 
     if (!response.ok) {

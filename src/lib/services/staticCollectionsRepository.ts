@@ -7,6 +7,7 @@ import { PHASE_PRODUCTION_BUILD } from "next/constants";
 const COLLECTIONS_DATA_BASE = process.env.NEXT_PUBLIC_COLLECTIONS_DATA_URL_BASE ?? process.env.NEXT_PUBLIC_DATA_BASE_URL ?? "";
 const COLLECTIONS_FILENAME = "collections/index.json";
 const DEFAULT_REMOTE_BASE = "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/data";
+const DATA_VERSION = process.env.NEXT_PUBLIC_DATA_VERSION ?? process.env.DATA_VERSION ?? "";
 
 const STABLE_NOW_ISO = "2024-01-01T00:00:00.000Z";
 
@@ -16,16 +17,22 @@ const isProductionBuild = process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
 
 const sanitizeBaseUrl = (value: string) => value.replace(/\/+$/, "");
 
+const appendVersion = (url: string) => {
+  if (!DATA_VERSION) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}v=${encodeURIComponent(DATA_VERSION)}`;
+};
+
 const resolveCollectionsUrl = () => {
   if (COLLECTIONS_DATA_BASE) {
-    return `${sanitizeBaseUrl(COLLECTIONS_DATA_BASE)}/${COLLECTIONS_FILENAME}`;
+    return appendVersion(`${sanitizeBaseUrl(COLLECTIONS_DATA_BASE)}/${COLLECTIONS_FILENAME}`);
   }
 
   if (typeof window !== "undefined") {
-    return `/data/${COLLECTIONS_FILENAME}`;
+    return appendVersion(`/data/${COLLECTIONS_FILENAME}`);
   }
 
-  return `${DEFAULT_REMOTE_BASE}/${COLLECTIONS_FILENAME}`;
+  return appendVersion(`${DEFAULT_REMOTE_BASE}/${COLLECTIONS_FILENAME}`);
 };
 
 const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
@@ -144,7 +151,7 @@ const loadCollectionsDataset = async () => {
   try {
     const response = await fetch(url, {
       cache: "force-cache",
-      next: { revalidate: 60 * 60 },
+      next: { revalidate: 60 * 5 },
     });
 
     if (!response.ok) {
