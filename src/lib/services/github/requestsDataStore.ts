@@ -57,6 +57,13 @@ type GitHubContentResponse = {
   sha: string;
 };
 
+const encodeGitHubPath = (path: string) =>
+  path
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
 const githubFetch = async (input: string, init?: RequestInit) => {
   const { token } = await resolveGitHubConfig();
 
@@ -104,7 +111,7 @@ const decodeContent = (payload: GitHubContentResponse) => {
 };
 
 const getFileUrl = (path: string, config: GitHubRuntimeConfig) =>
-  `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeURIComponent(path)}?ref=${config.branch}`;
+  `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeGitHubPath(path)}?ref=${config.branch}`;
 
 const buildCommitMessage = (action: string, id?: string) => {
   const scope = id ? ` ${id}` : "";

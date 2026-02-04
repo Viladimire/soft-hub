@@ -87,6 +87,21 @@ const githubFetch = async (input: string, init?: RequestInit) => {
   return response.json();
 };
 
+const githubFetchRaw = async (input: string, init?: RequestInit) => {
+  const { token } = await resolveGitHubConfig();
+
+  return fetch(input, {
+    ...init,
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+    cache: "no-store",
+  });
+};
+
 const decodeContent = (payload: GitHubContentResponse) => {
   if (payload.encoding !== "base64") {
     throw new Error(`Unsupported encoding for GitHub content: ${payload.encoding}`);
@@ -99,9 +114,48 @@ const decodeContent = (payload: GitHubContentResponse) => {
 const getFileUrl = (path: string, config: GitHubRuntimeConfig) =>
   `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeGitHubPath(path)}?ref=${config.branch}`;
 
+const createEmptyDatasetOnGitHub = async () => {
+  const config = await resolveGitHubConfig();
+  const url = getFileUrl(DATA_PATH, config);
+  const content = Buffer.from(JSON.stringify([], null, 2)).toString("base64");
+
+  const payload = (await githubFetch(url, {
+    method: "PUT",
+    body: JSON.stringify({
+      message: "Initialize software dataset",
+      content,
+      branch: config.branch,
+      committer: {
+        name: COMMITTER_NAME,
+        email: COMMITTER_EMAIL,
+      },
+    }),
+  })) as { content?: { sha?: string } };
+
+  const sha = payload?.content?.sha;
+  if (!sha) {
+    throw new Error("Failed to initialize software dataset on GitHub");
+  }
+
+  invalidateStaticSoftwareCache();
+  return { items: [] as Software[], sha };
+};
+
 export const fetchSoftwareDatasetFromGitHub = async (): Promise<{ items: Software[]; sha: string }> => {
   const config = await resolveGitHubConfig();
-  const payload = (await githubFetch(getFileUrl(DATA_PATH, config))) as GitHubContentResponse;
+  const url = getFileUrl(DATA_PATH, config);
+  const response = await githubFetchRaw(url);
+
+  if (response.status === 404) {
+    return createEmptyDatasetOnGitHub();
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`GitHub API request failed (${response.status}): ${errorBody}`);
+  }
+
+  const payload = (await response.json()) as GitHubContentResponse;
   const raw = decodeContent(payload);
   const parsed = JSON.parse(raw);
 
