@@ -303,6 +303,36 @@ export const SettingsAdminPanel = () => {
                       return;
                     }
 
+                    const payload = (await response.json().catch(() => ({}))) as { config?: unknown };
+                    const config = payload?.config ?? {
+                      github: {
+                        owner: localConfig.githubOwner || undefined,
+                        repo: localConfig.githubRepo || undefined,
+                        token: localConfig.githubToken || undefined,
+                        branch: localConfig.githubBranch || undefined,
+                        repoUrl: localConfig.githubRepoUrl || undefined,
+                      },
+                      supabase: {
+                        url: localConfig.supabaseUrl || undefined,
+                        anonKey: localConfig.supabaseAnonKey || undefined,
+                        serviceRoleKey: localConfig.supabaseServiceRoleKey || undefined,
+                      },
+                      vercel: {
+                        token: localConfig.vercelToken || undefined,
+                        projectId: localConfig.vercelProjectId || undefined,
+                        teamId: localConfig.vercelTeamId || undefined,
+                        deployHookUrl: localConfig.vercelDeployHookUrl || undefined,
+                      },
+                    };
+
+                    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "soft-hub-admin-config.json";
+                    a.click();
+                    URL.revokeObjectURL(url);
+
                     setConfigStatus("saved");
                     setTimeout(() => setConfigStatus("idle"), 1200);
                   } catch {
