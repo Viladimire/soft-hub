@@ -2,11 +2,15 @@ import staticSoftwareDataset from "@/lib/data/static-software-dataset.json";
 import type { FilteredSoftwareOptions } from "@/lib/services/softwareService";
 import type { Software, SoftwareCategory, SoftwareType } from "@/lib/types/software";
 
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
+
 const DATA_BASE_ENV = process.env.NEXT_PUBLIC_SOFTWARE_DATA_URL_BASE ?? process.env.NEXT_PUBLIC_DATA_BASE_URL ?? "";
 const DATA_FILENAME = "software/index.json";
 const DEFAULT_REMOTE_BASE = "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/data";
 
 let datasetPromise: Promise<Software[]> | null = null;
+
+const isProductionBuild = process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
 
 const sanitizeBaseUrl = (value: string) => value.replace(/\/+$/, "");
 
@@ -204,11 +208,7 @@ const loadLocalDataset = () => {
 const loadDataset = async () => {
   // Never rely on a remote dataset for build-time/static generation.
   // Otherwise a misconfigured env/base URL can shrink the dataset and cause 404s for most slugs.
-  if (typeof window === "undefined") {
-    return loadLocalDataset();
-  }
-
-  if (!DATA_BASE_ENV) {
+  if (typeof window === "undefined" && isProductionBuild) {
     return loadLocalDataset();
   }
 

@@ -2,13 +2,17 @@ import staticCollectionsDataset from "@/lib/data/static-collections-dataset.json
 import { fetchStaticSoftwareDataset } from "@/lib/services/staticSoftwareRepository";
 import type { Collection, CollectionItem, CollectionSummary } from "@/lib/types/collection";
 
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
+
 const COLLECTIONS_DATA_BASE = process.env.NEXT_PUBLIC_COLLECTIONS_DATA_URL_BASE ?? process.env.NEXT_PUBLIC_DATA_BASE_URL ?? "";
 const COLLECTIONS_FILENAME = "collections/index.json";
-const DEFAULT_REMOTE_BASE = "https://raw.githubusercontent.com/Viladimire/soft-hub/main/public/data";
+const DEFAULT_REMOTE_BASE = "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/data";
 
 const STABLE_NOW_ISO = "2024-01-01T00:00:00.000Z";
 
 let collectionsPromise: Promise<Collection[]> | null = null;
+
+const isProductionBuild = process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
 
 const sanitizeBaseUrl = (value: string) => value.replace(/\/+$/, "");
 
@@ -129,14 +133,19 @@ const loadLocalCollections = () => {
 };
 
 const loadCollectionsDataset = async () => {
-  if (!COLLECTIONS_DATA_BASE) {
+  // Never rely on a remote dataset for build-time/static generation.
+  // Otherwise a misconfigured env/base URL can shrink the dataset and cause 404s for most slugs.
+  if (typeof window === "undefined" && isProductionBuild) {
     return loadLocalCollections();
   }
 
   const url = resolveCollectionsUrl();
 
   try {
-    const response = await fetch(url, { cache: "no-store" });
+    const response = await fetch(url, {
+      cache: "force-cache",
+      next: { revalidate: 60 * 60 },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch collections dataset from ${url} (status ${response.status})`);
