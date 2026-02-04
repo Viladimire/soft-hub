@@ -69,7 +69,7 @@ export const GET = async (request: NextRequest) => {
       );
 
       return NextResponse.json(result);
-    } catch (error) {
+    } catch {
       // Chunk fallback supports latest ordering. For non-latest sorts, still return latest-ordered matches.
       const fallback = await filterStaticSoftwareViaChunks({
         query,

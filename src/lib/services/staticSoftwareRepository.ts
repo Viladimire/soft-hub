@@ -538,7 +538,6 @@ export const queryStaticSoftware = async (
   if (isPureLatest) {
     const meta = await fetchLatestMeta();
     if (meta && meta.perPage === perPage && page >= 1) {
-      const from = (page - 1) * perPage;
       const totalPages = Math.ceil(meta.total / perPage);
       const safePage = Math.min(page, Math.max(totalPages, 1));
       const safeFrom = (safePage - 1) * perPage;

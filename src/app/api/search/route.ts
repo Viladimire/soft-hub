@@ -83,7 +83,7 @@ export const GET = async (request: NextRequest) => {
       );
 
       return NextResponse.json(result);
-    } catch (error) {
+    } catch {
       const fallback = await searchStaticSoftwareViaChunks({ query, page, perPage, maxChunksToScan: 25 });
       return NextResponse.json(fallback);
     }
