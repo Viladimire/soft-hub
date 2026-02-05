@@ -7,6 +7,7 @@ import {
   deleteSoftwareFromGitHub,
   fetchSoftwareDatasetFromGitHub,
   GitHubConfigError,
+  publishLatestSoftwarePagesToGitHub,
   saveSoftwareToGitHub,
 } from "@/lib/services/github/softwareDataStore";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -213,6 +214,13 @@ export const POST = async (request: NextRequest) => {
 
     await saveSoftwareToGitHub(record);
 
+    try {
+      await publishLatestSoftwarePagesToGitHub();
+    } catch (error) {
+      console.error("Failed to publish latest software pages (best effort)", error);
+      warnings.push("Saved to GitHub, but failed to publish latest pages.");
+    }
+
     // Supabase sync is optional (best-effort)
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       if (previousSlug && previousSlug !== record.slug) {
@@ -256,6 +264,13 @@ export const DELETE = async (request: NextRequest) => {
 
     // GitHub is the source of truth
     await deleteSoftwareFromGitHub(validatedSlug);
+
+    try {
+      await publishLatestSoftwarePagesToGitHub();
+    } catch (error) {
+      console.error("Failed to publish latest software pages after delete (best effort)", error);
+      warnings.push("Deleted from GitHub, but failed to publish latest pages.");
+    }
 
     // Supabase delete is optional (best-effort)
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
