@@ -1371,6 +1371,9 @@ export const SoftwareAdminPanel = () => {
       const incomingFeatures = sanitizeFeaturesText((picked.features ?? []).join("\n"));
       const incomingMinReq = (picked.requirements?.minimum ?? []).join("\n");
       const incomingRecReq = (picked.requirements?.recommended ?? []).join("\n");
+      const incomingSize = typeof picked.sizeInMb === "number" && Number.isFinite(picked.sizeInMb) && picked.sizeInMb > 0
+        ? String(Math.round(picked.sizeInMb * 10) / 10)
+        : "";
 
       const applyText = (current: string, incoming: string) => {
         if (strategy === "replace") return incoming || current;
@@ -1391,6 +1394,18 @@ export const SoftwareAdminPanel = () => {
         }
         if (state.developerJson.trim()) return state.developerJson;
         return picked.developer?.trim() ? JSON.stringify({ name: picked.developer.trim(), source: "scrape" }, null, 2) : state.developerJson;
+      })();
+
+      const nextSizeInMb = (() => {
+        if (!incomingSize) return state.sizeInMb;
+        if (strategy === "replace") return incomingSize;
+
+        const currentNumeric = parseNumber(state.sizeInMb, 0);
+        const isDefaultPlaceholder = state.sizeInMb === "250";
+        if ((Number.isFinite(currentNumeric) && currentNumeric > 0 && !isDefaultPlaceholder) || state.sizeInMb.trim()) {
+          return state.sizeInMb;
+        }
+        return incomingSize;
       })();
 
       return {
@@ -1419,6 +1434,7 @@ export const SoftwareAdminPanel = () => {
             : state.gallery.trim()
               ? state.gallery
               : uniqueByValue((picked.screenshots ?? []).filter(Boolean)).join("\n"),
+        sizeInMb: nextSizeInMb,
         features: applyLines(state.features, incomingFeatures),
         minRequirements: applyLines(state.minRequirements, incomingMinReq),
         recRequirements: applyLines(state.recRequirements, incomingRecReq),
