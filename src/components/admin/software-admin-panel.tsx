@@ -184,6 +184,8 @@ type BulkEditState = {
   platforms: Platform[];
 };
 
+const uniqueByValue = <T,>(items: T[]) => Array.from(new Set(items));
+
 const toFormState = (software: Software): FormState => {
   const sizeInMb = software.sizeInBytes ? (software.sizeInBytes / (1024 * 1024)).toString() : "0";
   const gallery = software.media.gallery.join("\n");
