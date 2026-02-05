@@ -32,8 +32,31 @@ export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
 
       <TabsContent value="about">
         <Card className="border-white/10 bg-white/5">
-          <CardContent className="space-y-3 p-6 text-sm leading-7 text-neutral-200">
-            <p>{software.description}</p>
+          <CardContent className="space-y-6 p-6 text-sm leading-7 text-neutral-200">
+            {software.summary ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Description</p>
+                <p className="text-neutral-200">{software.summary}</p>
+              </div>
+            ) : null}
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Details</p>
+              <p className="text-neutral-200">{software.description}</p>
+            </div>
+
+            {software.features?.length ? (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Key features</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {software.features.slice(0, 10).map((feature) => (
+                    <div key={feature} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6">
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </TabsContent>
