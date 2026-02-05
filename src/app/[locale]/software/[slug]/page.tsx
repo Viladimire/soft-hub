@@ -165,18 +165,24 @@ export default async function SoftwareDetailPage({
   } as const;
 
   return (
-    <AppShell sidebar={<SideBar />} className="pt-12">
+    <AppShell
+      sidebar={
+        <div className="space-y-6">
+          <DownloadCard software={software} locale={locale} />
+          <SideBar />
+        </div>
+      }
+      sidebarClassName="max-w-[360px] xl:w-[360px]"
+      className="pt-12"
+    >
       <article className="space-y-10">
         <JsonLd data={jsonLd} />
         <AnalyticsTracker softwareId={software.id} />
         <SoftwareHeader software={software} />
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-          <div className="space-y-6">
-            <SoftwareGallery software={software} />
-            <SoftwareDetailsTabs software={software} />
-          </div>
-          <DownloadCard software={software} locale={locale} />
+        <section className="space-y-6">
+          <SoftwareGallery software={software} />
+          <SoftwareDetailsTabs software={software} />
         </section>
 
         <RelatedSoftware items={related} />

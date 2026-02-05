@@ -15,11 +15,19 @@ export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
 
   return (
     <Tabs defaultValue="about" className="space-y-4">
-      <TabsList className="bg-white/5">
-        <TabsTrigger value="about">About</TabsTrigger>
-        <TabsTrigger value="requirements">Requirements</TabsTrigger>
-        <TabsTrigger value="changelog">Changelog</TabsTrigger>
-        <TabsTrigger value="versions">Versions</TabsTrigger>
+      <TabsList className="h-auto flex-wrap justify-start gap-2 bg-white/5 p-2">
+        <TabsTrigger value="about" className="min-w-0 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">
+          About
+        </TabsTrigger>
+        <TabsTrigger value="requirements" className="min-w-0 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">
+          Requirements
+        </TabsTrigger>
+        <TabsTrigger value="changelog" className="min-w-0 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">
+          Changelog
+        </TabsTrigger>
+        <TabsTrigger value="versions" className="min-w-0 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">
+          Versions
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="about">

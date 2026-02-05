@@ -89,7 +89,7 @@ export const SideBar = () => {
   const trendingEmptyMessage = t("trending.empty");
 
   return (
-    <aside className="space-y-6">
+    <div className="space-y-6">
       <Card className="glass-card border-black/10 bg-white/70 dark:border-white/10 dark:bg-neutral-950/70">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
@@ -177,6 +177,6 @@ export const SideBar = () => {
           {loadingTrending ? <Skeleton className="h-12" shimmer={false} /> : null}
         </CardContent>
       </Card>
-    </aside>
+    </div>
   );
 };

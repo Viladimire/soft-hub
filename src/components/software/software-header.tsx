@@ -57,7 +57,7 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-white/10 bg-white/5">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs text-neutral-400">{t("stats.version")}</p>

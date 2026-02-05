@@ -61,7 +61,15 @@ const ensureAuthorized = (request: NextRequest) => {
 
 const handleError = (error: unknown, fallbackMessage: string) => {
   if (error instanceof GitHubConfigError) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    const message = error.message || fallbackMessage;
+    const status =
+      message.includes("Missing GitHub configuration values") ||
+      message.includes("ADMIN_API_SECRET is not configured") ||
+      message.includes("Supabase URL is missing") ||
+      message.includes("service role")
+        ? 501
+        : 500;
+    return NextResponse.json({ message }, { status });
   }
 
   if (error instanceof z.ZodError) {

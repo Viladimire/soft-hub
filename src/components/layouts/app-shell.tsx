@@ -11,9 +11,10 @@ type AppShellProps = {
   sidebar?: ReactNode;
   children: ReactNode;
   className?: string;
+  sidebarClassName?: string;
 };
 
-export const AppShell = ({ hero, sidebar, children, className }: AppShellProps) => {
+export const AppShell = ({ hero, sidebar, children, className, sidebarClassName }: AppShellProps) => {
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -28,7 +29,7 @@ export const AppShell = ({ hero, sidebar, children, className }: AppShellProps) 
         >
           <div className={cn("flex-1 space-y-8", sidebar ? "xl:pr-6" : "")}>{children}</div>
           {sidebar ? (
-            <aside className="w-full max-w-xs space-y-6 xl:sticky xl:top-28 xl:block">
+            <aside className={cn("w-full max-w-xs space-y-6 xl:sticky xl:top-28 xl:block", sidebarClassName)}>
               {sidebar}
             </aside>
           ) : null}

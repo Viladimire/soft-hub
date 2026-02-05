@@ -16,7 +16,7 @@ export const DownloadCard = ({ software, locale }: { software: Software; locale:
   const t = useTranslations("pages.softwareDetail.downloadCard");
 
   return (
-    <Card className="border-white/10 bg-white/5 lg:sticky lg:top-24">
+    <Card className="border-white/10 bg-white/5">
       <CardContent className="space-y-4 p-4 sm:p-6">
         <Button asChild variant="primary" className="w-full gap-2 rounded-2xl py-5 text-sm sm:py-6">
           <Link
