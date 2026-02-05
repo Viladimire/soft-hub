@@ -208,6 +208,7 @@ const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
 const payloadSchema = z.object({
   url: z.string().url(),
   englishMode: z.enum(["soft", "strict"]).optional(),
+  searchByName: z.boolean().optional(),
 });
 
 type ScrapeResult = {
@@ -346,6 +347,86 @@ const resolveUrl = (base: URL, candidate: string) => {
 };
 
 const uniqueUrls = (items: string[]) => Array.from(new Set(items.map((v) => v.trim()).filter(Boolean)));
+
+const decodeDuckDuckGoRedirect = (href: string) => {
+  try {
+    const url = new URL(href);
+    const uddg = url.searchParams.get("uddg");
+    if (uddg) return decodeURIComponent(uddg);
+    return "";
+  } catch {
+    return "";
+  }
+};
+
+const extractDuckDuckGoResultUrls = (html: string) => {
+  const urls: string[] = [];
+  const rx = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = rx.exec(html))) {
+    const href = (m[1] ?? "").trim();
+    if (!href) continue;
+    if (href.startsWith("/")) continue;
+    if (!href.startsWith("http")) continue;
+
+    const decoded = decodeDuckDuckGoRedirect(href);
+    const candidate = decoded || href;
+    if (!candidate.startsWith("http")) continue;
+    urls.push(candidate);
+    if (urls.length >= 25) break;
+  }
+
+  return uniqueUrls(urls)
+    .filter((u) => {
+      try {
+        const host = new URL(u).hostname.toLowerCase();
+        if (!host) return false;
+        if (host.includes("duckduckgo.com")) return false;
+        if (host.includes("google.com")) return false;
+        if (host.includes("bing.com")) return false;
+        return true;
+      } catch {
+        return false;
+      }
+    })
+    .slice(0, 6);
+};
+
+const fetchSearchResultsByName = async (query: string) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6_000);
+  try {
+    const searchUrl = new URL("https://duckduckgo.com/html/");
+    searchUrl.searchParams.set("q", query);
+    const res = await fetch(searchUrl.toString(), {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "user-agent": "soft-hub-scraper/1.0",
+        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+      },
+      signal: controller.signal,
+    });
+    if (!res.ok) return [] as string[];
+    const html = await res.text();
+    return extractDuckDuckGoResultUrls(html);
+  } catch {
+    return [] as string[];
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const extractSupplementalTextFromHtml = (html: string) => {
+  const contentHtml = extractMainContentHtml(html) || html;
+  const lines = htmlToTextLines(contentHtml);
+  const overview = extractOverviewText(lines);
+  const features = extractFeaturesList(lines);
+  return {
+    overview,
+    features,
+  };
+};
 
 const isFaviconUrl = (raw: string) => {
   try {
@@ -1260,6 +1341,46 @@ export const POST = async (request: NextRequest) => {
     const html = await fetchHtml(targetUrl);
     const mode = payload.englishMode ?? "soft";
     const data = await toScrapeResult(targetUrl, html, mode);
+
+    const shouldSearchByName = payload.searchByName !== false;
+    const isWeakDescription = !data.description || data.description.length < 280;
+    const isMissingFeatures = !data.features?.length;
+
+    if (shouldSearchByName && (isWeakDescription || isMissingFeatures) && data.name) {
+      const query = `${data.name} features overview`;
+      const urls = await fetchSearchResultsByName(query);
+
+      const supplementalOverviews: string[] = [];
+      const supplementalFeatures: string[] = [];
+
+      for (const raw of urls.slice(0, 3)) {
+        try {
+          const allowed = assertUrlAllowed(raw);
+          const pageHtml = await fetchHtmlLight(allowed);
+          if (!pageHtml) continue;
+
+          const { overview, features } = extractSupplementalTextFromHtml(pageHtml);
+          if (overview && overview.length >= 80) supplementalOverviews.push(overview);
+          if (features.length) supplementalFeatures.push(...features);
+        } catch {
+          // ignore
+        }
+      }
+
+      const bestOverview = supplementalOverviews.sort((a, b) => b.length - a.length)[0] ?? "";
+      const mergedFeatures = uniqueUrls(supplementalFeatures)
+        .map((line) => applyEnglishModeToText(line, mode) || line)
+        .filter(Boolean)
+        .slice(0, 30);
+
+      if (isWeakDescription && bestOverview) {
+        data.description = clampText(stripBranding(bestOverview), 1200);
+      }
+
+      if (isMissingFeatures && mergedFeatures.length) {
+        data.features = mergedFeatures;
+      }
+    }
 
     return NextResponse.json(data);
   } catch (error) {
