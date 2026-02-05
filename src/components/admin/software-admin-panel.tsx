@@ -176,6 +176,8 @@ type ScrapeResponse = {
   screenshots: string[];
 };
 
+type ScrapeApplyStrategy = "fill" | "replace" | "append";
+
 type BulkEditState = {
   isFeatured?: boolean;
   categories: SoftwareCategory[];
@@ -621,6 +623,7 @@ export const SoftwareAdminPanel = () => {
   const [hasEditedSlug, setHasEditedSlug] = useState(false);
   const [officialUrl, setOfficialUrl] = useState("");
   const [isScraping, setIsScraping] = useState(false);
+  const [scrapePreview, setScrapePreview] = useState<ScrapeResponse | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -1310,112 +1313,19 @@ export const SoftwareAdminPanel = () => {
         );
       }
 
-      setFormState((state) => {
-        const cleanedScreens = (uploadedScreens ?? []).map((item) => item.url).filter(Boolean);
-        const fallbackGallery = cleanedScreens.length
-          ? cleanedScreens.join("\n")
-          : normalizedScreenshots.slice(0, 3).join("\n");
-        const nextGallery = state.gallery.trim() ? state.gallery : fallbackGallery;
+      const cleanedScreens = (uploadedScreens ?? []).map((item) => item.url).filter(Boolean);
+      const fallbackGallery = cleanedScreens.length
+        ? cleanedScreens
+        : normalizedScreenshots.slice(0, 3);
 
-        const resolvedHero = state.heroImage.trim() ? state.heroImage : (uploadedHero.url || nextHeroImage || state.heroImage);
-        const resolvedLogo = state.logoUrl.trim() ? state.logoUrl : (uploadedLogo.url || nextLogoUrl || state.logoUrl);
-
-        const nextDownloads =
-          parseNumber(state.statsDownloads, 0) > 0
-            ? state.statsDownloads
-            : typeof data.downloads === "number" && Number.isFinite(data.downloads) && data.downloads > 0
-              ? String(Math.floor(data.downloads))
-              : state.statsDownloads;
-
-        const nextDeveloperJson = state.developerJson.trim()
-          ? state.developerJson
-          : data.developer?.trim()
-            ? JSON.stringify({ name: data.developer.trim(), source: "scrape" }, null, 2)
-            : state.developerJson;
-
-        const nextMinReq = state.minRequirements.trim()
-          ? state.minRequirements
-          : data.requirements?.minimum?.length
-            ? data.requirements.minimum.join("\n")
-            : state.minRequirements;
-
-        const nextRecReq = state.recRequirements.trim()
-          ? state.recRequirements
-          : data.requirements?.recommended?.length
-            ? data.requirements.recommended.join("\n")
-            : state.recRequirements;
-
-        const today = new Date().toISOString().slice(0, 10);
-        const normalizeDate = (raw: string) => {
-          const trimmed = raw.trim();
-          if (!trimmed) return "";
-          if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-          const parsed = new Date(trimmed);
-          return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
-        };
-        const scrapedDate = data.releaseDate ? normalizeDate(data.releaseDate) : "";
-
-        const changelogJson = (() => {
-          if (state.changelogJson.trim()) return state.changelogJson;
-          const version = (state.version.trim() && state.version !== "1.0.0")
-            ? state.version
-            : (data.version?.trim() || state.version);
-          const dateIso = new Date((scrapedDate || state.releaseDate || today).trim() || today).toISOString();
-          const entry = {
-            version: version || "1.0.0",
-            date: dateIso,
-            highlights: ["Imported from official website", "Media assets watermarked automatically"],
-          };
-          return JSON.stringify([entry], null, 2);
-        })();
-
-        const nextSizeInMb =
-          parseNumber(state.sizeInMb, 0) > 0 && state.sizeInMb !== "250"
-            ? state.sizeInMb
-            : typeof data.sizeInMb === "number" && Number.isFinite(data.sizeInMb) && data.sizeInMb > 0
-              ? String(Math.round(data.sizeInMb * 10) / 10)
-              : state.sizeInMb;
-
-        const nextPlatforms: Platform[] = state.platforms.length ? state.platforms : (["windows"] as Platform[]);
-        const nextCategories: SoftwareCategory[] = state.categories.length
-          ? state.categories
-          : (["software"] as SoftwareCategory[]);
-
-        const nextFeatures = state.features.trim()
-          ? state.features
-          : data.features?.length
-            ? sanitizeFeaturesText(data.features.join("\n"))
-            : state.features;
-
-        return {
-          ...state,
-          name: state.name.trim() ? state.name : (data.name ?? state.name),
-          summary: state.summary.trim() ? state.summary : (data.summary ?? state.summary),
-          description: state.description.trim() ? state.description : (data.description ?? state.description),
-          version:
-            state.version.trim() && state.version !== "1.0.0" ? state.version : (data.version?.trim() || state.version),
-          releaseDate:
-            state.releaseDate.trim() && state.releaseDate !== today ? state.releaseDate : (scrapedDate || state.releaseDate),
-          sizeInMb: nextSizeInMb,
-          statsDownloads: nextDownloads,
-          developerJson: nextDeveloperJson,
-          minRequirements: nextMinReq,
-          recRequirements: nextRecReq,
-          features: nextFeatures,
-          logoUrl: resolvedLogo,
-          heroImage: resolvedHero,
-          gallery: nextGallery,
-          platforms: nextPlatforms,
-          categories: nextCategories,
-          changelogJson,
-        };
+      setScrapePreview({
+        ...data,
+        heroImage: uploadedHero.url || nextHeroImage || data.heroImage,
+        logoUrl: uploadedLogo.url || nextLogoUrl || data.logoUrl,
+        screenshots: uniqueByValue([...(fallbackGallery ?? []), ...(data.screenshots ?? [])]).filter(Boolean).slice(0, 6),
       });
 
-      if (!formState.name.trim() && data.name?.trim()) {
-        await ensureUniqueSlug(data.name);
-      }
-
-      pushNotification("success", "Website data fetched — review before saving");
+      pushNotification("success", "Website data fetched — preview is ready");
     } catch (err) {
       pushNotification("error", err instanceof Error ? err.message : "Failed to scrape website data");
       if ((err as RequestError).status === 401) {
@@ -1423,6 +1333,96 @@ export const SoftwareAdminPanel = () => {
       }
     } finally {
       setIsScraping(false);
+    }
+  };
+
+  const applyScrapePreviewToForm = async (strategy: ScrapeApplyStrategy) => {
+    if (!scrapePreview) return;
+
+    const picked = scrapePreview;
+    const today = new Date().toISOString().slice(0, 10);
+    const normalizeDate = (raw: string) => {
+      const trimmed = raw.trim();
+      if (!trimmed) return "";
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+      const parsed = new Date(trimmed);
+      return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+    };
+    const scrapedDate = picked.releaseDate ? normalizeDate(picked.releaseDate) : "";
+
+    const mergeLines = (existing: string, incoming: string) => {
+      const base = existing
+        .split("\n")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      const add = incoming
+        .split("\n")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      return uniqueByValue([...base, ...add]).join("\n");
+    };
+
+    setFormState((state) => {
+      const incomingFeatures = sanitizeFeaturesText((picked.features ?? []).join("\n"));
+      const incomingMinReq = (picked.requirements?.minimum ?? []).join("\n");
+      const incomingRecReq = (picked.requirements?.recommended ?? []).join("\n");
+
+      const applyText = (current: string, incoming: string) => {
+        if (strategy === "replace") return incoming || current;
+        if (strategy === "append") return current.trim() ? current : incoming;
+        return current.trim() ? current : incoming;
+      };
+
+      const applyLines = (current: string, incoming: string) => {
+        if (!incoming.trim()) return current;
+        if (strategy === "replace") return incoming;
+        if (strategy === "append") return mergeLines(current, incoming);
+        return current.trim() ? current : incoming;
+      };
+
+      const nextDeveloperJson = (() => {
+        if (strategy === "replace") {
+          return picked.developer?.trim() ? JSON.stringify({ name: picked.developer.trim(), source: "scrape" }, null, 2) : state.developerJson;
+        }
+        if (state.developerJson.trim()) return state.developerJson;
+        return picked.developer?.trim() ? JSON.stringify({ name: picked.developer.trim(), source: "scrape" }, null, 2) : state.developerJson;
+      })();
+
+      return {
+        ...state,
+        name: strategy === "replace" ? (picked.name ?? state.name) : (state.name.trim() ? state.name : (picked.name ?? state.name)),
+        summary: applyText(state.summary, picked.summary ?? ""),
+        description: applyText(state.description, picked.description ?? ""),
+        websiteUrl: applyText(state.websiteUrl, picked.websiteUrl ?? ""),
+        version:
+          strategy === "replace"
+            ? (picked.version?.trim() || state.version)
+            : state.version.trim() && state.version !== "1.0.0"
+              ? state.version
+              : (picked.version?.trim() || state.version),
+        releaseDate:
+          strategy === "replace"
+            ? (scrapedDate || state.releaseDate)
+            : state.releaseDate.trim() && state.releaseDate !== today
+              ? state.releaseDate
+              : (scrapedDate || state.releaseDate),
+        logoUrl: strategy === "replace" ? (picked.logoUrl ?? state.logoUrl) : (state.logoUrl.trim() ? state.logoUrl : (picked.logoUrl ?? state.logoUrl)),
+        heroImage: strategy === "replace" ? (picked.heroImage ?? state.heroImage) : (state.heroImage.trim() ? state.heroImage : (picked.heroImage ?? state.heroImage)),
+        gallery:
+          strategy === "replace"
+            ? uniqueByValue((picked.screenshots ?? []).filter(Boolean)).join("\n")
+            : state.gallery.trim()
+              ? state.gallery
+              : uniqueByValue((picked.screenshots ?? []).filter(Boolean)).join("\n"),
+        features: applyLines(state.features, incomingFeatures),
+        minRequirements: applyLines(state.minRequirements, incomingMinReq),
+        recRequirements: applyLines(state.recRequirements, incomingRecReq),
+        developerJson: nextDeveloperJson,
+      };
+    });
+
+    if (!formState.name.trim() && picked.name?.trim()) {
+      await ensureUniqueSlug(picked.name);
     }
   };
 
@@ -1699,6 +1699,68 @@ export const SoftwareAdminPanel = () => {
                             {isScraping ? "Fetching..." : "Fetch website"}
                           </Button>
                         </div>
+
+                        {scrapePreview ? (
+                          <div className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-neutral-200">Scrape preview</p>
+                                <p className="text-xs text-neutral-400">Review the extracted fields, then apply.</p>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <Button type="button" variant="outline" className="border-white/15" onClick={() => void applyScrapePreviewToForm("fill")}>
+                                  Fill empty
+                                </Button>
+                                <Button type="button" variant="outline" className="border-white/15" onClick={() => void applyScrapePreviewToForm("append")}>
+                                  Append lists
+                                </Button>
+                                <Button type="button" className="bg-primary-500 text-white hover:bg-primary-400" onClick={() => void applyScrapePreviewToForm("replace")}>
+                                  Replace
+                                </Button>
+                                <Button type="button" variant="ghost" className="text-xs text-neutral-300" onClick={() => setScrapePreview(null)}>
+                                  Clear
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="grid gap-3 md:grid-cols-2">
+                              <div className="space-y-1">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Summary</p>
+                                <p className="text-sm leading-6 text-neutral-200 line-clamp-4">{scrapePreview.summary || "-"}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Website</p>
+                                <p className="break-all text-sm text-neutral-200 line-clamp-2">{scrapePreview.websiteUrl || "-"}</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Description</p>
+                              <p className="text-sm leading-6 text-neutral-200 line-clamp-6">{scrapePreview.description || "-"}</p>
+                            </div>
+
+                            <div className="grid gap-3 md:grid-cols-2">
+                              <div className="space-y-1">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Features</p>
+                                <p className="text-sm leading-6 text-neutral-200 line-clamp-6">
+                                  {(scrapePreview.features ?? []).slice(0, 10).join(" • ") || "-"}
+                                </p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Requirements</p>
+                                <p className="text-sm leading-6 text-neutral-200 line-clamp-6">
+                                  {[
+                                    ...(scrapePreview.requirements?.minimum ?? []),
+                                    ...(scrapePreview.requirements?.recommended ?? []),
+                                  ]
+                                    .slice(0, 8)
+                                    .join(" • ") || "-"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+
                         {isSlugChecking ? <p className="text-xs text-neutral-500">Checking slug...</p> : null}
                       </div>
                       <div className="space-y-2">
