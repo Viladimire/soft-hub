@@ -1,3 +1,7 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
+import { isAdminRequestAuthorized, getAdminSecretOrThrow } from "@/lib/auth/admin-session";
+import net from "node:net";
 
 const extractAnchorHrefs = (html: string) => {
   const rx = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
@@ -199,10 +203,7 @@ const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
   };
 
   return resolveRecursive(baseUrl, html, 0);
-};import { NextResponse, type NextRequest } from "next/server";
-import { z } from "zod";
-import { isAdminRequestAuthorized, getAdminSecretOrThrow } from "@/lib/auth/admin-session";
-import net from "node:net";
+};
 
 const payloadSchema = z.object({
   url: z.string().url(),
@@ -674,6 +675,9 @@ const extractFeaturesList = (lines: string[]) => {
     [
       (line) => /^features\b/i.test(line),
       (line) => /\bfeatures of\b/i.test(line),
+      (line) => /\bkey\s+features\b/i.test(line),
+      (line) => /\bhighlights\b/i.test(line),
+      (line) => /\bwhat['’]?s\s+new\b/i.test(line),
     ],
     [
       (line) => /\bsystem requirements\b/i.test(line),
@@ -692,6 +696,17 @@ const extractFeaturesList = (lines: string[]) => {
     .slice(0, 30);
 
   return uniqueUrls(features);
+};
+
+const extractMainContentHtml = (html: string) => {
+  const candidates: string[] = [];
+  const mainMatch = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
+  if (mainMatch?.[1]) candidates.push(mainMatch[1]);
+  const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
+  if (articleMatch?.[1]) candidates.push(articleMatch[1]);
+
+  const best = candidates.sort((a, b) => b.length - a.length)[0] ?? "";
+  return best && best.length > 800 ? best : "";
 };
 
 const normalizeReleaseDateToIso = (raw: string) => {
@@ -1054,7 +1069,8 @@ const fetchHtml = async (url: URL) => {
 };
 
 const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | "strict"): Promise<ScrapeResult> => {
-  const rawLines = htmlToTextLines(html);
+  const contentHtml = extractMainContentHtml(html) || html;
+  const rawLines = htmlToTextLines(contentHtml);
 
   const ogTitle = extractMeta(html, { attr: "property", value: "og:title" });
   const ogDesc = extractMeta(html, { attr: "property", value: "og:description" });
@@ -1080,12 +1096,16 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
   const lines = sliceAfterTitle(rawLines, h1 || title || name);
 
   const paragraph = extractFirstParagraph(html);
-  const resolvedDescription = ogDesc || twDesc || jsonLdData.description || metaDesc || paragraph;
+  const resolvedSummary = ogDesc || twDesc || metaDesc || jsonLdData.description || paragraph;
+  const resolvedDescription = jsonLdData.description || paragraph || metaDesc || ogDesc || twDesc;
 
   const overviewText = extractOverviewText(lines);
-  const descriptionText = overviewText || resolvedDescription;
-  const descriptionEnglish = applyEnglishModeToText(descriptionText, englishMode) || descriptionText;
-  const summaryEnglish = applyEnglishModeToText(descriptionText || resolvedDescription, englishMode) || (descriptionText || resolvedDescription);
+  const descriptionSource = overviewText || resolvedDescription || resolvedSummary;
+  const summarySource = resolvedSummary || overviewText || resolvedDescription;
+
+  const descriptionEnglish = applyEnglishModeToText(descriptionSource, englishMode) || descriptionSource;
+  const summaryEnglish = applyEnglishModeToText(summarySource, englishMode) || summarySource;
+
   const description = clampText(stripBranding(descriptionEnglish), 1200);
   const summary = clampText(stripBranding(summaryEnglish), 220);
 
