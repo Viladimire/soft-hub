@@ -50,8 +50,11 @@ export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Key features</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {software.features.slice(0, 10).map((feature) => (
-                    <div key={feature} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6">
-                      {feature}
+                    <div
+                      key={feature}
+                      className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs leading-5 text-neutral-200"
+                    >
+                      <p className="line-clamp-3">{feature}</p>
                     </div>
                   ))}
                 </div>
