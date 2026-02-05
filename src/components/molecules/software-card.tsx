@@ -41,7 +41,7 @@ const SoftwareCardImage = ({
   onError: () => void;
   alt: string;
 }) => (
-  <div className="relative h-36 w-full overflow-hidden">
+  <div className="relative h-32 w-full overflow-hidden">
     {heroImage ? (
       <Image
         src={heroImage}
@@ -101,7 +101,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       whileHover={{ y: -6 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "group relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
+        "group relative flex h-full min-h-[300px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
         "shadow-[0_18px_45px_rgba(3,7,18,0.45)] transition-all duration-300 hover:border-white/20 hover:bg-neutral-950/45 hover:shadow-[0_28px_80px_rgba(59,130,246,0.18)]",
         className,
       )}
@@ -120,17 +120,6 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
         fallbackIcon={<Monitor className="h-10 w-10 text-white/70" />}
         onError={() => setHeroErrored(true)}
       />
-
-      <div className="pointer-events-none absolute left-4 right-4 top-4 flex items-center justify-between gap-3 opacity-0 transition duration-300 group-hover:opacity-100">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
-          <Download className="h-3.5 w-3.5 text-indigo-200" />
-          {downloads}
-        </span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
-          <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-200" />
-          {software.stats.rating.toFixed(1)}
-        </span>
-      </div>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <header className="flex flex-col gap-3">
@@ -163,7 +152,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
         <section className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase text-white/85">
             {platforms.visible.map((platform) => (
-              <span key={platform} className="rounded-full bg-white/12 px-3 py-1">
+              <span key={platform} className="rounded-full bg-white/12 px-2.5 py-1">
                 {platform}
               </span>
             ))}
@@ -173,7 +162,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
               </span>
             ) : null}
             {software.sizeInBytes ? (
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-white/70">
+              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-white/70">
                 {formatBytes(software.sizeInBytes)}
               </span>
             ) : null}
