@@ -20,7 +20,14 @@ export const SoftwareGallery = ({ software }: { software: Software }) => {
     <div className="space-y-4">
       <div className="relative h-52 sm:h-64 lg:h-72 overflow-hidden rounded-3xl border border-white/10 bg-white/5">
         {activeSrc ? (
-          <Image src={activeSrc} alt={software.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 66vw" />
+          <Image
+            src={activeSrc}
+            alt={software.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 66vw"
+            unoptimized
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">No preview available</div>
         )}
@@ -40,7 +47,14 @@ export const SoftwareGallery = ({ software }: { software: Software }) => {
               )}
               aria-label={`Preview ${index + 1}`}
             >
-              <Image src={src} alt={`${software.name} preview ${index + 1}`} fill className="object-cover" sizes="200px" />
+              <Image
+                src={src}
+                alt={`${software.name} preview ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="200px"
+                unoptimized
+              />
             </button>
           ))}
         </div>

@@ -41,7 +41,7 @@ const SoftwareCardImage = ({
   onError: () => void;
   alt: string;
 }) => (
-  <div className="relative h-40 w-full overflow-hidden">
+  <div className="relative h-36 w-full overflow-hidden">
     {heroImage ? (
       <Image
         src={heroImage}
@@ -50,6 +50,7 @@ const SoftwareCardImage = ({
         className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         sizes="(max-width: 768px) 100vw, 33vw"
         loading="lazy"
+        unoptimized
         onError={onError}
       />
     ) : (
@@ -100,7 +101,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       whileHover={{ y: -6 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "group relative flex h-full min-h-[360px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
+        "group relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
         "shadow-[0_18px_45px_rgba(3,7,18,0.45)] transition-all duration-300 hover:border-white/20 hover:bg-neutral-950/45 hover:shadow-[0_28px_80px_rgba(59,130,246,0.18)]",
         className,
       )}
@@ -131,27 +132,28 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-5">
+      <div className="flex flex-1 flex-col gap-3 p-4">
         <header className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
               {logoImage ? (
                 <Image
                   src={logoImage}
                   alt={`${software.name} logo`}
                   fill
                   className="object-cover"
-                  sizes="48px"
+                  sizes="40px"
+                  unoptimized
                   onError={() => setLogoErrored(true)}
                 />
               ) : (
                 <Monitor className="absolute inset-0 m-auto h-6 w-6 text-white/70" />
               )}
             </div>
-            <h3 className="min-w-0 truncate text-base font-semibold text-white">{software.name}</h3>
+            <h3 className="min-w-0 truncate text-sm font-semibold text-white">{software.name}</h3>
           </div>
 
-          <p className="text-[13px] leading-5 text-neutral-300 line-clamp-2">{software.summary}</p>
+          <p className="text-[12px] leading-5 text-neutral-300 line-clamp-2">{software.summary}</p>
 
           <div className="flex flex-wrap items-center gap-2">
             <RatingBadge rating={software.stats.rating} reviewsLabel={t("reviewsLabel", { count: software.stats.votes })} />
@@ -188,24 +190,6 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
               <span>{t("updatedLabel")}</span>
             </span>
           </div>
-
-          {features.length ? (
-            <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-wide text-white/60">{t("featuresLabel")}</p>
-              <div className="flex flex-wrap gap-2">
-                {features.map((feature) => (
-                  <span key={feature} className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/85">
-                    {feature}
-                  </span>
-                ))}
-                {software.features.length > features.length ? (
-                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/60">
-                    {t("moreFeatures", { count: software.features.length - features.length })}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
         </section>
 
         {showActions ? (
