@@ -60,67 +60,6 @@
     ]
   },
   {
-    "id": "software-orbit-sync",
-    "slug": "orbit-sync",
-    "name": "Orbit Sync",
-    "summary": "Zero-trust file sync with edge encryption at scale",
-    "description": "Orbit Sync modernizes cloud file orchestration with per-object encryption, adaptive bandwidth controls, and an analytics cockpit for usage insights and governance.",
-    "version": "5.4.2",
-    "sizeInBytes": 335544320,
-    "platforms": [
-      "windows",
-      "mac",
-      "linux"
-    ],
-    "categories": [
-      "productivity",
-      "security"
-    ],
-    "type": "freemium",
-    "websiteUrl": "https://orbit-sync.io",
-    "downloadUrl": "https://downloads.orbit-sync.io/latest",
-    "isFeatured": true,
-    "releaseDate": "2023-11-01T00:00:00.000Z",
-    "updatedAt": "2024-10-22T00:00:00.000Z",
-    "createdAt": "2021-04-18T00:00:00.000Z",
-    "stats": {
-      "downloads": 254000,
-      "views": 480000,
-      "rating": 4.5,
-      "votes": 5400
-    },
-    "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1526378722484-bd91ca387e72?auto=format&fit=crop&w=160&q=80",
-      "gallery": [
-        "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1545239351-ef35f43d514b?auto=format&fit=crop&w=900&q=80"
-      ],
-      "heroImage": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80"
-    },
-    "requirements": {
-      "minimum": [
-        "Dual-core CPU",
-        "4 GB RAM",
-        "Broadband connection"
-      ],
-      "recommended": [
-        "Quad-core CPU",
-        "8 GB RAM",
-        "SSD storage"
-      ]
-    },
-    "changelog": [
-      {
-        "version": "5.4.0",
-        "date": "2024-07-15T00:00:00.000Z",
-        "highlights": [
-          "Edge deduplication",
-          "Adaptive throttling"
-        ]
-      }
-    ]
-  },
-  {
     "id": "software-sentinel-guard",
     "slug": "sentinel-guard",
     "name": "Sentinel Guard",
