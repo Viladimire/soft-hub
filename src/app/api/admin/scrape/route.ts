@@ -765,6 +765,9 @@ const extractFeaturesList = (lines: string[]) => {
       (line) => /\btechnical details\b/i.test(line),
       (line) => /\bproduct information\b/i.test(line),
       (line) => /\bdownload\b/i.test(line),
+      (line) => /\bprevious\s+version\b/i.test(line),
+      (line) => /\badditional\s+info\b/i.test(line),
+      (line) => /^\s*(?:file\s*name|version|date|downloads?)\b/i.test(line),
     ],
     80,
   );
@@ -774,6 +777,7 @@ const extractFeaturesList = (lines: string[]) => {
     .filter((line) => line.length >= 3)
     .filter((line) => !/^(features|feature)\b/i.test(line))
     .filter((line) => !/^adobe\b/i.test(line))
+    .filter((line) => !/\b(?:previous\s+version|additional\s+info|file\s*name|downloads?|multilingual|mirror)\b/i.test(line))
     .slice(0, 30);
 
   return uniqueUrls(features);
@@ -880,14 +884,34 @@ const extractRequirementsBlock = (lines: string[]) => {
   }
 
   const slice = lines.slice(startIndex + 1, startIndex + 40);
-  const stopIndex = slice.findIndex((line) => /^(download|related|more|screenshots?)\b/i.test(line));
+  const stopIndex = slice.findIndex((line) =>
+    /^(download|related|more|screenshots?|previous\s+version|versions?|changelog|release\s+notes)\b/i.test(line),
+  );
   const block = (stopIndex >= 0 ? slice.slice(0, stopIndex) : slice)
     .map((line) => line.replace(/^[-•\u2022\s]+/, "").trim())
     .filter((line) => line.length >= 3);
 
+  const isRequirementLine = (line: string) => {
+    const lower = line.toLowerCase();
+    if (!lower) return false;
+    if (/\b(?:previous\s+version|additional\s+info|downloads?|file\s*name|multilingual|language|mirror|crack|serial|patch)\b/i.test(lower)) {
+      return false;
+    }
+    if (/^\s*(?:date|version)\s*[:\-]/i.test(line)) return false;
+    if (/\b(?:system\s+requirements?|requirements?)\b/i.test(lower)) return false;
+    return /\b(?:supported\s+os|os|windows|mac|linux|android|ios|cpu|processor|intel|amd|ram|memory|vram|gpu|graphics|directx|opengl|disk|storage|space|free\s+hard\s+disk)\b/i.test(
+      lower,
+    );
+  };
+
+  const cleanedBlock = block
+    .filter(isRequirementLine)
+    .map((line) => line.replace(/\s*[-|–|—]\s*$/g, "").trim())
+    .filter(Boolean);
+
   const minimum: string[] = [];
   const recommended: string[] = [];
-  for (const line of block) {
+  for (const line of cleanedBlock) {
     if (/recommended/i.test(line)) {
       recommended.push(line);
     } else {
