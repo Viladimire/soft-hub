@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
   reactCompiler: true,
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
