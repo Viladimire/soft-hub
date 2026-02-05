@@ -23,7 +23,7 @@ const MAX_VISIBLE_PLATFORMS = 3;
 const MAX_FEATURES = 3;
 
 const RatingBadge = ({ rating, reviewsLabel }: { rating: number; reviewsLabel: string }) => (
-  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/90">
+  <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[11px] text-white/90">
     <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-200" />
     <span className="font-semibold">{rating.toFixed(1)}</span>
     <span className="text-[11px] text-white/70">{reviewsLabel}</span>
@@ -41,7 +41,7 @@ const SoftwareCardImage = ({
   onError: () => void;
   alt: string;
 }) => (
-  <div className="relative h-48 w-full overflow-hidden">
+  <div className="relative h-40 w-full overflow-hidden">
     {heroImage ? (
       <Image
         src={heroImage}
@@ -100,7 +100,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       whileHover={{ y: -6 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "group relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
+        "group relative flex h-full min-h-[360px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
         "shadow-[0_18px_45px_rgba(3,7,18,0.45)] transition-all duration-300 hover:border-white/20 hover:bg-neutral-950/45 hover:shadow-[0_28px_80px_rgba(59,130,246,0.18)]",
         className,
       )}
@@ -121,48 +121,44 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       />
 
       <div className="pointer-events-none absolute left-4 right-4 top-4 flex items-center justify-between gap-3 opacity-0 transition duration-300 group-hover:opacity-100">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
           <Download className="h-3.5 w-3.5 text-indigo-200" />
           {downloads}
         </span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-neutral-950/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-xl">
           <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-200" />
           {software.stats.rating.toFixed(1)}
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-6 p-6">
-        <header className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
+      <div className="flex flex-1 flex-col gap-4 p-5">
+        <header className="flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
               {logoImage ? (
                 <Image
                   src={logoImage}
                   alt={`${software.name} logo`}
                   fill
                   className="object-cover"
-                  sizes="56px"
+                  sizes="48px"
                   onError={() => setLogoErrored(true)}
                 />
               ) : (
                 <Monitor className="absolute inset-0 m-auto h-6 w-6 text-white/70" />
               )}
             </div>
-            <h3 className="min-w-0 truncate text-lg font-semibold text-white">{software.name}</h3>
+            <h3 className="min-w-0 truncate text-base font-semibold text-white">{software.name}</h3>
           </div>
 
-          <p className="text-sm text-neutral-300 line-clamp-2">{software.summary}</p>
+          <p className="text-[13px] leading-5 text-neutral-300 line-clamp-2">{software.summary}</p>
 
           <div className="flex flex-wrap items-center gap-2">
             <RatingBadge rating={software.stats.rating} reviewsLabel={t("reviewsLabel", { count: software.stats.votes })} />
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
-              <Download className="h-3.5 w-3.5 text-indigo-200" />
-              <span className="font-semibold">{downloads}</span>
-            </span>
           </div>
         </header>
 
-        <section className="space-y-4">
+        <section className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase text-white/85">
             {platforms.visible.map((platform) => (
               <span key={platform} className="rounded-full bg-white/12 px-3 py-1">
@@ -181,13 +177,12 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
             ) : null}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-xs text-white/70">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2 text-[11px] text-white/70">
             <span className="inline-flex items-center gap-2">
-              <Download className="h-4 w-4 text-indigo-200" />
+              <Download className="h-3.5 w-3.5 text-indigo-200" />
               <span className="font-semibold text-white/85">{downloads}</span>
               <span>{t("downloadsLabel")}</span>
             </span>
-            <span className="h-4 w-px bg-white/10" aria-hidden="true" />
             <span className="inline-flex items-center gap-2">
               <span className="font-semibold text-white/85">{releaseDate}</span>
               <span>{t("updatedLabel")}</span>
