@@ -14,6 +14,47 @@ const extractAnchorHrefs = (html: string) => {
   return Array.from(new Set(urls.map((v) => v.trim()).filter(Boolean)));
 };
 
+const classifyFromText = (text: string) => {
+  const lower = (text || "").toLowerCase();
+  const platforms = new Set<string>();
+  if (/\bwindows\b|\bwin\s*10\b|\bwin\s*11\b/.test(lower)) platforms.add("windows");
+  if (/\bmac\b|\bmacos\b|\bosx\b/.test(lower)) platforms.add("mac");
+  if (/\blinux\b|\bubuntu\b|\bdebian\b|\bfedora\b/.test(lower)) platforms.add("linux");
+  if (/\bandroid\b/.test(lower)) platforms.add("android");
+  if (/\bios\b|\bipad\b|\biphone\b/.test(lower)) platforms.add("ios");
+  if (/\bweb\b|\bbrowser\b|\bsaaS\b|\bcloud\b/.test(lower)) platforms.add("web");
+  if (platforms.size === 0) platforms.add("windows");
+
+  const categories = new Set<string>();
+  const add = (cat: string, rx: RegExp) => {
+    if (rx.test(lower)) categories.add(cat);
+  };
+  add("development", /\b(ide|sdk|developer|devops|kubernetes|docker|api|git|compiler|programming|code)\b/);
+  add("security", /\b(security|antivirus|vpn|firewall|malware|ransomware|encryption|pentest|zero[-\s]?trust)\b/);
+  add("productivity", /\b(productivity|notes|calendar|tasks|project|crm|email|workspace|collaboration)\b/);
+  add("multimedia", /\b(video|audio|music|photo|camera|editor|editing|render|stream|youtube|mp3|mp4)\b/);
+  add("utilities", /\b(utility|cleanup|driver|backup|restore|recovery|optimizer|system\s*care|winpe|tools?)\b/);
+  add("education", /\b(education|learn|course|students?|training|tutorial)\b/);
+  add("games", /\b(game|launcher|fps|rpg|steam)\b/);
+  add("operating-systems", /\b(os|operating\s*system|distro|linux\s*distro)\b/);
+  if (categories.size === 0) categories.add("software");
+
+  const type = (() => {
+    if (/\bopen\s*source\b|\bgpl\b|\bmit\b|\bapache\b/.test(lower)) return "open-source";
+    if (/\bfreeware\b|\bfree\b/.test(lower) && !/\btrial\b/.test(lower)) return "free";
+    if (/\bfremium\b/.test(lower)) return "freemium";
+    if (/\btrial\b|\bevaluation\b/.test(lower)) return "freemium";
+    if (/\bpaid\b|\bprice\b|\bsubscription\b|\blicense\b/.test(lower)) return "standard";
+    return "standard";
+  })();
+
+  return {
+    platforms: Array.from(platforms),
+    categories: Array.from(categories),
+    type,
+  };
+};
+
 const extractDownloadCandidateUrls = (html: string) => {
   const urls: string[] = [];
   urls.push(...extractAnchorHrefs(html));
@@ -216,6 +257,9 @@ type ScrapeResult = {
   summary: string;
   description: string;
   websiteUrl: string;
+  platforms?: string[];
+  categories?: string[];
+  type?: string;
   version?: string;
   releaseDate?: string;
   downloads?: number;
@@ -626,7 +670,7 @@ const extractPlainNumberSizeMbFromHtml = (html: string) => {
   // Examples:
   // <div class="download-size">632</div>
   // <span id="file-size">1200</span>
-  const elementRx = /<(?:div|span|p|strong|b|small)\b[^>]*(?:class|id)\s*=\s*(["'])[^"']*(?:download[-_\s]*size|file[-_\s]*size|filesize)[^"']*\1[^>]*>([\s\S]*?)<\/(?:div|span|p|strong|b|small)>/gi;
+  const elementRx = /<(?:div|span|p|strong|b|small)\b[^>]*(?:class|id)\s*=\s*(["'])[^"']*(?:download[-_\s]*size|file[-_\s]*size|filesize|size[-_\s]*mb|mb[-_\s]*size)[^"']*\1[^>]*>([\s\S]*?)<\/(?:div|span|p|strong|b|small)>/gi;
   let m: RegExpExecArray | null;
   while ((m = elementRx.exec(html))) {
     const inner = stripTags(m[2] ?? "").replace(/["']/g, "").trim();
@@ -642,7 +686,7 @@ const extractPlainNumberSizeMbFromHtml = (html: string) => {
       continue;
     }
 
-    const numMatch = inner.match(/^\s*(\d{1,6})\s*$/i);
+    const numMatch = inner.match(/^\s*(\d{1,6}(?:\.\d+)?)\s*$/i);
     if (!numMatch) continue;
     const value = Number(numMatch[1]);
     if (!Number.isFinite(value) || value <= 0) continue;
@@ -651,7 +695,7 @@ const extractPlainNumberSizeMbFromHtml = (html: string) => {
 
   // Also support patterns where "download-size" is used nearby without being on the element itself.
   // This is a conservative windowed scan to avoid confusing with downloads counters.
-  const nearbyRx = /download[-_\s]*size[\s\S]{0,120}?(\d{1,6})\b/gi;
+  const nearbyRx = /download[-_\s]*size[\s\S]{0,120}?(\d{1,6}(?:\.\d+)?)\b/gi;
   while ((m = nearbyRx.exec(html))) {
     const window = (m[0] ?? "").toLowerCase();
     if (isRequirementsContext(window)) continue;
@@ -1214,6 +1258,8 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
   const description = clampText(stripBranding(descriptionEnglish), 1200);
   const summary = clampText(stripBranding(summaryEnglish), 220);
 
+  const classification = classifyFromText([name, summary, description, rawLines.slice(0, 80).join(" ")].join(" \n"));
+
   const iconHref = extractLinkIcon(html);
 
   const iconCandidates = uniqueUrls([
@@ -1320,6 +1366,9 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
     summary,
     description,
     websiteUrl: baseUrl.toString(),
+    platforms: classification.platforms,
+    categories: classification.categories,
+    type: classification.type,
     version: clampText(versionFallback, 60) || undefined,
     releaseDate: normalizeReleaseDateToIso(clampText(releaseDateRaw ?? "", 80)) || undefined,
     downloads: downloads > 0 ? downloads : undefined,

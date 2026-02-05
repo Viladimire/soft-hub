@@ -161,6 +161,9 @@ type ScrapeResponse = {
   summary: string;
   description: string;
   websiteUrl: string;
+  platforms?: Platform[];
+  categories?: SoftwareCategory[];
+  type?: string;
   version?: string;
   releaseDate?: string;
   downloads?: number;
@@ -1420,6 +1423,24 @@ export const SoftwareAdminPanel = () => {
         minRequirements: applyLines(state.minRequirements, incomingMinReq),
         recRequirements: applyLines(state.recRequirements, incomingRecReq),
         developerJson: nextDeveloperJson,
+        platforms:
+          strategy === "replace"
+            ? (picked.platforms?.length ? picked.platforms : state.platforms)
+            : state.platforms.length
+              ? state.platforms
+              : (picked.platforms?.length ? picked.platforms : state.platforms),
+        categories:
+          strategy === "replace"
+            ? (picked.categories?.length ? picked.categories : state.categories)
+            : state.categories.length
+              ? state.categories
+              : (picked.categories?.length ? picked.categories : state.categories),
+        type:
+          strategy === "replace"
+            ? (picked.type && picked.type !== "standard" ? (picked.type as any) : state.type)
+            : state.type && state.type !== "standard"
+              ? state.type
+              : (picked.type ? (picked.type as any) : state.type),
       };
     });
 
