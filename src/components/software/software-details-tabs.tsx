@@ -48,16 +48,14 @@ export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
             {software.features?.length ? (
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Key features</p>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <ul className="space-y-2 text-[12px] leading-5 text-neutral-200 sm:text-[13px] sm:leading-5">
                   {software.features.slice(0, 10).map((feature) => (
-                    <div
-                      key={feature}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs leading-5 text-neutral-200 sm:text-sm sm:leading-6"
-                    >
-                      <p className="line-clamp-3 sm:line-clamp-none">{feature}</p>
-                    </div>
+                    <li key={feature} className="flex gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-primary-300/70" />
+                      <span className="line-clamp-2 sm:line-clamp-3">{feature}</span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             ) : null}
           </CardContent>
