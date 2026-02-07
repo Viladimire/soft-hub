@@ -70,7 +70,7 @@ const upsertBatchToSupabase = async (batch: Software[]) => {
   if (error) throw error;
 };
 
-export const POST = async (request: NextRequest) => {
+const handle = async (request: NextRequest) => {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
@@ -122,3 +122,7 @@ export const POST = async (request: NextRequest) => {
     return NextResponse.json({ message }, { status: 500 });
   }
 };
+
+ export const GET = async (request: NextRequest) => handle(request);
+
+ export const POST = async (request: NextRequest) => handle(request);
