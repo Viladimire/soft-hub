@@ -688,6 +688,15 @@ const pickBestSizeCandidate = (candidates: number[]) => {
 };
 
 const extractPlainNumberSizeMbFromHtml = (html: string) => {
+  {
+    const directRx = /<[^>]*\bclass\s*=\s*(["'])[^"']*\bdownload-size\b[^"']*\1[^>]*>\s*([0-9]{1,6}(?:\.[0-9]+)?)\s*(?:<[^>]*>\s*)*(kb|mb|gb|tb)\b/gi;
+    const match = directRx.exec(html);
+    if (match) {
+      const mb = parseSizeToMb(`${match[2]} ${match[3]}`);
+      if (isReasonableSizeInMb(mb)) return mb;
+    }
+  }
+
   const candidates: number[] = [];
 
   const pushCandidate = (value: number) => {
@@ -703,7 +712,11 @@ const extractPlainNumberSizeMbFromHtml = (html: string) => {
   const elementRx = /<(?:div|span|p|strong|b|small)\b[^>]*(?:class|id)\s*=\s*(["'])[^"']*(?:download[-_\s]*size|file[-_\s]*size|filesize|size[-_\s]*mb|mb[-_\s]*size)[^"']*\1[^>]*>([\s\S]*?)<\/(?:div|span|p|strong|b|small)>/gi;
   let m: RegExpExecArray | null;
   while ((m = elementRx.exec(html))) {
-    const inner = stripTags(m[2] ?? "").replace(/["']/g, "").trim();
+    const inner = stripTags(m[2] ?? "")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\u00a0/g, " ")
+      .replace(/["']/g, "")
+      .trim();
     if (!inner) continue;
 
     // Allow: 632 | 632 mb | 1.40 gb
