@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import secrets
 import sys
 import time
 from pathlib import Path
@@ -175,6 +176,20 @@ def trigger_deploy_hook(url: str) -> None:
         _ = resp.read()
 
 
+def post_json(url: str, *, payload: Optional[Dict[str, Any]] = None, timeout: int = 30) -> tuple[int, str]:
+    body = json.dumps(payload or {}).encode("utf-8")
+    req = Request(url, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    req.add_header("Accept", "application/json")
+    try:
+        with urlopen(req, timeout=timeout) as resp:
+            raw = resp.read()
+            return int(getattr(resp, "status", 200)), raw.decode("utf-8", errors="ignore")[:2000]
+    except HTTPError as e:
+        detail = e.read().decode("utf-8", errors="ignore") if hasattr(e, "read") else ""
+        return int(getattr(e, "code", 0) or 0), detail[:2000]
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Sync Vercel env vars and redeploy")
     parser.add_argument("--config-path", type=Path, required=True)
@@ -182,6 +197,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--site-url", default="https://soft-hub-alpha.vercel.app")
     parser.add_argument("--admin-secret-env", default="ADMIN_API_SECRET")
     parser.add_argument("--sleep-after-hook", type=int, default=10)
+    parser.add_argument("--run-cron-check", action="store_true")
     args = parser.parse_args(argv)
 
     cfg = read_json(args.config_path)
@@ -209,6 +225,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     supabase_anon = get_nested_str(cfg, "supabase", "anonKey")
     supabase_service = get_nested_str(cfg, "supabase", "serviceRoleKey")
 
+    cron_secret = os.environ.get("CRON_SECRET")
+    if not cron_secret:
+        cron_secret = secrets.token_urlsafe(32)
+
     # Keys to sync.
     to_sync: list[tuple[str, Optional[str]]] = [
         ("NEXT_PUBLIC_SITE_URL", args.site_url),
@@ -222,6 +242,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         ("NEXT_PUBLIC_SUPABASE_URL", supabase_url),
         ("NEXT_PUBLIC_SUPABASE_ANON_KEY", supabase_anon),
         ("SUPABASE_SERVICE_ROLE_KEY", supabase_service),
+        ("CRON_SECRET", cron_secret),
         # Optional Vercel vars used by some scripts
         ("VERCEL_PROJECT_ID", project_id),
     ]
@@ -256,6 +277,21 @@ def main(argv: Optional[list[str]] = None) -> int:
     print("✅ Synced env keys:")
     for k in changed:
         print(f"- {k}")
+
+    if args.run_cron_check:
+        print("🔎 Running cron endpoints check...")
+        publish_url = f"{args.site_url.rstrip('/')}/api/cron/publish?secret={cron_secret}"
+        sync_url = f"{args.site_url.rstrip('/')}/api/cron/sync-supabase?secret={cron_secret}"
+
+        status_p, body_p = post_json(publish_url, payload={"source": "sync_admin_env_and_redeploy"})
+        print(f"- publish: HTTP {status_p}")
+        if status_p >= 400:
+            print(body_p)
+
+        status_s, body_s = post_json(sync_url, payload={"source": "sync_admin_env_and_redeploy"})
+        print(f"- sync-supabase: HTTP {status_s}")
+        if status_s >= 400:
+            print(body_s)
 
     if not deploy_hook:
         print("⚠️ No deployHookUrl found; env synced but no redeploy triggered.")
