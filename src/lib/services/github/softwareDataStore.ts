@@ -5,6 +5,8 @@ import { invalidateStaticSoftwareCache } from "@/lib/services/staticSoftwareRepo
 import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
 
 const DATA_PATH = process.env.GITHUB_DATA_FILE_PATH ?? "public/data/software/index.json";
+const ITEMS_DIR = process.env.GITHUB_SOFTWARE_ITEMS_DIR ?? "public/data/software/items";
+const SKIP_INDEX_UPDATE = (process.env.GITHUB_SOFTWARE_SKIP_INDEX_UPDATE ?? "").toLowerCase() === "true";
 const COMMITTER_NAME = process.env.GITHUB_COMMITTER_NAME ?? "SOFT-HUB Bot";
 const COMMITTER_EMAIL = process.env.GITHUB_COMMITTER_EMAIL ?? "bot@soft-hub.local";
 
@@ -103,6 +105,26 @@ const githubFetchRaw = async (input: string, init?: RequestInit) => {
       ...(init?.headers ?? {}),
     },
     cache: "no-store",
+  });
+};
+
+const deleteFileFromGitHub = async (params: { path: string; message: string }) => {
+  const config = await resolveGitHubConfig();
+  const sha = await tryGetContentSha(params.path, config);
+  if (!sha) return;
+  const url = getContentUrl(params.path, config);
+
+  await githubFetch(url, {
+    method: "DELETE",
+    body: JSON.stringify({
+      message: params.message,
+      sha,
+      branch: config.branch,
+      committer: {
+        name: COMMITTER_NAME,
+        email: COMMITTER_EMAIL,
+      },
+    }),
   });
 };
 
@@ -248,6 +270,23 @@ const writeDatasetToGitHub = async ({ items, sha, action, slug }: WriteDatasetOp
   invalidateStaticSoftwareCache();
 };
 
+const getItemPath = (slug: string) => `${ITEMS_DIR}/${slug}.json`;
+
+const saveSoftwareItemToGitHub = async (software: Software) => {
+  await upsertTextFileToGitHub({
+    path: getItemPath(software.slug),
+    text: JSON.stringify(software, null, 2),
+    message: buildCommitMessage("chore: upsert software item", software.slug),
+  });
+};
+
+const deleteSoftwareItemFromGitHub = async (slug: string) => {
+  await deleteFileFromGitHub({
+    path: getItemPath(slug),
+    message: buildCommitMessage("chore: remove software item", slug),
+  });
+};
+
 type UpsertResult = {
   updated: Software;
   items: Software[];
@@ -291,20 +330,30 @@ const removeSoftware = (items: Software[], slug: string): RemoveResult => {
 };
 
 export const saveSoftwareToGitHub = async (software: Software) => {
-  const { items, sha } = await fetchSoftwareDatasetFromGitHub();
-  const { items: updatedItems } = upsertSoftware(items, software);
+  await saveSoftwareItemToGitHub(software);
 
-  await writeDatasetToGitHub({
-    items: updatedItems,
-    sha,
-    action: "chore: sync software",
-    slug: software.slug,
-  });
+  if (!SKIP_INDEX_UPDATE) {
+    const { items, sha } = await fetchSoftwareDatasetFromGitHub();
+    const { items: updatedItems } = upsertSoftware(items, software);
+
+    await writeDatasetToGitHub({
+      items: updatedItems,
+      sha,
+      action: "chore: sync software",
+      slug: software.slug,
+    });
+  }
 
   return software;
 };
 
 export const deleteSoftwareFromGitHub = async (slug: string) => {
+  await deleteSoftwareItemFromGitHub(slug);
+
+  if (SKIP_INDEX_UPDATE) {
+    return null;
+  }
+
   const { items, sha } = await fetchSoftwareDatasetFromGitHub();
   const { items: updatedItems, removed } = removeSoftware(items, slug);
 
