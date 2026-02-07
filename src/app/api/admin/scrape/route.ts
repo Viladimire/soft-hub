@@ -699,10 +699,18 @@ const pickBestSizeCandidate = (candidates: number[]) => {
 const extractPlainNumberSizeMbFromHtml = (html: string) => {
   {
     const directRx = /<[^>]*\bclass\s*=\s*(["'])[^"']*\bdownload-size\b[^"']*\1[^>]*>\s*([0-9]{1,6}(?:\.[0-9]+)?)\s*(?:<[^>]*>\s*)*(kb|mb|gb|tb)\b/gi;
-    const match = directRx.exec(html);
-    if (match) {
+    const directCandidates: number[] = [];
+    let match: RegExpExecArray | null;
+    while ((match = directRx.exec(html))) {
       const mb = parseSizeToMb(`${match[2]} ${match[3]}`);
-      if (isReasonableSizeInMb(mb)) return mb;
+      if (isReasonableSizeInMb(mb)) directCandidates.push(mb);
+      if (directCandidates.length >= 6) break;
+    }
+
+    if (directCandidates.length) {
+      // FileCR often contains multiple download-size elements (portable vs full installer).
+      // Prefer the largest reasonable size.
+      return directCandidates.sort((a, b) => b - a)[0] ?? 0;
     }
   }
 
