@@ -6,6 +6,7 @@ import { autoFillSoftwareData } from "@/lib/services/autoFillService";
 
 const payloadSchema = z.object({
   name: z.string().min(1),
+  version: z.string().optional(),
 });
 
 const ensureAuthorized = (request: NextRequest) => {
@@ -31,9 +32,9 @@ export const POST = async (request: NextRequest) => {
 
   try {
     const payload = await request.json();
-    const { name } = payloadSchema.parse(payload);
+    const { name, version } = payloadSchema.parse(payload);
 
-    const result = await autoFillSoftwareData(name);
+    const result = await autoFillSoftwareData(name, { version });
     if (!result.success) {
       return NextResponse.json({ message: result.error }, { status: 500 });
     }

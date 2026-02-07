@@ -25,6 +25,10 @@ export type AutoFillData = {
   categories: string[];
 };
 
+type AutoFillOptions = {
+  version?: string;
+};
+
 type WikiResult = {
   description: string;
   summary: string;
@@ -61,6 +65,164 @@ const toText = (value: unknown) => (typeof value === "string" ? value : "");
 const clampText = (value: string, max: number) => value.trim().slice(0, max);
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+const decodeDuckDuckGoRedirect = (href: string) => {
+  try {
+    const url = new URL(href);
+    const uddg = url.searchParams.get("uddg");
+    if (uddg) return decodeURIComponent(uddg);
+    return "";
+  } catch {
+    return "";
+  }
+};
+
+const extractDuckDuckGoResultUrls = (html: string) => {
+  const urls: string[] = [];
+  const rx = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = rx.exec(html))) {
+    const href = (m[1] ?? "").trim();
+    if (!href) continue;
+    if (href.startsWith("/")) continue;
+    if (!href.startsWith("http")) continue;
+
+    const decoded = decodeDuckDuckGoRedirect(href);
+    const candidate = decoded || href;
+    if (!candidate.startsWith("http")) continue;
+    urls.push(candidate);
+    if (urls.length >= 20) break;
+  }
+
+  return uniqueUrls(urls)
+    .filter((u) => {
+      try {
+        const host = new URL(u).hostname.toLowerCase();
+        if (!host) return false;
+        if (host.includes("duckduckgo.com")) return false;
+        if (host.includes("google.com")) return false;
+        if (host.includes("bing.com")) return false;
+        return true;
+      } catch {
+        return false;
+      }
+    })
+    .slice(0, 6);
+};
+
+const fetchSearchResultsByName = async (query: string) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6_000);
+  try {
+    const searchUrl = new URL("https://duckduckgo.com/html/");
+    searchUrl.searchParams.set("q", query);
+    const res = await fetch(searchUrl.toString(), {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "user-agent": "soft-hub-auto-fill/1.0",
+        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+      },
+      signal: controller.signal,
+    });
+    if (!res.ok) return [] as string[];
+    const html = await res.text();
+    return extractDuckDuckGoResultUrls(html);
+  } catch {
+    return [] as string[];
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const fetchHtmlLight = async (url: string) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 7_000);
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "accept-language": "en-US,en;q=0.9",
+        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+      },
+      signal: controller.signal,
+    });
+    if (!res.ok) return "";
+    const ct = (res.headers.get("content-type") ?? "").toLowerCase();
+    if (ct && !ct.includes("html")) return "";
+    const text = await res.text();
+    return text.length > 450_000 ? text.slice(0, 450_000) : text;
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const parseSizeToMb = (raw: string) => {
+  const match = raw.match(/(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
+  if (!match) return 0;
+  const value = Number(match[1]);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  const unit = match[2].toLowerCase();
+  if (unit === "kb") return value / 1024;
+  if (unit === "mb") return value;
+  if (unit === "gb") return value * 1024;
+  if (unit === "tb") return value * 1024 * 1024;
+  return 0;
+};
+
+const parseVersionFromString = (raw: string) => {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const match = trimmed.match(/\b(?:v)?(\d+\.\d+(?:\.\d+){0,3})\b/i);
+  return match ? match[1] : "";
+};
+
+const tryExtractSizeAndVersionFromText = (text: string) => {
+  const normalized = String(text ?? "").replace(/\u00a0/g, " ");
+  const version = parseVersionFromString(normalized);
+
+  const sizeCandidates: number[] = [];
+  const rx = /\b(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
+  let m: RegExpExecArray | null;
+  while ((m = rx.exec(normalized))) {
+    const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
+    if (Number.isFinite(mb) && mb > 0) sizeCandidates.push(mb);
+    if (sizeCandidates.length >= 40) break;
+  }
+
+  // Prefer larger plausible installer sizes.
+  const sizeInMb = sizeCandidates
+    .filter((v) => v >= 20 && v <= 250_000)
+    .sort((a, b) => b - a)[0] ?? 0;
+
+  return {
+    version,
+    sizeInMb,
+  };
+};
+
+const fetchSizeAndVersionViaSearch = async (params: { name: string; hintVersion?: string }) => {
+  const baseQuery = params.hintVersion && /\d/.test(params.hintVersion)
+    ? `${params.name} ${params.hintVersion} file size`
+    : `${params.name} file size`;
+
+  const urls = await fetchSearchResultsByName(baseQuery);
+  for (const url of urls.slice(0, 4)) {
+    const html = await fetchHtmlLight(url);
+    if (!html) continue;
+    const text = stripHtml(html);
+    const extracted = tryExtractSizeAndVersionFromText(text);
+    if (extracted.sizeInMb > 0 || extracted.version) {
+      return extracted;
+    }
+  }
+  return { version: "", sizeInMb: 0 };
+};
 
 const isValidUrl = (url: string) => {
   try {
@@ -491,7 +653,7 @@ const mergeData = (params: {
   };
 };
 
-export const autoFillSoftwareData = async (softwareName: string): Promise<AutoFillResult> => {
+export const autoFillSoftwareData = async (softwareName: string, options: AutoFillOptions = {}): Promise<AutoFillResult> => {
   try {
     const name = softwareName.trim();
     if (!name) {
@@ -504,7 +666,19 @@ export const autoFillSoftwareData = async (softwareName: string): Promise<AutoFi
       fetchImagesFromUnsplash(name),
     ]);
 
-    const data = mergeData({ name, wiki, github, images });
+    const merged = mergeData({ name, wiki, github, images });
+
+    const needsVersion = !(merged.version ?? "").trim();
+    const needsSize = !(merged.sizeInMb ?? "").trim();
+    const fallback = (needsVersion || needsSize)
+      ? await fetchSizeAndVersionViaSearch({ name, hintVersion: options.version || merged.version })
+      : { version: "", sizeInMb: 0 };
+
+    const data: AutoFillData = {
+      ...merged,
+      version: merged.version || fallback.version || "",
+      sizeInMb: merged.sizeInMb || (fallback.sizeInMb > 0 ? fallback.sizeInMb.toFixed(1) : ""),
+    };
 
     return {
       success: true,

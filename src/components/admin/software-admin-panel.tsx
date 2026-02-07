@@ -454,13 +454,16 @@ const buildSoftwarePayload = (form: FormState) => {
 
 type RequestError = Error & { status?: number };
 
-const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<T> => {
-  const response = await fetch(typeof input === "string" ? input : input.toString(), {
+const request = async <T,>(
+  url: string,
+  init?: RequestInit & { signal?: AbortSignal },
+): Promise<T> => {
+  const response = await fetch(url, {
     credentials: "include",
     ...init,
     headers: {
       "Content-Type": "application/json",
-      ...(init.headers ?? {}),
+      ...(init?.headers ?? {}),
     },
   });
 
@@ -513,41 +516,42 @@ const request = async <T,>(input: RequestInfo, init: RequestInit = {}): Promise<
   return response.json() as Promise<T>;
 };
 
+const watermarkLogoUrl = "/branding/soft-hub-logomark.svg";
+
+let watermarkBitmapPromise: Promise<ImageBitmap | null> | null = null;
+const getWatermarkBitmap = async () => {
+  if (typeof createImageBitmap !== "function") {
+    return null;
+  }
+
+  if (!watermarkBitmapPromise) {
+    watermarkBitmapPromise = (async () => {
+      try {
+        const res = await fetch(watermarkLogoUrl, { cache: "force-cache" });
+        if (!res.ok) return null;
+        const blob = await res.blob();
+        return await createImageBitmap(blob);
+      } catch {
+        return null;
+      }
+    })();
+  }
+
+  return watermarkBitmapPromise;
+};
+
 const drawOrbitWatermark = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+  // Keep function name stable, but render the project logo watermark.
+  const bitmap = (ctx as unknown as { __softHubWatermarkBitmap?: ImageBitmap | null }).__softHubWatermarkBitmap;
+  if (!bitmap) return;
+
   ctx.save();
-  ctx.translate(x + size / 2, y + size / 2);
-  ctx.rotate((-18 * Math.PI) / 180);
+  ctx.globalAlpha = 0.55;
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = Math.max(8, Math.round(size * 0.1));
 
-  const rx = size * 0.46;
-  const ry = size * 0.22;
-
-  ctx.globalAlpha = 0.72;
-  ctx.lineWidth = Math.max(2, size * 0.045);
-  const grad = ctx.createLinearGradient(-rx, 0, rx, 0);
-  grad.addColorStop(0, "rgba(34, 211, 238, 0)");
-  grad.addColorStop(0.2, "rgba(34, 211, 238, 0.75)");
-  grad.addColorStop(0.55, "rgba(99, 102, 241, 0.78)");
-  grad.addColorStop(0.8, "rgba(236, 72, 153, 0.62)");
-  grad.addColorStop(1, "rgba(236, 72, 153, 0)");
-  ctx.strokeStyle = grad;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-  ctx.shadowColor = "rgba(99, 102, 241, 0.35)";
-  ctx.shadowBlur = Math.max(6, size * 0.08);
-  ctx.stroke();
-
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 0.85;
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.beginPath();
-  ctx.arc(rx, 0, Math.max(2, size * 0.04), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 0.14;
-  ctx.fillStyle = "rgba(34, 211, 238, 1)";
-  ctx.beginPath();
-  ctx.arc(rx, 0, Math.max(4, size * 0.085), 0, Math.PI * 2);
-  ctx.fill();
-
+  const s = size;
+  ctx.drawImage(bitmap, x, y, s, s);
   ctx.restore();
 };
 
@@ -572,6 +576,8 @@ const applyOrbitWatermarkToBlob = async (blob: Blob, mime: string) => {
 
   const source = image as unknown as CanvasImageSource;
   ctx.drawImage(source, 0, 0, width, height);
+
+  (ctx as unknown as { __softHubWatermarkBitmap?: ImageBitmap | null }).__softHubWatermarkBitmap = await getWatermarkBitmap();
 
   // Place watermark bottom-right.
   const watermarkSize = Math.max(110, Math.round(Math.min(width, height) * 0.22));
@@ -1139,7 +1145,7 @@ export const SoftwareAdminPanel = () => {
         categories: string[];
       }>("/api/admin/auto-fill", {
         method: "POST",
-        body: JSON.stringify({ name: formState.name }),
+        body: JSON.stringify({ name: formState.name, version: formState.version }),
       });
 
       const normalizedScreenshots = (data.screenshots ?? [])
