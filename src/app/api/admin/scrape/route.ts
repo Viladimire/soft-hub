@@ -155,7 +155,9 @@ const resolveSizeViaHead = async (candidate: URL) => {
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        "user-agent": "soft-hub-scraper/1.0",
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "accept-language": "en-US,en;q=0.9",
         accept: "*/*",
       },
     });
@@ -176,7 +178,9 @@ const resolveSizeViaHead = async (candidate: URL) => {
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        "user-agent": "soft-hub-scraper/1.0",
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "accept-language": "en-US,en;q=0.9",
         range: "bytes=0-0",
         accept: "*/*",
       },
@@ -218,7 +222,9 @@ const fetchHtmlLight = async (url: URL) => {
       method: "GET",
       redirect: "follow",
       headers: {
-        "user-agent": "soft-hub-scraper/1.0",
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "accept-language": "en-US,en;q=0.9",
         accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
       },
       signal: controller.signal,
@@ -1234,7 +1240,9 @@ const fetchHtml = async (url: URL) => {
       method: "GET",
       redirect: "follow",
       headers: {
-        "user-agent": "soft-hub-scraper/1.0",
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "accept-language": "en-US,en;q=0.9",
         accept: "text/html,application/xhtml+xml",
       },
       signal: controller.signal,
