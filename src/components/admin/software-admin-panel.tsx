@@ -623,6 +623,8 @@ export const SoftwareAdminPanel = () => {
   const [importRows, setImportRows] = useState<Array<Partial<FormState>>>([]);
   const [importSaving, setImportSaving] = useState(false);
   const [isSlugChecking, setIsSlugChecking] = useState(false);
+
+  const formFieldPrefix = formState.id ? `software-${formState.id}` : "software-new";
   const [uploadingType, setUploadingType] = useState<"logo" | "hero" | "screenshot" | null>(null);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [hasEditedSlug, setHasEditedSlug] = useState(false);
@@ -1698,9 +1700,11 @@ export const SoftwareAdminPanel = () => {
                   <TabsContent value="basic">
                     <section className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">Software name</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-name`}>Software name</label>
                         <div className="flex flex-wrap gap-2">
                           <Input
+                            id={`${formFieldPrefix}-name`}
+                            name="name"
                             required
                             value={formState.name}
                             onChange={(event) => {
@@ -1724,6 +1728,8 @@ export const SoftwareAdminPanel = () => {
                         </div>
                         <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
                           <Input
+                            id={`${formFieldPrefix}-official-url`}
+                            name="officialUrl"
                             value={officialUrl}
                             onChange={(event) => setOfficialUrl(event.target.value)}
                             placeholder="Official website URL (https://...)"
@@ -1803,8 +1809,10 @@ export const SoftwareAdminPanel = () => {
                         {isSlugChecking ? <p className="text-xs text-neutral-500">Checking slug...</p> : null}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Slug</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-slug`}>Slug</label>
                         <Input
+                          id={`${formFieldPrefix}-slug`}
+                          name="slug"
                           required
                           value={formState.slug}
                           onChange={(event) => {
@@ -1878,15 +1886,19 @@ export const SoftwareAdminPanel = () => {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Version</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-version`}>Version</label>
                         <Input
+                          id={`${formFieldPrefix}-version`}
+                          name="version"
                           value={formState.version}
                           onChange={(event) => setFormState((state) => ({ ...state, version: event.target.value }))}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Size (MB)</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-sizeInMb`}>Size (MB)</label>
                         <Input
+                          id={`${formFieldPrefix}-sizeInMb`}
+                          name="sizeInMb"
                           type="number"
                           min="0"
                           step="0.1"
@@ -1895,8 +1907,10 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Download URL</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-downloadUrl`}>Download URL</label>
                         <Input
+                          id={`${formFieldPrefix}-downloadUrl`}
+                          name="downloadUrl"
                           required
                           value={formState.downloadUrl}
                           onChange={(event) =>
@@ -1905,8 +1919,10 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Official website</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-websiteUrl`}>Official website</label>
                         <Input
+                          id={`${formFieldPrefix}-websiteUrl`}
+                          name="websiteUrl"
                           value={formState.websiteUrl}
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, websiteUrl: event.target.value }))
@@ -1914,8 +1930,10 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-neutral-300">Release date</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-releaseDate`}>Release date</label>
                         <Input
+                          id={`${formFieldPrefix}-releaseDate`}
+                          name="releaseDate"
                           type="date"
                           value={formState.releaseDate}
                           onChange={(event) =>
@@ -1927,8 +1945,10 @@ export const SoftwareAdminPanel = () => {
 
                     <section className="mt-6 grid gap-4 md:grid-cols-2">
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">Summary</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-summary`}>Summary</label>
                         <Textarea
+                          id={`${formFieldPrefix}-summary`}
+                          name="summary"
                           required
                           value={formState.summary}
                           onChange={(event) => setFormState((state) => ({ ...state, summary: event.target.value }))}
@@ -1936,8 +1956,10 @@ export const SoftwareAdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm text-neutral-300">Description</label>
+                        <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-description`}>Description</label>
                         <Textarea
+                          id={`${formFieldPrefix}-description`}
+                          name="description"
                           required
                           value={formState.description}
                           onChange={(event) =>
@@ -1973,9 +1995,12 @@ export const SoftwareAdminPanel = () => {
                           </Button>
                           <input
                             ref={logoUploadRef}
+                            id={`${formFieldPrefix}-logoFile`}
+                            name="logoFile"
                             type="file"
                             accept="image/*"
                             className="hidden"
+                            aria-label="Upload logo file"
                             onChange={async (event) => {
                               const file = event.target.files?.[0];
                               event.target.value = "";
@@ -1998,6 +2023,8 @@ export const SoftwareAdminPanel = () => {
                           />
                         </div>
                         <Input
+                          id={`${formFieldPrefix}-logoUrl`}
+                          name="logoUrl"
                           required
                           value={formState.logoUrl}
                           onChange={(event) =>
@@ -2050,9 +2077,12 @@ export const SoftwareAdminPanel = () => {
                           </Button>
                           <input
                             ref={heroUploadRef}
+                            id={`${formFieldPrefix}-heroFile`}
+                            name="heroFile"
                             type="file"
                             accept="image/*"
                             className="hidden"
+                            aria-label="Upload hero file"
                             onChange={async (event) => {
                               const file = event.target.files?.[0];
                               event.target.value = "";
@@ -2075,6 +2105,8 @@ export const SoftwareAdminPanel = () => {
                           />
                         </div>
                         <Input
+                          id={`${formFieldPrefix}-heroImage`}
+                          name="heroImage"
                           value={formState.heroImage}
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, heroImage: event.target.value }))
