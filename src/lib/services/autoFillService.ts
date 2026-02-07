@@ -23,6 +23,7 @@ export type AutoFillData = {
   };
   developer: Record<string, unknown>;
   categories: string[];
+  platforms: Array<"windows" | "mac" | "linux" | "android" | "ios" | "web">;
 };
 
 type AutoFillOptions = {
@@ -353,6 +354,30 @@ export const autoDetectCategory = (name: string) => {
   return "software";
 };
 
+type DetectedPlatform = "windows" | "mac" | "linux" | "android" | "ios" | "web";
+
+const uniquePlatforms = (items: DetectedPlatform[]) => {
+  const out: DetectedPlatform[] = [];
+  for (const item of items) {
+    if (!out.includes(item)) out.push(item);
+  }
+  return out;
+};
+
+const autoDetectPlatforms = (seed: string): DetectedPlatform[] => {
+  const lower = seed.toLowerCase();
+  const platforms: DetectedPlatform[] = [];
+
+  if (/(windows|win\s*10|win\s*11|\.exe\b|msi\b|directx)/i.test(lower)) platforms.push("windows");
+  if (/(mac\s*os|macos|os\s*x|apple\s*silicon|\.dmg\b|\.pkg\b)/i.test(lower)) platforms.push("mac");
+  if (/(linux|ubuntu|debian|fedora|arch\b|appimage\b|\.appimage\b|snap\b|flatpak\b)/i.test(lower)) platforms.push("linux");
+  if (/(android|apk\b|google\s*play)/i.test(lower)) platforms.push("android");
+  if (/(ios|iphone|ipad|app\s*store)/i.test(lower)) platforms.push("ios");
+  if (/(web\b|browser\b|chrome\s*extension|firefox\s*addon|safari\s*extension|saas)/i.test(lower)) platforms.push("web");
+
+  return platforms.length ? uniquePlatforms(platforms) : ["windows"];
+};
+
 const fetchFromWikipedia = async (name: string): Promise<WikiResult> => {
   const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
     `${name} software`,
@@ -636,6 +661,9 @@ const mergeData = (params: {
 
   const categories = [autoDetectCategory(categorySeed)];
 
+  const platformSeed = `${name}\n${wiki?.summary ?? ""}\n${wiki?.description ?? ""}\n${github?.description ?? ""}\n${github?.websiteUrl ?? ""}\n${wiki?.websiteUrl ?? ""}`;
+  const platforms = autoDetectPlatforms(platformSeed);
+
   return {
     summary,
     description,
@@ -650,6 +678,7 @@ const mergeData = (params: {
     requirements,
     developer,
     categories,
+    platforms,
   };
 };
 

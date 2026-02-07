@@ -1143,6 +1143,7 @@ export const SoftwareAdminPanel = () => {
         requirements: { minimum: string[]; recommended: string[] };
         developer: Record<string, unknown>;
         categories: string[];
+        platforms: Platform[];
       }>("/api/admin/auto-fill", {
         method: "POST",
         body: JSON.stringify({ name: formState.name, version: formState.version }),
@@ -1181,13 +1182,26 @@ export const SoftwareAdminPanel = () => {
       }
 
       setFormState((state) => {
+        const shouldAutoApplyDescription = state.description.trim().length < 120;
+        const shouldAutoApplySummary = state.summary.trim().length < 20;
+
         const isDefaultCategories =
           state.categories.length === DEFAULT_FORM.categories.length &&
           state.categories.every((value, index) => value === DEFAULT_FORM.categories[index]);
 
-        const nextCategories = !isDefaultCategories
-          ? state.categories
-          : (data.categories ?? []).filter(isSoftwareCategory);
+        const incomingCategories = (data.categories ?? []).filter(isSoftwareCategory);
+        const nextCategories = (!state.categories.length || isDefaultCategories)
+          ? (incomingCategories.length ? incomingCategories : state.categories)
+          : state.categories;
+
+        const isDefaultPlatforms =
+          state.platforms.length === DEFAULT_FORM.platforms.length &&
+          state.platforms.every((value, index) => value === DEFAULT_FORM.platforms[index]);
+
+        const incomingPlatforms = (data.platforms ?? []).filter(isPlatform);
+        const nextPlatforms = (!state.platforms.length || isDefaultPlatforms)
+          ? (incomingPlatforms.length ? incomingPlatforms : state.platforms)
+          : state.platforms;
 
         const nextDownloadsValue =
           parseNumber(state.statsDownloads, 0) > 0
@@ -1230,8 +1244,8 @@ export const SoftwareAdminPanel = () => {
 
         return {
           ...state,
-          summary: state.summary.trim() ? state.summary : data.summary ?? state.summary,
-          description: state.description.trim() ? state.description : data.description ?? state.description,
+          summary: shouldAutoApplySummary ? (data.summary ?? state.summary) : state.summary,
+          description: shouldAutoApplyDescription ? (data.description ?? state.description) : state.description,
           version:
             state.version.trim() && state.version !== "1.0.0"
               ? state.version
@@ -1263,6 +1277,7 @@ export const SoftwareAdminPanel = () => {
             : sanitizeFeaturesText((data.features ?? []).join("\n")) || state.features,
           developerJson: nextDeveloperJson,
           categories: nextCategories.length ? nextCategories : state.categories,
+          platforms: nextPlatforms.length ? nextPlatforms : state.platforms,
         };
       });
 
