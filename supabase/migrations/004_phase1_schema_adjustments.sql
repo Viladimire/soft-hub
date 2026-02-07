@@ -72,51 +72,61 @@ create index if not exists idx_analytics_events_type on public.analytics_events 
 -- ---------------------------------------------------------------------------
 -- Updated_at triggers to keep metadata fresh
 -- ---------------------------------------------------------------------------
+drop trigger if exists trg_software_touch_updated_at on public.software;
 create trigger trg_software_touch_updated_at
   before update on public.software
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_games_touch_updated_at on public.games;
 create trigger trg_games_touch_updated_at
   before update on public.games
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_operating_systems_touch_updated_at on public.operating_systems;
 create trigger trg_operating_systems_touch_updated_at
   before update on public.operating_systems
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_multimedia_touch_updated_at on public.multimedia;
 create trigger trg_multimedia_touch_updated_at
   before update on public.multimedia
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_utilities_touch_updated_at on public.utilities;
 create trigger trg_utilities_touch_updated_at
   before update on public.utilities
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_collections_touch_updated_at on public.collections;
 create trigger trg_collections_touch_updated_at
   before update on public.collections
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_collection_items_touch_updated_at on public.collection_items;
 create trigger trg_collection_items_touch_updated_at
   before update on public.collection_items
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_films_touch_updated_at on public.films;
 create trigger trg_films_touch_updated_at
   before update on public.films
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_analytics_events_touch_updated_at on public.analytics_events;
 create trigger trg_analytics_events_touch_updated_at
   before update on public.analytics_events
   for each row
   execute function public.touch_updated_at();
 
+drop trigger if exists trg_analytics_search_events_touch_updated_at on public.analytics_search_events;
 create trigger trg_analytics_search_events_touch_updated_at
   before update on public.analytics_search_events
   for each row
