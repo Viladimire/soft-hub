@@ -122,6 +122,13 @@ export default async function SoftwareDetailPage({
   const resolvedDownloadUrl = latestRelease?.downloadUrl ?? software.downloadUrl;
   const resolvedReleaseDate = latestRelease?.releaseDate ?? software.releaseDate;
   const resolvedSize = latestRelease?.sizeInBytes ?? software.sizeInBytes;
+  const displaySoftware = {
+    ...software,
+    version: resolvedVersion,
+    downloadUrl: resolvedDownloadUrl,
+    releaseDate: resolvedReleaseDate,
+    sizeInBytes: resolvedSize,
+  };
   const screenshots = (software.media?.gallery ?? []).filter(Boolean).slice(0, 8);
 
   const jsonLd = {
@@ -168,7 +175,7 @@ export default async function SoftwareDetailPage({
     <AppShell
       sidebar={
         <div className="space-y-6">
-          <DownloadCard software={software} locale={locale} />
+          <DownloadCard software={displaySoftware} locale={locale} />
           <SideBar />
         </div>
       }
@@ -178,11 +185,11 @@ export default async function SoftwareDetailPage({
       <article className="space-y-10">
         <JsonLd data={jsonLd} />
         <AnalyticsTracker softwareId={software.id} />
-        <SoftwareHeader software={software} />
+        <SoftwareHeader software={displaySoftware} />
 
         <section className="space-y-6">
           <SoftwareGallery software={software} />
-          <SoftwareDetailsTabs software={software} />
+          <SoftwareDetailsTabs software={displaySoftware} />
         </section>
 
         <RelatedSoftware items={related} />
