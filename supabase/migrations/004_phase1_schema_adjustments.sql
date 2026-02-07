@@ -64,7 +64,7 @@ create index if not exists idx_multimedia_codecs on public.multimedia using gin 
 create index if not exists idx_utilities_type on public.utilities (utility_type);
 
 create index if not exists idx_collections_published_at on public.collections (published_at desc nulls last);
-create index if not exists idx_collection_items_position on public.collection_items (collection_id, position desc);
+create index if not exists idx_collection_items_position on public.collection_items (collection_id, "position" desc);
 
 create index if not exists idx_analytics_events_created on public.analytics_events (created_at desc);
 create index if not exists idx_analytics_events_type on public.analytics_events (event_type);
@@ -162,4 +162,4 @@ as $$
   order by c.display_order desc, c.created_at desc;
 $$;
 
-grant select on function public.collections_with_counts to anon, authenticated;
+grant execute on function public.collections_with_counts() to anon, authenticated;
