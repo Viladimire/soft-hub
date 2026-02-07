@@ -190,37 +190,43 @@ as $$
   select auth.role() = 'service_role';
 $$;
 
--- Software policies ------------------------------------------------------------
-create policy if not exists "software_public_read"
+--- Software policies ------------------------------------------------------------
+drop policy if exists "software_public_read" on public.software;
+create policy "software_public_read"
   on public.software
   for select
   using (true);
 
-create policy if not exists "software_admin_insert"
+drop policy if exists "software_admin_insert" on public.software;
+create policy "software_admin_insert"
   on public.software
   for insert
   to authenticated
   with check (public.is_admin() or public.is_service_role());
 
-create policy if not exists "software_admin_update"
+drop policy if exists "software_admin_update" on public.software;
+create policy "software_admin_update"
   on public.software
   for update
   to authenticated
   using (public.is_admin() or public.is_service_role())
   with check (public.is_admin() or public.is_service_role());
 
-create policy if not exists "software_admin_delete"
+drop policy if exists "software_admin_delete" on public.software;
+create policy "software_admin_delete"
   on public.software
   for delete
   to authenticated
   using (public.is_admin() or public.is_service_role());
 
-create policy if not exists "categories_public_read"
+drop policy if exists "categories_public_read" on public.categories;
+create policy "categories_public_read"
   on public.categories
   for select
   using (true);
 
-create policy if not exists "categories_admin_write"
+drop policy if exists "categories_admin_write" on public.categories;
+create policy "categories_admin_write"
   on public.categories
   for all
   to authenticated
@@ -228,12 +234,14 @@ create policy if not exists "categories_admin_write"
   with check (public.is_admin() or public.is_service_role());
 
 -- Games policies ----------------------------------------------------------------
-create policy if not exists "games_public_read"
+drop policy if exists "games_public_read" on public.games;
+create policy "games_public_read"
   on public.games
   for select
   using (true);
 
-create policy if not exists "games_admin_write"
+drop policy if exists "games_admin_write" on public.games;
+create policy "games_admin_write"
   on public.games
   for all
   to authenticated
@@ -241,12 +249,14 @@ create policy if not exists "games_admin_write"
   with check (public.is_admin() or public.is_service_role());
 
 -- Operating Systems policies ----------------------------------------------------
-create policy if not exists "operating_systems_public_read"
+drop policy if exists "operating_systems_public_read" on public.operating_systems;
+create policy "operating_systems_public_read"
   on public.operating_systems
   for select
   using (true);
 
-create policy if not exists "operating_systems_admin_write"
+drop policy if exists "operating_systems_admin_write" on public.operating_systems;
+create policy "operating_systems_admin_write"
   on public.operating_systems
   for all
   to authenticated
@@ -254,12 +264,14 @@ create policy if not exists "operating_systems_admin_write"
   with check (public.is_admin() or public.is_service_role());
 
 -- Multimedia policies -----------------------------------------------------------
-create policy if not exists "multimedia_public_read"
+drop policy if exists "multimedia_public_read" on public.multimedia;
+create policy "multimedia_public_read"
   on public.multimedia
   for select
   using (true);
 
-create policy if not exists "multimedia_admin_write"
+drop policy if exists "multimedia_admin_write" on public.multimedia;
+create policy "multimedia_admin_write"
   on public.multimedia
   for all
   to authenticated
@@ -267,12 +279,14 @@ create policy if not exists "multimedia_admin_write"
   with check (public.is_admin() or public.is_service_role());
 
 -- Utilities policies ------------------------------------------------------------
-create policy if not exists "utilities_public_read"
+drop policy if exists "utilities_public_read" on public.utilities;
+create policy "utilities_public_read"
   on public.utilities
   for select
   using (true);
 
-create policy if not exists "utilities_admin_write"
+drop policy if exists "utilities_admin_write" on public.utilities;
+create policy "utilities_admin_write"
   on public.utilities
   for all
   to authenticated
@@ -280,24 +294,28 @@ create policy if not exists "utilities_admin_write"
   with check (public.is_admin() or public.is_service_role());
 
 -- Films policies ----------------------------------------------------------------
-create policy if not exists "films_public_read"
+drop policy if exists "films_public_read" on public.films;
+create policy "films_public_read"
   on public.films
   for select
   using (true);
 
-create policy if not exists "films_admin_write"
+drop policy if exists "films_admin_write" on public.films;
+create policy "films_admin_write"
   on public.films
   for all
   to authenticated
   using (public.is_admin() or public.is_service_role())
   with check (public.is_admin() or public.is_service_role());
 
-create policy if not exists "analytics_events_admin_read"
+drop policy if exists "analytics_events_admin_read" on public.analytics_events;
+create policy "analytics_events_admin_read"
   on public.analytics_events
   for select
   using (public.is_admin() or public.is_service_role());
 
-create policy if not exists "analytics_events_service_insert"
+drop policy if exists "analytics_events_service_insert" on public.analytics_events;
+create policy "analytics_events_service_insert"
   on public.analytics_events
   for insert
   to authenticated
