@@ -15,6 +15,9 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
   const t = useTranslations("pages.softwareDetail.header");
   const locale = useLocale();
   const releaseDate = formatReleaseDate(software.updatedAt, locale);
+  const versionLabel = /^(?:v)?\d+\.\d+(?:\.\d+){0,3}$/i.test((software.version ?? "").trim())
+    ? software.version
+    : "-";
 
   return (
     <header className="space-y-6">
@@ -61,7 +64,7 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
         <Card className="border-white/10 bg-white/5">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs text-neutral-400">{t("stats.version")}</p>
-            <p className="text-lg font-semibold text-white">{software.version}</p>
+            <p className="text-lg font-semibold text-white">{versionLabel}</p>
           </CardContent>
         </Card>
         <Card className="border-white/10 bg-white/5">

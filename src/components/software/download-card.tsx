@@ -14,6 +14,9 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const DownloadCard = ({ software, locale }: { software: Software; locale: string }) => {
   const t = useTranslations("pages.softwareDetail.downloadCard");
+  const versionLabel = /^(?:v)?\d+\.\d+(?:\.\d+){0,3}$/i.test((software.version ?? "").trim())
+    ? software.version
+    : "-";
 
   return (
     <Card className="border-white/10 bg-white/5">
@@ -36,7 +39,7 @@ export const DownloadCard = ({ software, locale }: { software: Software; locale:
         <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
           <div className="flex items-center justify-between text-neutral-200">
             <span className="text-xs text-neutral-400">{t("stats.version")}</span>
-            <span className="font-semibold text-white">{software.version}</span>
+            <span className="font-semibold text-white">{versionLabel}</span>
           </div>
           <div className="flex items-center justify-between text-neutral-200">
             <span className="text-xs text-neutral-400">{t("stats.size")}</span>

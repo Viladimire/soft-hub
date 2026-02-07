@@ -591,7 +591,7 @@ const parseVersionFromString = (raw: string) => {
   const trimmed = raw.trim();
   if (!trimmed) return "";
   const match = trimmed.match(/\b(?:v)?(\d+\.\d+(?:\.\d+){0,3})\b/i);
-  return match ? match[1] : trimmed;
+  return match ? match[1] : "";
 };
 
 const parseSizeToMb = (raw: string) => {
