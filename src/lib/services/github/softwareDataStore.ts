@@ -3,6 +3,7 @@ import { Buffer } from "node:buffer";
 import type { Software } from "@/lib/types/software";
 import { invalidateStaticSoftwareCache } from "@/lib/services/staticSoftwareRepository";
 import { readLocalAdminConfig } from "@/lib/services/local-admin-config";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const DATA_PATH = process.env.GITHUB_DATA_FILE_PATH ?? "public/data/software/index.json";
 const ITEMS_DIR = process.env.GITHUB_SOFTWARE_ITEMS_DIR ?? "public/data/software/items";
@@ -392,12 +393,154 @@ const chunk = <T,>(items: T[], size: number) => {
   return out;
 };
 
+const toIsoDateString = (value: unknown) => {
+  if (typeof value !== "string" || !value.trim()) return new Date().toISOString();
+  // Accept either ISO or YYYY-MM-DD.
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+    // Ensure we still output ISO to keep UI consistent.
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString();
+  }
+  const parsed = Date.parse(value);
+  if (!Number.isNaN(parsed)) return new Date(parsed).toISOString();
+  return new Date().toISOString();
+};
+
+const normalizeSupabaseSoftwareRow = (row: Record<string, unknown>): Software => {
+  const slug = typeof row.slug === "string" ? row.slug : "";
+  const releaseDateRaw = row.release_date;
+  const updatedAtRaw = row.updated_at;
+  const createdAtRaw = row.created_at;
+
+  const releaseDate = toIsoDateString(
+    typeof releaseDateRaw === "string" && releaseDateRaw.trim() ? releaseDateRaw : undefined,
+  );
+
+  return {
+    id: typeof row.id === "string" ? row.id : slug,
+    slug,
+    name: typeof row.name === "string" ? row.name : slug,
+    summary: typeof row.summary === "string" ? row.summary : "",
+    description: typeof row.description === "string" ? row.description : "",
+    version: typeof row.version === "string" ? row.version : "1.0.0",
+    sizeInBytes: Number(row.size_in_bytes ?? 0) || 0,
+    platforms: Array.isArray(row.platforms) ? (row.platforms as Software["platforms"]) : ["windows"],
+    categories: Array.isArray(row.categories) ? (row.categories as Software["categories"]) : ["software"],
+    type: typeof row.type === "string" ? (row.type as Software["type"]) : "standard",
+    websiteUrl: typeof row.website_url === "string" && row.website_url.trim() ? row.website_url : null,
+    downloadUrl: typeof row.download_url === "string" ? row.download_url : "",
+    isFeatured: Boolean(row.is_featured),
+    isTrending: Boolean(row.is_trending),
+    releaseDate,
+    updatedAt: toIsoDateString(updatedAtRaw),
+    createdAt: toIsoDateString(createdAtRaw),
+    stats:
+      row.stats && typeof row.stats === "object" && !Array.isArray(row.stats)
+        ? (row.stats as Software["stats"])
+        : { downloads: 0, views: 0, rating: 0, votes: 0 },
+    developer:
+      row.developer && typeof row.developer === "object" && !Array.isArray(row.developer)
+        ? (row.developer as Software["developer"])
+        : {},
+    features: Array.isArray(row.features) ? (row.features as string[]) : [],
+    media:
+      row.media && typeof row.media === "object" && !Array.isArray(row.media)
+        ? (row.media as Software["media"])
+        : { logoUrl: "", gallery: [], heroImage: "" },
+    requirements:
+      row.requirements && typeof row.requirements === "object" && !Array.isArray(row.requirements)
+        ? (row.requirements as Software["requirements"])
+        : {},
+    changelog:
+      Array.isArray(row.changelog)
+        ? (row.changelog as Software["changelog"])
+        : undefined,
+  } satisfies Software;
+};
+
+const fetchSupabaseLatestTotal = async () => {
+  const supabase = createSupabaseServerClient();
+  const { count, error } = await supabase
+    .from("software")
+    .select("slug", { count: "exact", head: true });
+  if (error) throw error;
+  return count ?? 0;
+};
+
+const fetchSupabaseLatestChunk = async (from: number, to: number) => {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("software")
+    .select(
+      "id,slug,name,summary,description,version,size_in_bytes,platforms,categories,type,website_url,download_url,developer,features,is_featured,is_trending,release_date,stats,media,requirements,changelog,created_at,updated_at",
+    )
+    .order("release_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false, nullsFirst: false })
+    .range(from, to);
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeSupabaseSoftwareRow(row as Record<string, unknown>));
+};
+
+const publishLatestPagesViaSupabase = async (params: { perPage: number; chunkSize: number }) => {
+  const config = await resolveGitHubConfig();
+  const total = await fetchSupabaseLatestTotal();
+
+  const chunksCount = total > 0 ? Math.ceil(total / params.chunkSize) : 0;
+  const meta: LatestPagesMeta = {
+    generatedAt: new Date().toISOString(),
+    perPage: params.perPage,
+    chunkSize: params.chunkSize,
+    total,
+    chunks: chunksCount,
+  };
+
+  await upsertTextFileToGitHub({
+    path: `${LATEST_PAGES_DIR}/meta.json`,
+    text: JSON.stringify(meta, null, 2),
+    message: "chore: publish software latest pages meta",
+  });
+
+  for (let index = 0; index < chunksCount; index += 1) {
+    const chunkNo = String(index + 1).padStart(4, "0");
+    const path = `${LATEST_PAGES_DIR}/chunk-${chunkNo}.json`;
+    const from = index * params.chunkSize;
+    const to = Math.min(from + params.chunkSize - 1, Math.max(total - 1, 0));
+    const items = total > 0 ? await fetchSupabaseLatestChunk(from, to) : [];
+    await upsertTextFileToGitHub({
+      path,
+      text: JSON.stringify(items, null, 2),
+      message: `chore: publish software latest chunk ${chunkNo}`,
+    });
+  }
+
+  invalidateStaticSoftwareCache();
+
+  return {
+    ok: true as const,
+    perPage: params.perPage,
+    total,
+    pages: chunksCount,
+    metaUrl: `${JSDELIVR_BASE}/${config.owner}/${config.repo}@${config.branch}/${LATEST_PAGES_DIR}/meta.json`,
+  };
+};
+
 export const publishLatestSoftwarePagesToGitHub = async () => {
   const config = await resolveGitHubConfig();
-  const { items } = await fetchSoftwareDatasetFromGitHub();
-
   const perPage = Math.min(Math.max(LATEST_PAGE_SIZE, 1), 50);
   const chunkSize = Math.min(Math.max(LATEST_CHUNK_SIZE, perPage), 5000);
+
+  // Supabase-first (scales to 100k+ without GitHub index.json)
+  try {
+    return await publishLatestPagesViaSupabase({ perPage, chunkSize });
+  } catch (error) {
+    // Fall back to GitHub index dataset to avoid breaking publish in partially configured envs.
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Supabase latest publish failed; falling back to GitHub dataset", error);
+    }
+  }
+
+  const { items } = await fetchSoftwareDatasetFromGitHub();
+
   const sorted = sortLatest(items);
   const chunks = chunk(sorted, chunkSize);
 
