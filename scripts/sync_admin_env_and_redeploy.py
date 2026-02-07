@@ -212,11 +212,13 @@ def main(argv: Optional[list[str]] = None) -> int:
     # Keys to sync.
     to_sync: list[tuple[str, Optional[str]]] = [
         ("NEXT_PUBLIC_SITE_URL", args.site_url),
+        ("VERCEL_DEPLOY_HOOK_URL", deploy_hook),
         ("GITHUB_DATA_REPO_OWNER", github_owner),
         ("GITHUB_DATA_REPO_NAME", github_repo),
         ("GITHUB_CONTENT_TOKEN", github_token),
         ("GITHUB_DATA_REPO_BRANCH", github_branch),
         ("GITHUB_DATA_REPO_URL", github_repo_url),
+        ("GITHUB_SOFTWARE_SKIP_INDEX_UPDATE", "true"),
         ("NEXT_PUBLIC_SUPABASE_URL", supabase_url),
         ("NEXT_PUBLIC_SUPABASE_ANON_KEY", supabase_anon),
         ("SUPABASE_SERVICE_ROLE_KEY", supabase_service),
