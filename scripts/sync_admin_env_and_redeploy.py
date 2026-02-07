@@ -176,10 +176,8 @@ def trigger_deploy_hook(url: str) -> None:
         _ = resp.read()
 
 
-def post_json(url: str, *, payload: Optional[Dict[str, Any]] = None, timeout: int = 30) -> tuple[int, str]:
-    body = json.dumps(payload or {}).encode("utf-8")
-    req = Request(url, data=body, method="POST")
-    req.add_header("Content-Type", "application/json")
+def get_text(url: str, *, timeout: int = 30) -> tuple[int, str]:
+    req = Request(url, method="GET")
     req.add_header("Accept", "application/json")
     try:
         with urlopen(req, timeout=timeout) as resp:
@@ -283,12 +281,12 @@ def main(argv: Optional[list[str]] = None) -> int:
         publish_url = f"{args.site_url.rstrip('/')}/api/cron/publish?secret={cron_secret}"
         sync_url = f"{args.site_url.rstrip('/')}/api/cron/sync-supabase?secret={cron_secret}"
 
-        status_p, body_p = post_json(publish_url, payload={"source": "sync_admin_env_and_redeploy"})
+        status_p, body_p = get_text(publish_url)
         print(f"- publish: HTTP {status_p}")
         if status_p >= 400:
             print(body_p)
 
-        status_s, body_s = post_json(sync_url, payload={"source": "sync_admin_env_and_redeploy"})
+        status_s, body_s = get_text(sync_url)
         print(f"- sync-supabase: HTTP {status_s}")
         if status_s >= 400:
             print(body_s)
