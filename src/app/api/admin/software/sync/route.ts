@@ -27,39 +27,48 @@ const ensureAuthorized = (request: NextRequest) => {
   return null;
 };
 
-const upsertSoftwareToSupabase = async (software: Software) => {
-  const supabase = createSupabaseServerClient();
+const chunk = <T,>(items: T[], size: number) => {
+  const out: T[][] = [];
+  const safeSize = Math.max(size, 1);
+  for (let i = 0; i < items.length; i += safeSize) {
+    out.push(items.slice(i, i + safeSize));
+  }
+  return out;
+};
 
+const SOFTWARE_UPSERT_BATCH_SIZE = 200;
+const SOFTWARE_DELETE_BATCH_SIZE = 500;
+
+const toSupabaseSoftwareRow = (software: Software) => {
   const releaseDate = software.releaseDate ? software.releaseDate.slice(0, 10) : null;
+  return {
+    slug: software.slug,
+    name: software.name,
+    summary: software.summary ?? null,
+    description: software.description,
+    version: software.version,
+    size_in_bytes: software.sizeInBytes ?? null,
+    platforms: software.platforms,
+    categories: software.categories,
+    type: software.type,
+    website_url: software.websiteUrl ?? null,
+    download_url: software.downloadUrl,
+    developer: (software.developer ?? {}) as unknown as Json,
+    features: software.features ?? [],
+    is_featured: software.isFeatured ?? false,
+    is_trending: software.isTrending ?? false,
+    release_date: releaseDate,
+    stats: (software.stats ?? {}) as unknown as Json,
+    media: (software.media ?? {}) as unknown as Json,
+    requirements: (software.requirements ?? null) as unknown as Json,
+    changelog: (software.changelog ?? null) as unknown as Json,
+  };
+};
 
-  const { error } = await supabase
-    .from("software")
-    .upsert(
-      {
-        slug: software.slug,
-        name: software.name,
-        summary: software.summary ?? null,
-        description: software.description,
-        version: software.version,
-        size_in_bytes: software.sizeInBytes ?? null,
-        platforms: software.platforms,
-        categories: software.categories,
-        type: software.type,
-        website_url: software.websiteUrl ?? null,
-        download_url: software.downloadUrl,
-        developer: (software.developer ?? {}) as unknown as Json,
-        features: software.features ?? [],
-        is_featured: software.isFeatured ?? false,
-        is_trending: software.isTrending ?? false,
-        release_date: releaseDate,
-        stats: (software.stats ?? {}) as unknown as Json,
-        media: (software.media ?? {}) as unknown as Json,
-        requirements: (software.requirements ?? null) as unknown as Json,
-        changelog: (software.changelog ?? null) as unknown as Json,
-      },
-      { onConflict: "slug" },
-    );
-
+const upsertBatchToSupabase = async (batch: Software[]) => {
+  const supabase = createSupabaseServerClient();
+  const rows = batch.map(toSupabaseSoftwareRow);
+  const { error } = await supabase.from("software").upsert(rows, { onConflict: "slug" });
   if (error) throw error;
 };
 
@@ -75,8 +84,9 @@ export const POST = async (request: NextRequest) => {
     const before = await supabase.from("software").select("slug", { count: "exact" });
     const beforeCount = before.count ?? 0;
 
-    for (const item of items) {
-      await upsertSoftwareToSupabase(item);
+    const upsertBatches = chunk(items, SOFTWARE_UPSERT_BATCH_SIZE);
+    for (const batch of upsertBatches) {
+      await upsertBatchToSupabase(batch);
     }
 
     const slugs = items.map((item) => item.slug);
@@ -85,8 +95,11 @@ export const POST = async (request: NextRequest) => {
 
     const toDelete = existingSlugs.filter((slug) => !slugs.includes(slug));
     if (toDelete.length) {
-      const { error } = await supabase.from("software").delete().in("slug", toDelete);
-      if (error) throw error;
+      const deleteBatches = chunk(toDelete, SOFTWARE_DELETE_BATCH_SIZE);
+      for (const batch of deleteBatches) {
+        const { error } = await supabase.from("software").delete().in("slug", batch);
+        if (error) throw error;
+      }
     }
 
     const after = await supabase.from("software").select("slug", { count: "exact" });
