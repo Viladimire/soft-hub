@@ -283,9 +283,10 @@ const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
 };
 
 const payloadSchema = z.object({
-  url: z.string().url(),
-  englishMode: z.enum(["soft", "strict"]).optional(),
+  url: z.string().min(1),
+  englishMode: z.enum(["off", "soft", "strict"]).optional(),
   searchByName: z.boolean().optional(),
+  debug: z.boolean().optional(),
 });
 
 type ScrapeResult = {
@@ -342,7 +343,8 @@ const stripNonEnglishChars = (value: string) => {
     .trim();
 };
 
-const applyEnglishModeToText = (value: string, mode: "soft" | "strict") => {
+const applyEnglishModeToText = (value: string, mode: "off" | "soft" | "strict") => {
+  if (mode === "off") return value;
   const cleaned = stripNonEnglishChars(value);
   if (!cleaned) return "";
   if (mode === "strict") {
@@ -351,7 +353,8 @@ const applyEnglishModeToText = (value: string, mode: "soft" | "strict") => {
   return cleaned;
 };
 
-const applyEnglishModeToLines = (lines: string[], mode: "soft" | "strict") => {
+const applyEnglishModeToLines = (lines: string[], mode: "off" | "soft" | "strict") => {
+  if (mode === "off") return lines;
   const out: string[] = [];
   for (const line of lines) {
     const cleaned = applyEnglishModeToText(line, mode);
@@ -1268,7 +1271,7 @@ const fetchHtml = async (url: URL) => {
   }
 };
 
-const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | "strict"): Promise<ScrapeResult> => {
+const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "soft" | "strict"): Promise<ScrapeResult> => {
   const contentHtml = extractMainContentHtml(html) || html;
   const rawLines = htmlToTextLines(contentHtml);
 
@@ -1468,6 +1471,48 @@ export const POST = async (request: NextRequest) => {
     const mode = payload.englishMode ?? "soft";
     const data = await toScrapeResult(targetUrl, html, mode);
 
+    const debug = payload.debug === true;
+    const debugInfo = debug
+      ? (() => {
+          const title = extractTitle(html);
+          const h1 = extractH1(html);
+          const rawLines = htmlToTextLines(html);
+          const name = clampText(stripBranding(extractMeta(html, { attr: "property", value: "og:title" }) || h1 || title), 120);
+          const lines = sliceAfterTitle(rawLines, h1 || title || name);
+          const productInfo = extractProductInfoMap(lines);
+          const versionRaw =
+            productInfo.get("version") ||
+            pickValueAfterLabel(lines, "Version") ||
+            productInfo.get("file name") ||
+            pickValueAfterLabel(lines, "File name");
+          const versionFallback =
+            parseVersionFromString(versionRaw ?? "") ||
+            parseVersionFromString(name) ||
+            parseVersionFromString(title) ||
+            parseVersionFromString(h1);
+
+          const extractedHtmlSizeMb = extractSizeInMbFromHtml(html);
+          const hasDownloadSizeMarker = /\bdownload-size\b/i.test(html);
+
+          return {
+            upstream: {
+              url: targetUrl.toString(),
+              htmlLength: html.length,
+              hasDownloadSizeMarker,
+            },
+            version: {
+              versionRaw: versionRaw ?? "",
+              versionFallback,
+              returned: data.version ?? "",
+            },
+            size: {
+              extractedHtmlSizeMb,
+              returned: data.sizeInMb ?? 0,
+            },
+          };
+        })()
+      : null;
+
     const shouldSearchByName = payload.searchByName !== false;
     const isWeakDescription = !data.description || data.description.length < 280;
     const isMissingFeatures = !data.features?.length;
@@ -1508,7 +1553,7 @@ export const POST = async (request: NextRequest) => {
       }
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(debugInfo ? { ...data, debug: debugInfo } : data);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });
