@@ -911,11 +911,13 @@ const extractProductInfoMap = (lines: string[]) => {
     lines,
     [(line) => /\bproduct information\b/i.test(line)],
     [
-      (line) => /\bdownload\b/i.test(line),
-      (line) => /\bscreenshots?\b/i.test(line),
-      (line) => /\brelated\b/i.test(line),
+      // Stop only on section headings. We must not stop on lines like "Total Downloads".
+      (line) => /^\s*download(?:\s+links?)?\b/i.test(line),
+      (line) => /^\s*screenshots?\b/i.test(line),
+      (line) => /^\s*related\b/i.test(line),
+      (line) => /^\s*(?:previous\s+versions?|versions?)\b/i.test(line),
     ],
-    40,
+    80,
   );
 
   const map = new Map<string, string>();
@@ -1488,6 +1490,9 @@ export const POST = async (request: NextRequest) => {
           const name = clampText(stripBranding(extractMeta(html, { attr: "property", value: "og:title" }) || h1 || title), 120);
           const lines = sliceAfterTitle(rawLines, h1 || title || name);
           const productInfo = extractProductInfoMap(lines);
+          const downloadsPicked = pickDownloads(lines, productInfo);
+          const fileSizeFromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
+          const fileSizeFromLabel = pickValueAfterLabel(lines, "File size") || pickValueAfterLabel(lines, "File Size") || "";
           const versionRaw =
             productInfo.get("version") ||
             pickValueAfterLabel(lines, "Version") ||
@@ -1508,13 +1513,26 @@ export const POST = async (request: NextRequest) => {
               htmlLength: html.length,
               hasDownloadSizeMarker,
             },
+            productInfo: {
+              keys: Array.from(productInfo.keys()).slice(0, 30),
+              version: productInfo.get("version") ?? "",
+              fileName: productInfo.get("file name") ?? "",
+              fileSize: fileSizeFromProductInfo,
+              totalDownloads: productInfo.get("total downloads") ?? "",
+            },
             version: {
               versionRaw: versionRaw ?? "",
               versionFallback,
               returned: data.version ?? "",
             },
+            downloads: {
+              picked: downloadsPicked,
+              returned: data.downloads ?? 0,
+            },
             size: {
               extractedHtmlSizeMb,
+              productInfoRaw: fileSizeFromProductInfo,
+              labelRaw: fileSizeFromLabel,
               returned: data.sizeInMb ?? 0,
             },
           };
