@@ -301,6 +301,8 @@ type ScrapeResult = {
   releaseDate?: string;
   downloads?: number;
   sizeInMb?: number;
+  rating?: number;
+  votes?: number;
   developer?: string;
   requirements?: {
     minimum: string[];
@@ -1204,6 +1206,88 @@ const extractFromJsonLd = (blocks: unknown[]) => {
   };
 };
 
+const extractAggregateRatingFromJsonLd = (blocks: unknown[]) => {
+  let rating = 0;
+  let votes = 0;
+
+  const scan = (node: unknown) => {
+    if (!node || typeof node !== "object") return;
+
+    if (Array.isArray(node)) {
+      node.forEach(scan);
+      return;
+    }
+
+    const obj = node as Record<string, unknown>;
+    const aggregate = obj.aggregateRating;
+
+    const readAgg = (aggNode: unknown) => {
+      if (!aggNode || typeof aggNode !== "object") return;
+      const agg = aggNode as Record<string, unknown>;
+
+      const ratingValueRaw = agg.ratingValue;
+      const ratingValue =
+        typeof ratingValueRaw === "number"
+          ? ratingValueRaw
+          : typeof ratingValueRaw === "string"
+            ? Number(ratingValueRaw)
+            : 0;
+
+      const ratingCountRaw = agg.ratingCount ?? agg.reviewCount;
+      const ratingCount =
+        typeof ratingCountRaw === "number"
+          ? ratingCountRaw
+          : typeof ratingCountRaw === "string"
+            ? Number(String(ratingCountRaw).replace(/,/g, ""))
+            : 0;
+
+      if (Number.isFinite(ratingValue) && ratingValue > 0 && ratingValue <= 5 && ratingValue > rating) {
+        rating = ratingValue;
+      }
+      if (Number.isFinite(ratingCount) && ratingCount > votes) {
+        votes = ratingCount;
+      }
+    };
+
+    if (Array.isArray(aggregate)) {
+      aggregate.forEach(readAgg);
+    } else if (aggregate) {
+      readAgg(aggregate);
+    }
+
+    for (const value of Object.values(obj)) {
+      scan(value);
+    }
+  };
+
+  blocks.forEach(scan);
+
+  const cleanRating = Number.isFinite(rating) ? Math.round(rating * 10) / 10 : 0;
+  const cleanVotes = Number.isFinite(votes) ? Math.floor(votes) : 0;
+
+  return {
+    rating: cleanRating >= 0 && cleanRating <= 5 ? cleanRating : 0,
+    votes: cleanVotes >= 0 ? cleanVotes : 0,
+  };
+};
+
+const extractAggregateRatingFromHtml = (html: string) => {
+  // Lightweight fallbacks for sites that render rating as plain text.
+  // Examples: "Rating 4.6" or "4.6/5" and "(123 reviews)".
+  const text = normalizeText(stripTags(html));
+
+  const ratingMatch = text.match(/\b(\d(?:\.\d)?)\s*\/?\s*5\b/);
+  const rating = ratingMatch ? Number(ratingMatch[1]) : 0;
+
+  const votesMatch = text.match(/\b(\d{1,3}(?:,\d{3})+|\d+)\s*(?:reviews?|ratings?|votes?)\b/i);
+  const votes = votesMatch ? Number(String(votesMatch[1]).replace(/,/g, "")) : 0;
+
+  return {
+    rating: Number.isFinite(rating) && rating > 0 && rating <= 5 ? Math.round(rating * 10) / 10 : 0,
+    votes: Number.isFinite(votes) && votes > 0 ? Math.floor(votes) : 0,
+  };
+};
+
 const extractLinkIcon = (html: string) => {
   const rx = /<link\s+[^>]*rel=["']([^"']+)["'][^>]*href=["']([^"']+)["'][^>]*>/gi;
   const candidates: Array<{ rel: string; href: string }> = [];
@@ -1312,6 +1396,8 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
 
   const jsonLd = extractJsonLdBlocks(html);
   const jsonLdData = extractFromJsonLd(jsonLd);
+  const ratingFromJsonLd = extractAggregateRatingFromJsonLd(jsonLd);
+  const ratingFromHtml = extractAggregateRatingFromHtml(contentHtml);
 
   const title = extractTitle(html);
   const h1 = extractH1(html);
@@ -1439,6 +1525,9 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
 
   const features = applyEnglishModeToLines(extractFeaturesList(lines), englishMode);
 
+  const rating = ratingFromJsonLd.rating || ratingFromHtml.rating;
+  const votes = ratingFromJsonLd.votes || ratingFromHtml.votes;
+
   return {
     name,
     summary,
@@ -1451,6 +1540,8 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
     releaseDate: normalizeReleaseDateToIso(clampText(releaseDateRaw ?? "", 80)) || undefined,
     downloads: downloads > 0 ? downloads : undefined,
     sizeInMb: resolvedSizeInMb > 0 ? resolvedSizeInMb : undefined,
+    rating: rating > 0 ? rating : undefined,
+    votes: votes > 0 ? votes : undefined,
     developer: clampText(developerRaw ?? "", 80) || undefined,
     ...(features.length ? { features } : {}),
     requirements:
@@ -1546,6 +1637,10 @@ export const POST = async (request: NextRequest) => {
               productInfoRaw: fileSizeFromProductInfo,
               labelRaw: fileSizeFromLabel,
               returned: data.sizeInMb ?? 0,
+            },
+            rating: {
+              returned: data.rating ?? 0,
+              votes: data.votes ?? 0,
             },
           };
         })()

@@ -168,6 +168,8 @@ type ScrapeResponse = {
   releaseDate?: string;
   downloads?: number;
   sizeInMb?: number;
+  rating?: number;
+  votes?: number;
   developer?: string;
   requirements?: {
     minimum: string[];
@@ -1376,6 +1378,12 @@ export const SoftwareAdminPanel = () => {
       const incomingSize = typeof picked.sizeInMb === "number" && Number.isFinite(picked.sizeInMb) && picked.sizeInMb > 0
         ? String(Math.round(picked.sizeInMb * 10) / 10)
         : "";
+      const incomingRating = typeof picked.rating === "number" && Number.isFinite(picked.rating) && picked.rating > 0 && picked.rating <= 5
+        ? String(Math.round(picked.rating * 10) / 10)
+        : "";
+      const incomingVotes = typeof picked.votes === "number" && Number.isFinite(picked.votes) && picked.votes > 0
+        ? String(Math.floor(picked.votes))
+        : "";
 
       const applyText = (current: string, incoming: string) => {
         if (strategy === "replace") return incoming || current;
@@ -1410,6 +1418,20 @@ export const SoftwareAdminPanel = () => {
         return incomingSize;
       })();
 
+      const nextStatsRating = (() => {
+        if (!incomingRating) return state.statsRating;
+        if (strategy === "replace") return incomingRating;
+        const current = parseNumber(state.statsRating, 0);
+        return current > 0 ? state.statsRating : incomingRating;
+      })();
+
+      const nextStatsVotes = (() => {
+        if (!incomingVotes) return state.statsVotes;
+        if (strategy === "replace") return incomingVotes;
+        const current = parseNumber(state.statsVotes, 0);
+        return current > 0 ? state.statsVotes : incomingVotes;
+      })();
+
       return {
         ...state,
         name: strategy === "replace" ? (picked.name ?? state.name) : (state.name.trim() ? state.name : (picked.name ?? state.name)),
@@ -1437,6 +1459,8 @@ export const SoftwareAdminPanel = () => {
               ? state.gallery
               : uniqueByValue((picked.screenshots ?? []).filter(Boolean)).join("\n"),
         sizeInMb: nextSizeInMb,
+        statsRating: nextStatsRating,
+        statsVotes: nextStatsVotes,
         features: applyLines(state.features, incomingFeatures),
         minRequirements: applyLines(state.minRequirements, incomingMinReq),
         recRequirements: applyLines(state.recRequirements, incomingRecReq),
