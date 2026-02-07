@@ -7,6 +7,9 @@ import { fetchSoftwareDatasetFromGitHub, publishLatestSoftwarePagesToGitHub } fr
 
 const isAuthorizedCronRequest = (request: NextRequest) => {
   const secret = process.env.CRON_SECRET;
+  const isVercelCron = Boolean(request.headers.get("x-vercel-cron"));
+  if (isVercelCron) return true;
+
   if (!secret) return false;
   const provided =
     request.headers.get("x-cron-secret") ||
