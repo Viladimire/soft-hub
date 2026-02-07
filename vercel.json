@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/publish",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-supabase",
+      "schedule": "15 */6 * * *"
+    }
+  ]
+}
