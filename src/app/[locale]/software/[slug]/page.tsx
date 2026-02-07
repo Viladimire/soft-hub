@@ -6,7 +6,7 @@ import { defaultLocale, supportedLocales } from "@/i18n/locales";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchSoftwareBySlug } from "@/lib/services/softwareService";
-import { getStaticRelatedSoftware, getStaticSoftwareBySlug, listStaticSoftwareSlugs } from "@/lib/services/staticSoftwareRepository";
+import { getStaticRelatedSoftware, getStaticSoftwareBySlug } from "@/lib/services/staticSoftwareRepository";
 
 import { AppShell } from "@/components/layouts/app-shell";
 import { SideBar } from "@/components/layouts/sidebar";
@@ -23,14 +23,9 @@ export const dynamicParams = true;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export async function generateStaticParams() {
-  const slugs = await listStaticSoftwareSlugs();
-
-  return supportedLocales.flatMap((locale) =>
-    slugs.map((slug) => ({
-      locale,
-      slug,
-    })),
-  );
+  // With large datasets (e.g. 100k+ software), generating static params for every slug
+  // makes builds slow/expensive. We rely on dynamic rendering + caching instead.
+  return [] as Array<{ locale: string; slug: string }>;
 }
 
 export async function generateMetadata({

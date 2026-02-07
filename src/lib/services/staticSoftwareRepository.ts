@@ -9,6 +9,8 @@ const DATA_FILENAME = "software/index.json";
 const DEFAULT_REMOTE_BASE = "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/data";
 const DATA_VERSION = process.env.NEXT_PUBLIC_DATA_VERSION ?? process.env.DATA_VERSION ?? "";
 
+const ITEMS_DIR = "software/items";
+
 const LATEST_PAGES_DIR = "software/pages/latest";
 
 let datasetPromise: Promise<Software[]> | null = null;
@@ -223,6 +225,43 @@ const resolveDatasetUrl = () => {
   }
 
   return appendVersion(`${DEFAULT_REMOTE_BASE}/${DATA_FILENAME}`);
+};
+
+const resolveItemUrl = (slug: string) => {
+  const safeSlug = slug.trim();
+  if (!safeSlug) return "";
+
+  if (DATA_BASE_ENV) {
+    return appendVersion(`${sanitizeBaseUrl(DATA_BASE_ENV)}/${ITEMS_DIR}/${encodeURIComponent(safeSlug)}.json`);
+  }
+
+  if (typeof window !== "undefined") {
+    return appendVersion(`/data/${ITEMS_DIR}/${encodeURIComponent(safeSlug)}.json`);
+  }
+
+  return appendVersion(`${DEFAULT_REMOTE_BASE}/${ITEMS_DIR}/${encodeURIComponent(safeSlug)}.json`);
+};
+
+const fetchRemoteSoftwareItem = async (slug: string): Promise<Software | null> => {
+  // Never rely on remote item fetch at build time.
+  if (typeof window === "undefined" && isProductionBuild) {
+    return null;
+  }
+
+  const url = resolveItemUrl(slug);
+  if (!url) return null;
+
+  try {
+    const response = await fetch(url, {
+      cache: "force-cache",
+      next: { revalidate: 60 * 5 },
+    });
+    if (!response.ok) return null;
+    const raw = await response.json();
+    return normalizeEntry(raw);
+  } catch {
+    return null;
+  }
 };
 
 const normalizePlatform = (value: unknown): Software["platforms"][number] | null => {
@@ -628,6 +667,9 @@ export const invalidateStaticSoftwareCache = () => {
 };
 
 export const getStaticSoftwareBySlug = async (slug: string) => {
+  const fromRemoteItem = await fetchRemoteSoftwareItem(slug);
+  if (fromRemoteItem) return fromRemoteItem;
+
   const dataset = await fetchStaticSoftwareDataset();
   return dataset.find((software) => software.slug === slug) ?? null;
 };
