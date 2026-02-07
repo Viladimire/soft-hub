@@ -33,7 +33,7 @@ create table if not exists public.collection_items (
 
 create index if not exists idx_collections_featured on public.collections (is_featured) where is_featured = true;
 create index if not exists idx_collections_display_order on public.collections (display_order desc, created_at desc);
-create index if not exists idx_collection_items_collection on public.collection_items (collection_id, position);
+create index if not exists idx_collection_items_collection on public.collection_items (collection_id, "position");
 create index if not exists idx_collection_items_software on public.collection_items (software_id);
 
 alter table public.collections enable row level security;
@@ -78,19 +78,22 @@ as $$
   order by ci.position asc, ci.created_at asc;
 $$;
 
-create policy if not exists "collections_public_read"
+drop policy if exists "collections_public_read" on public.collections;
+create policy "collections_public_read"
   on public.collections
   for select
   using (published_at is not null or public.is_admin() or public.is_service_role());
 
-create policy if not exists "collections_admin_write"
+drop policy if exists "collections_admin_write" on public.collections;
+create policy "collections_admin_write"
   on public.collections
   for all
   to authenticated
   using (public.is_admin() or public.is_service_role())
   with check (public.is_admin() or public.is_service_role());
 
-create policy if not exists "collection_items_public_read"
+drop policy if exists "collection_items_public_read" on public.collection_items;
+create policy "collection_items_public_read"
   on public.collection_items
   for select
   using (
@@ -101,7 +104,8 @@ create policy if not exists "collection_items_public_read"
     )
   );
 
-create policy if not exists "collection_items_admin_write"
+drop policy if exists "collection_items_admin_write" on public.collection_items;
+create policy "collection_items_admin_write"
   on public.collection_items
   for all
   to authenticated
