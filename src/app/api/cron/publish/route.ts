@@ -7,11 +7,11 @@ import { fetchSoftwareDatasetFromGitHub, publishLatestSoftwarePagesToGitHub } fr
 
 const isAuthorizedCronRequest = (request: NextRequest) => {
   const secret = process.env.CRON_SECRET;
-  const provided = request.headers.get("x-cron-secret") || new URL(request.url).searchParams.get("secret") || "";
-  const isVercelCron = Boolean(request.headers.get("x-vercel-cron"));
-
-  if (isVercelCron) return true;
   if (!secret) return false;
+  const provided =
+    request.headers.get("x-cron-secret") ||
+    new URL(request.url).searchParams.get("secret") ||
+    "";
   return provided === secret;
 };
 
