@@ -51,6 +51,12 @@ export async function generateMetadata({
     return {};
   }
 
+  const latestRelease = software.releases?.[0];
+  const resolvedVersion = latestRelease?.version ?? software.version;
+  const safeVersion = /^(?:v)?\d+\.\d+(?:\.\d+){0,3}$/i.test((resolvedVersion ?? "").trim())
+    ? resolvedVersion
+    : "";
+
   const description = software.summary ?? undefined;
 
   const canonicalPath = `/${locale}/software/${slug}`;
@@ -58,18 +64,23 @@ export async function generateMetadata({
     supportedLocales.map((value) => [value, new URL(`/${value}/software/${slug}`, SITE_URL).toString()]),
   );
 
-  const ogImage = new URL("/branding/soft-hub-logomark.svg", SITE_URL).toString();
+  const ogImageCandidate = software.media?.heroImage || software.media?.gallery?.[0] || software.media?.logoUrl || "";
+  const ogImage = ogImageCandidate
+    ? new URL(ogImageCandidate, SITE_URL).toString()
+    : new URL("/branding/soft-hub-logomark.svg", SITE_URL).toString();
+
+  const pageTitle = safeVersion ? `${software.name} v${safeVersion}` : software.name;
 
   return {
     metadataBase: new URL(SITE_URL),
-    title: software.name,
+    title: pageTitle,
     description,
     alternates: {
       canonical: new URL(canonicalPath, SITE_URL).toString(),
       languages,
     },
     openGraph: {
-      title: software.name,
+      title: pageTitle,
       description,
       locale,
       url: new URL(canonicalPath, SITE_URL).toString(),
@@ -86,7 +97,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: software.name,
+      title: pageTitle,
       description,
       images: [ogImage],
     },

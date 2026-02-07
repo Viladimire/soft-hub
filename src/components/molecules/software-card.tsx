@@ -41,7 +41,7 @@ const SoftwareCardImage = ({
   onError: () => void;
   alt: string;
 }) => (
-  <div className="relative h-32 w-full overflow-hidden">
+  <div className="relative h-28 w-full overflow-hidden">
     {heroImage ? (
       <Image
         src={heroImage}
@@ -101,7 +101,7 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
       whileHover={{ y: -6 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "group relative flex h-full min-h-[300px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
+        "group relative flex h-full min-h-[270px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/35 backdrop-blur-xl",
         "shadow-[0_18px_45px_rgba(3,7,18,0.45)] transition-all duration-300 hover:border-white/20 hover:bg-neutral-950/45 hover:shadow-[0_28px_80px_rgba(59,130,246,0.18)]",
         className,
       )}
@@ -121,17 +121,17 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
         onError={() => setHeroErrored(true)}
       />
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3">
         <header className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
+            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-white/8">
               {logoImage ? (
                 <Image
                   src={logoImage}
                   alt={`${software.name} logo`}
                   fill
                   className="object-cover"
-                  sizes="40px"
+                  sizes="36px"
                   unoptimized
                   onError={() => setLogoErrored(true)}
                 />
