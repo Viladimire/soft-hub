@@ -5,6 +5,9 @@
 create extension if not exists "pgcrypto";
 create extension if not exists "uuid-ossp";
 
+alter table public.analytics_events
+  add column if not exists metadata jsonb;
+
 create or replace function public.analytics_top_countries(
   p_limit integer default 12,
   p_window_days integer default 30
