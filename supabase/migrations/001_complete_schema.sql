@@ -64,6 +64,9 @@ alter table public.software
   add column if not exists media jsonb not null default '{}'::jsonb;
 
 alter table public.software
+  add column if not exists downloads_count bigint generated always as (coalesce(((stats ->> 'downloads'))::bigint, 0)) stored;
+
+alter table public.software
   add column if not exists requirements jsonb;
 
 alter table public.software
