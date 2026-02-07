@@ -932,6 +932,18 @@ const extractProductInfoMap = (lines: string[]) => {
       continue;
     }
 
+    // Support inline table rows rendered as: "Label    Value"
+    // e.g. "Total Downloads 10280359" or "Version 2026 (v27.3.1.4)"
+    const inline = current.match(/^([a-z][a-z\s]{1,30})\s{2,}(.{1,120})$/i);
+    if (inline) {
+      const key = inline[1].trim().toLowerCase();
+      const value = inline[2].trim();
+      if (key && value && !map.has(key)) {
+        map.set(key, value);
+        continue;
+      }
+    }
+
     if (next && /^[a-z][a-z\s]{1,30}$/i.test(current) && !map.has(current.toLowerCase())) {
       map.set(current.toLowerCase(), next);
       i += 1;
