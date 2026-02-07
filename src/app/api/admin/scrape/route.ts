@@ -1369,8 +1369,17 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
 
   const resolvedSizeInMb = await (async () => {
     const resolved = await resolveDownloadSizeFromHtml(baseUrl, html);
-    if (resolved > 0) return resolved;
-    return sizeCandidate.mb;
+    if (resolved <= 0) return sizeCandidate.mb;
+
+    if (sizeCandidate.confidence === "high" && sizeCandidate.mb > 0) {
+      const ratio = resolved / sizeCandidate.mb;
+      // Only trust network-derived size when it is close to explicit HTML size markers.
+      // Some sites redirect HEAD/Range to HTML landing pages or CDN stubs with incorrect lengths.
+      if (ratio >= 0.6 && ratio <= 1.6) return resolved;
+      return sizeCandidate.mb;
+    }
+
+    return resolved;
   })();
 
   const requirements = extractRequirementsBlock(lines);

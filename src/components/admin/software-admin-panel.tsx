@@ -1402,7 +1402,7 @@ export const SoftwareAdminPanel = () => {
 
         const currentNumeric = parseNumber(state.sizeInMb, 0);
         const isDefaultPlaceholder = state.sizeInMb === "250";
-        if ((Number.isFinite(currentNumeric) && currentNumeric > 0 && !isDefaultPlaceholder) || state.sizeInMb.trim()) {
+        if (Number.isFinite(currentNumeric) && currentNumeric > 0 && !isDefaultPlaceholder) {
           return state.sizeInMb;
         }
         return incomingSize;
