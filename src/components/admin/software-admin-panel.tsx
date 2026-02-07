@@ -1723,7 +1723,7 @@ export const SoftwareAdminPanel = () => {
 
       {isFormOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-full w-full max-w-6xl overflow-y-auto rounded-2xl border border-white/10 bg-neutral-950/95 p-6 shadow-[0_40px_120px_rgba(0,0,0,0.65)] backdrop-blur">
+          <div className="max-h-full w-full max-w-6xl overflow-y-auto rounded-2xl border border-white/10 bg-neutral-950/95 p-4 shadow-[0_40px_120px_rgba(0,0,0,0.65)] backdrop-blur">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold text-neutral-100">
                 {formState.id ? "Edit software" : "Create software"}
@@ -1733,8 +1733,8 @@ export const SoftwareAdminPanel = () => {
               </Button>
             </div>
 
-            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-              <form onSubmit={handleFormSubmit} className="space-y-6">
+            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <form onSubmit={handleFormSubmit} className="space-y-4">
                 <Tabs defaultValue="basic">
                   <TabsList className="w-full justify-start border border-white/10 bg-white/[0.03]">
                     <TabsTrigger value="basic">Basic</TabsTrigger>
@@ -1743,7 +1743,7 @@ export const SoftwareAdminPanel = () => {
                     <TabsTrigger value="advanced">Advanced</TabsTrigger>
                   </TabsList>
                   <TabsContent value="basic">
-                    <section className="grid gap-4 md:grid-cols-2">
+                    <section className="grid gap-3 md:grid-cols-2">
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-name`}>Software name</label>
                         <div className="flex flex-wrap gap-2">
@@ -1771,7 +1771,7 @@ export const SoftwareAdminPanel = () => {
                             {isAutoFilling ? "Filling..." : "Auto-fill"}
                           </Button>
                         </div>
-                        <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
+                        <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center">
                           <Input
                             id={`${formFieldPrefix}-official-url`}
                             name="officialUrl"
@@ -1791,7 +1791,7 @@ export const SoftwareAdminPanel = () => {
                         </div>
 
                         {scrapePreview ? (
-                          <div className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                          <div className="mt-3 space-y-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
                             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                               <div className="space-y-1">
                                 <p className="text-sm font-medium text-neutral-200">Scrape preview</p>
@@ -1988,7 +1988,7 @@ export const SoftwareAdminPanel = () => {
                       </div>
                     </section>
 
-                    <section className="mt-6 grid gap-4 md:grid-cols-2">
+                    <section className="mt-4 grid gap-3 md:grid-cols-2">
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-sm text-neutral-300" htmlFor={`${formFieldPrefix}-summary`}>Summary</label>
                         <Textarea
@@ -2010,15 +2010,15 @@ export const SoftwareAdminPanel = () => {
                           onChange={(event) =>
                             setFormState((state) => ({ ...state, description: event.target.value }))
                           }
-                          rows={5}
+                          rows={4}
                         />
                       </div>
                     </section>
                   </TabsContent>
 
                   <TabsContent value="media">
-                    <section className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <section className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
                         <div className="flex items-center justify-between gap-3">
                           <label className="text-sm font-medium text-neutral-200">Logo</label>
                           {uploadingType === "logo" ? (
@@ -2100,7 +2100,7 @@ export const SoftwareAdminPanel = () => {
                         ) : null}
                       </div>
 
-                      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
                         <div className="flex items-center justify-between gap-3">
                           <label className="text-sm font-medium text-neutral-200">Hero image</label>
                           {uploadingType === "hero" ? (
@@ -2181,7 +2181,7 @@ export const SoftwareAdminPanel = () => {
                         ) : null}
                       </div>
 
-                      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:col-span-2">
+                      <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3 md:col-span-2">
                         <div className="flex flex-col gap-1">
                           <label className="text-sm font-medium text-neutral-200">Gallery</label>
                           <p className="text-xs text-neutral-500">One URL per line. We’ll preview the first 3.</p>
