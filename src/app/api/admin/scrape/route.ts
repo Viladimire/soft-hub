@@ -89,6 +89,33 @@ const extractDownloadCandidateUrls = (html: string) => {
     }
   }
 
+  // URLs embedded in script tags (common for download redirects)
+  {
+    const scripts: string[] = [];
+    const scriptRx = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = scriptRx.exec(html))) {
+      const body = m[1];
+      if (!body) continue;
+      // Only keep scripts that are likely to contain download URLs.
+      if (!/\b(download|dl|mirror|file)\b/i.test(body)) continue;
+      scripts.push(body);
+      if (scripts.length >= 12) break;
+    }
+
+    const urlRx = /https?:\/\/[^\s"'<>]+/gi;
+    for (const script of scripts) {
+      let hit: RegExpExecArray | null;
+      while ((hit = urlRx.exec(script))) {
+        const raw = (hit[0] ?? "").trim();
+        if (!raw) continue;
+        urls.push(raw);
+        if (urls.length >= 340) break;
+      }
+      if (urls.length >= 340) break;
+    }
+  }
+
   return uniqueUrls(urls);
 };
 
@@ -1341,16 +1368,9 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "soft" | 
   })();
 
   const resolvedSizeInMb = await (async () => {
-    if (sizeCandidate.mb <= 0) {
-      return await resolveDownloadSizeFromHtml(baseUrl, html);
-    }
-
-    if (sizeCandidate.confidence === "high") {
-      return sizeCandidate.mb;
-    }
-
     const resolved = await resolveDownloadSizeFromHtml(baseUrl, html);
-    return resolved > 0 ? resolved : sizeCandidate.mb;
+    if (resolved > 0) return resolved;
+    return sizeCandidate.mb;
   })();
 
   const requirements = extractRequirementsBlock(lines);
