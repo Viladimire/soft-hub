@@ -142,6 +142,21 @@ export default async function SoftwareDetailPage({
   };
   const screenshots = (software.media?.gallery ?? []).filter(Boolean).slice(0, 8);
 
+  const formatFileSizeForJsonLd = (bytes: number) => {
+    if (!Number.isFinite(bytes) || bytes <= 0) return "";
+    const mb = bytes / (1024 * 1024);
+    if (!Number.isFinite(mb) || mb <= 0) return "";
+    if (mb >= 1024) {
+      const gb = mb / 1024;
+      return `${Math.round(gb * 100) / 100} GB`;
+    }
+    return `${Math.round(mb * 10) / 10} MB`;
+  };
+
+  const imageCandidates = [software.media?.heroImage, software.media?.logoUrl, ...(software.media?.gallery ?? [])]
+    .filter(Boolean)
+    .slice(0, 3) as string[];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -154,7 +169,8 @@ export default async function SoftwareDetailPage({
     downloadUrl: resolvedDownloadUrl,
     datePublished: resolvedReleaseDate,
     dateModified: software.updatedAt,
-    fileSize: typeof resolvedSize === "number" && resolvedSize > 0 ? `${resolvedSize}` : undefined,
+    fileSize: typeof resolvedSize === "number" && resolvedSize > 0 ? formatFileSizeForJsonLd(resolvedSize) : undefined,
+    image: imageCandidates.length ? imageCandidates.map((value) => new URL(value, SITE_URL).toString()) : undefined,
     screenshot: screenshots.length
       ? screenshots.map((value) => new URL(value, SITE_URL).toString())
       : undefined,

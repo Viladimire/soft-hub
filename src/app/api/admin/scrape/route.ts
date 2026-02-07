@@ -14,6 +14,15 @@ const extractAnchorHrefs = (html: string) => {
   return Array.from(new Set(urls.map((v) => v.trim()).filter(Boolean)));
 };
 
+const parseDownloadsFromText = (text: string) => {
+  // Accept formats like:
+  // "Total Downloads 10 280 359" | "Downloads: 10,280,359" | "Total downloads: 10.2M"
+  const rx = /\b(total\s+downloads?|downloads?)\b\s*[:\-]?\s*([0-9][0-9,\s.]*\s*[kmb]?)/i;
+  const match = String(text ?? "").match(rx);
+  if (!match) return 0;
+  return parseDownloadsValue(match[2] ?? "");
+};
+
 const classifyFromText = (text: string) => {
   const lower = (text || "").toLowerCase();
   const platforms = new Set<string>();
@@ -563,10 +572,7 @@ const parseSizeFromText = (text: string) => {
 
 const pickDownloadsFallback = (lines: string[]) => {
   const text = lines.join("\n");
-  const rx = /\b(total\s+downloads?|downloads?)\b\s*[:\-]?\s*([0-9][0-9,\s]*)/i;
-  const match = text.match(rx);
-  if (!match) return 0;
-  const parsed = parseHumanNumber(match[2]);
+  const parsed = parseDownloadsFromText(text);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
@@ -576,10 +582,10 @@ const parseHumanNumber = (raw: string) => {
 
   // Prefer the first number token in the string to avoid concatenating unrelated numbers.
   // Supports: 1,234 | 1234 | 1.2M | 500k
-  const tokenMatch = normalized.match(/\b(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*([kmb])?\b/i);
+  const tokenMatch = normalized.match(/\b(\d{1,3}(?:[\s,]\d{3})+|\d+(?:\.\d+)?)\s*([kmb])?\b/i);
   if (!tokenMatch) return 0;
 
-  const num = Number(String(tokenMatch[1]).replace(/,/g, ""));
+  const num = Number(String(tokenMatch[1]).replace(/[\s,]/g, ""));
   if (!Number.isFinite(num)) return 0;
 
   const suffix = (tokenMatch[2] ?? "").toLowerCase();
@@ -1276,7 +1282,9 @@ const extractAggregateRatingFromHtml = (html: string) => {
   // Examples: "Rating 4.6" or "4.6/5" and "(123 reviews)".
   const text = normalizeText(stripTags(html));
 
-  const ratingMatch = text.match(/\b(\d(?:\.\d)?)\s*\/?\s*5\b/);
+  // Prefer matches that contain the word rating/stars nearby.
+  const strongRatingMatch = text.match(/\brating\b[^\n\r]{0,40}?(\d(?:\.\d)?)\s*\/?\s*5\b/i);
+  const ratingMatch = strongRatingMatch ?? text.match(/\b(\d(?:\.\d)?)\s*\/?\s*5\b/);
   const rating = ratingMatch ? Number(ratingMatch[1]) : 0;
 
   const votesMatch = text.match(/\b(\d{1,3}(?:,\d{3})+|\d+)\s*(?:reviews?|ratings?|votes?)\b/i);
