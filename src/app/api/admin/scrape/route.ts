@@ -258,6 +258,9 @@ const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
         if (depth < 2) {
           const nextHtml = await fetchHtmlLight(allowed);
           if (nextHtml) {
+            const extracted = extractSizeInMbFromHtml(nextHtml);
+            if (isReasonableSizeInMb(extracted)) return extracted;
+
             const nested = await resolveRecursive(allowed, nextHtml, depth + 1);
             if (isReasonableSizeInMb(nested)) return nested;
           }
