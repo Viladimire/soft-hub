@@ -24,7 +24,7 @@ create table if not exists public.collections (
 create table if not exists public.collection_items (
   collection_id uuid not null references public.collections(id) on delete cascade,
   software_id uuid not null references public.software(id) on delete cascade,
-  position integer not null default 0,
+  "position" integer not null default 0,
   highlight text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -56,7 +56,7 @@ create or replace function public.collection_items_for(collection uuid)
 returns table (
   collection_id uuid,
   software_id uuid,
-  position integer,
+  "position" integer,
   highlight text,
   created_at timestamptz,
   updated_at timestamptz
@@ -69,13 +69,13 @@ as $$
   select
     ci.collection_id,
     ci.software_id,
-    ci.position,
+    ci."position",
     ci.highlight,
     ci.created_at,
     ci.updated_at
   from public.collection_items ci
   where ci.collection_id = collection
-  order by ci.position asc, ci.created_at asc;
+  order by ci."position" asc, ci.created_at asc;
 $$;
 
 drop policy if exists "collections_public_read" on public.collections;
