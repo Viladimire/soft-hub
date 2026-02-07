@@ -929,6 +929,29 @@ const extractProductInfoMap = (lines: string[]) => {
   );
 
   const map = new Map<string, string>();
+  const knownInlineKeys = [
+    "version",
+    "file size",
+    "filesize",
+    "total downloads",
+    "file name",
+    "release date",
+    "created by",
+  ];
+
+  const tryParseKnownInline = (line: string) => {
+    const lower = line.toLowerCase();
+    for (const key of knownInlineKeys) {
+      if (!lower.startsWith(key)) continue;
+      const remainder = line.slice(key.length).trim();
+      if (!remainder) continue;
+      // Ensure the remainder looks like a value (usually contains digits or letters beyond just punctuation).
+      if (!/[a-z0-9]/i.test(remainder)) continue;
+      return { key, value: remainder };
+    }
+    return null;
+  };
+
   for (let i = 0; i < block.length; i += 1) {
     const current = block[i].trim();
     const next = (block[i + 1] ?? "").trim();
@@ -937,6 +960,14 @@ const extractProductInfoMap = (lines: string[]) => {
     const m = current.match(/^([^:]{2,40})\s*:\s*(.+)$/);
     if (m) {
       map.set(m[1].toLowerCase(), m[2].trim());
+      continue;
+    }
+
+    // Support FileCR inline rows rendered with a single space between label and value
+    // e.g. "Total Downloads 10 280 359" or "File size 5.7 GB"
+    const knownInline = tryParseKnownInline(current);
+    if (knownInline && !map.has(knownInline.key)) {
+      map.set(knownInline.key, knownInline.value);
       continue;
     }
 

@@ -1370,6 +1370,50 @@ export const SoftwareAdminPanel = () => {
     if (!scrapePreview) return;
 
     const picked = scrapePreview;
+
+    const normalizeScrapedImageUrls = (items: string[]) =>
+      uniqueByValue(items.map((value) => normalizeImageUrl(value)).filter(Boolean));
+
+    const processedPicked = await (async () => {
+      const rawLogo = normalizeImageUrl(picked.logoUrl ?? "");
+      const rawHero = normalizeImageUrl(picked.heroImage ?? "");
+      const rawScreens = normalizeScrapedImageUrls(picked.screenshots ?? []).slice(0, 3);
+
+      const safeUpload = async (raw: string, type: "logo" | "hero" | "screenshot") => {
+        if (!raw) return { url: "", uploaded: false };
+        try {
+          return await uploadFromUrlWithWatermark(raw, type);
+        } catch {
+          return { url: raw, uploaded: false };
+        }
+      };
+
+      const [uploadedLogo, uploadedHero, uploadedScreens] = await Promise.all([
+        rawLogo ? safeUpload(rawLogo, "logo") : Promise.resolve({ url: "", uploaded: false }),
+        rawHero ? safeUpload(rawHero, "hero") : Promise.resolve({ url: "", uploaded: false }),
+        Promise.all(rawScreens.map((shot) => safeUpload(shot, "screenshot"))),
+      ]);
+
+      const failedUploads = [uploadedLogo, uploadedHero, ...(uploadedScreens ?? [])].filter((item) => item.url && !item.uploaded);
+      if (failedUploads.length) {
+        pushNotification(
+          "error",
+          "Some scraped images could not be uploaded to Supabase — external URLs were kept. Check Admin session/env and retry.",
+        );
+      }
+
+      return {
+        ...picked,
+        logoUrl: uploadedLogo.url || rawLogo || picked.logoUrl,
+        heroImage: uploadedHero.url || rawHero || picked.heroImage,
+        screenshots: uniqueByValue([
+          ...(uploadedScreens ?? []).map((item) => item.url).filter(Boolean),
+          ...(picked.screenshots ?? []).filter(Boolean),
+        ]).slice(0, 6),
+      };
+    })();
+
+    const pickedResolved = processedPicked;
     const today = new Date().toISOString().slice(0, 10);
     const normalizeDate = (raw: string) => {
       const trimmed = raw.trim();
@@ -1378,7 +1422,7 @@ export const SoftwareAdminPanel = () => {
       const parsed = new Date(trimmed);
       return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
     };
-    const scrapedDate = picked.releaseDate ? normalizeDate(picked.releaseDate) : "";
+    const scrapedDate = pickedResolved.releaseDate ? normalizeDate(pickedResolved.releaseDate) : "";
 
     const mergeLines = (existing: string, incoming: string) => {
       const base = existing
@@ -1393,17 +1437,17 @@ export const SoftwareAdminPanel = () => {
     };
 
     setFormState((state) => {
-      const incomingFeatures = sanitizeFeaturesText((picked.features ?? []).join("\n"));
-      const incomingMinReq = (picked.requirements?.minimum ?? []).join("\n");
-      const incomingRecReq = (picked.requirements?.recommended ?? []).join("\n");
-      const incomingSize = typeof picked.sizeInMb === "number" && Number.isFinite(picked.sizeInMb) && picked.sizeInMb > 0
-        ? String(Math.round(picked.sizeInMb * 10) / 10)
+      const incomingFeatures = sanitizeFeaturesText((pickedResolved.features ?? []).join("\n"));
+      const incomingMinReq = (pickedResolved.requirements?.minimum ?? []).join("\n");
+      const incomingRecReq = (pickedResolved.requirements?.recommended ?? []).join("\n");
+      const incomingSize = typeof pickedResolved.sizeInMb === "number" && Number.isFinite(pickedResolved.sizeInMb) && pickedResolved.sizeInMb > 0
+        ? String(Math.round(pickedResolved.sizeInMb * 10) / 10)
         : "";
-      const incomingRating = typeof picked.rating === "number" && Number.isFinite(picked.rating) && picked.rating > 0 && picked.rating <= 5
-        ? String(Math.round(picked.rating * 10) / 10)
+      const incomingRating = typeof pickedResolved.rating === "number" && Number.isFinite(pickedResolved.rating) && pickedResolved.rating > 0 && pickedResolved.rating <= 5
+        ? String(Math.round(pickedResolved.rating * 10) / 10)
         : "";
-      const incomingVotes = typeof picked.votes === "number" && Number.isFinite(picked.votes) && picked.votes > 0
-        ? String(Math.floor(picked.votes))
+      const incomingVotes = typeof pickedResolved.votes === "number" && Number.isFinite(pickedResolved.votes) && pickedResolved.votes > 0
+        ? String(Math.floor(pickedResolved.votes))
         : "";
 
       const applyText = (current: string, incoming: string) => {
@@ -1421,10 +1465,10 @@ export const SoftwareAdminPanel = () => {
 
       const nextDeveloperJson = (() => {
         if (strategy === "replace") {
-          return picked.developer?.trim() ? JSON.stringify({ name: picked.developer.trim(), source: "scrape" }, null, 2) : state.developerJson;
+          return pickedResolved.developer?.trim() ? JSON.stringify({ name: pickedResolved.developer.trim(), source: "scrape" }, null, 2) : state.developerJson;
         }
         if (state.developerJson.trim()) return state.developerJson;
-        return picked.developer?.trim() ? JSON.stringify({ name: picked.developer.trim(), source: "scrape" }, null, 2) : state.developerJson;
+        return pickedResolved.developer?.trim() ? JSON.stringify({ name: pickedResolved.developer.trim(), source: "scrape" }, null, 2) : state.developerJson;
       })();
 
       const nextSizeInMb = (() => {
@@ -1455,30 +1499,30 @@ export const SoftwareAdminPanel = () => {
 
       return {
         ...state,
-        name: strategy === "replace" ? (picked.name ?? state.name) : (state.name.trim() ? state.name : (picked.name ?? state.name)),
-        summary: applyText(state.summary, picked.summary ?? ""),
-        description: applyText(state.description, picked.description ?? ""),
-        websiteUrl: applyText(state.websiteUrl, picked.websiteUrl ?? ""),
+        name: strategy === "replace" ? (pickedResolved.name ?? state.name) : (state.name.trim() ? state.name : (pickedResolved.name ?? state.name)),
+        summary: applyText(state.summary, pickedResolved.summary ?? ""),
+        description: applyText(state.description, pickedResolved.description ?? ""),
+        websiteUrl: applyText(state.websiteUrl, pickedResolved.websiteUrl ?? ""),
         version:
           strategy === "replace"
-            ? (picked.version?.trim() || state.version)
+            ? (pickedResolved.version?.trim() || state.version)
             : state.version.trim() && state.version !== "1.0.0"
               ? state.version
-              : (picked.version?.trim() || state.version),
+              : (pickedResolved.version?.trim() || state.version),
         releaseDate:
           strategy === "replace"
             ? (scrapedDate || state.releaseDate)
             : state.releaseDate.trim() && state.releaseDate !== today
               ? state.releaseDate
               : (scrapedDate || state.releaseDate),
-        logoUrl: strategy === "replace" ? (picked.logoUrl ?? state.logoUrl) : (state.logoUrl.trim() ? state.logoUrl : (picked.logoUrl ?? state.logoUrl)),
-        heroImage: strategy === "replace" ? (picked.heroImage ?? state.heroImage) : (state.heroImage.trim() ? state.heroImage : (picked.heroImage ?? state.heroImage)),
+        logoUrl: strategy === "replace" ? (pickedResolved.logoUrl ?? state.logoUrl) : (state.logoUrl.trim() ? state.logoUrl : (pickedResolved.logoUrl ?? state.logoUrl)),
+        heroImage: strategy === "replace" ? (pickedResolved.heroImage ?? state.heroImage) : (state.heroImage.trim() ? state.heroImage : (pickedResolved.heroImage ?? state.heroImage)),
         gallery:
           strategy === "replace"
-            ? uniqueByValue((picked.screenshots ?? []).filter(Boolean)).join("\n")
+            ? uniqueByValue((pickedResolved.screenshots ?? []).filter(Boolean)).join("\n")
             : state.gallery.trim()
               ? state.gallery
-              : uniqueByValue((picked.screenshots ?? []).filter(Boolean)).join("\n"),
+              : uniqueByValue((pickedResolved.screenshots ?? []).filter(Boolean)).join("\n"),
         sizeInMb: nextSizeInMb,
         statsRating: nextStatsRating,
         statsVotes: nextStatsVotes,
@@ -1488,27 +1532,27 @@ export const SoftwareAdminPanel = () => {
         developerJson: nextDeveloperJson,
         platforms:
           strategy === "replace"
-            ? (picked.platforms?.length ? picked.platforms : state.platforms)
+            ? (pickedResolved.platforms?.length ? pickedResolved.platforms : state.platforms)
             : state.platforms.length
               ? state.platforms
-              : (picked.platforms?.length ? picked.platforms : state.platforms),
+              : (pickedResolved.platforms?.length ? pickedResolved.platforms : state.platforms),
         categories:
           strategy === "replace"
-            ? (picked.categories?.length ? picked.categories : state.categories)
+            ? (pickedResolved.categories?.length ? pickedResolved.categories : state.categories)
             : state.categories.length
               ? state.categories
-              : (picked.categories?.length ? picked.categories : state.categories),
+              : (pickedResolved.categories?.length ? pickedResolved.categories : state.categories),
         type:
           strategy === "replace"
-            ? (picked.type && picked.type !== "standard" ? (picked.type as any) : state.type)
+            ? (pickedResolved.type && pickedResolved.type !== "standard" ? (pickedResolved.type as any) : state.type)
             : state.type && state.type !== "standard"
               ? state.type
-              : (picked.type ? (picked.type as any) : state.type),
+              : (pickedResolved.type ? (pickedResolved.type as any) : state.type),
       };
     });
 
-    if (!formState.name.trim() && picked.name?.trim()) {
-      await ensureUniqueSlug(picked.name);
+    if (!formState.name.trim() && pickedResolved.name?.trim()) {
+      await ensureUniqueSlug(pickedResolved.name);
     }
   };
 
