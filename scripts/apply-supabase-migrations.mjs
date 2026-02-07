@@ -138,10 +138,15 @@ const client = new Client({
 });
 
 const migrations = [
+  resolve(process.cwd(), "supabase", "migrations", "001_complete_schema.sql"),
+  resolve(process.cwd(), "supabase", "migrations", "002_analytics.sql"),
+  resolve(process.cwd(), "supabase", "migrations", "003_collections.sql"),
+  resolve(process.cwd(), "supabase", "migrations", "004_phase1_schema_adjustments.sql"),
   resolve(process.cwd(), "supabase", "migrations", "005_admin_config.sql"),
   resolve(process.cwd(), "supabase", "migrations", "006_analytics_fix.sql"),
   resolve(process.cwd(), "supabase", "migrations", "007_software_columns_fix.sql"),
   resolve(process.cwd(), "supabase", "migrations", "008_software_missing_columns_fix.sql"),
+  resolve(process.cwd(), "supabase", "migrations", "009_analytics_countries.sql"),
   resolve(process.cwd(), "supabase", "migrations", "010_software_releases.sql"),
 ];
 
