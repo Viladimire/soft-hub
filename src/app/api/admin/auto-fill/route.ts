@@ -39,7 +39,23 @@ export const POST = async (request: NextRequest) => {
       return NextResponse.json({ message: result.error }, { status: 500 });
     }
 
-    return NextResponse.json(result.data);
+    const data = result.data;
+    const changelog = Array.isArray(data.changelog) ? data.changelog : [];
+    if (changelog.length) {
+      return NextResponse.json(data);
+    }
+
+    const fallbackVersion = (data.version ?? "").trim() || (version ?? "").trim() || "latest";
+    return NextResponse.json({
+      ...data,
+      changelog: [
+        {
+          version: fallbackVersion,
+          date: new Date().toISOString(),
+          highlights: ["Latest release"],
+        },
+      ],
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });
