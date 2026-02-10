@@ -13,6 +13,7 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
+import { toSoftware, type SoftwareRow } from "@/lib/services/softwareService";
 import { softwareSchema } from "@/lib/validations/software.schema";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
 
@@ -182,8 +183,21 @@ export const GET = async (request: NextRequest) => {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const query = listQuerySchema.parse({
+      page: searchParams.get("page") ?? undefined,
+      perPage: searchParams.get("perPage") ?? undefined,
+    });
+
+    // If Supabase is configured, prefer it as the admin dataset source.
+    // This avoids missing items when GitHub index.json updates are skipped (per-slug storage).
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const items = await fetchAdminDatasetFromSupabase(query);
+      return NextResponse.json({ items, sha: "", source: "supabase", page: query.page, perPage: query.perPage });
+    }
+
     const dataset = await fetchSoftwareDatasetFromGitHub();
-    return NextResponse.json(dataset);
+    return NextResponse.json({ ...dataset, source: "github" });
   } catch (error) {
     return handleError(error, "Failed to fetch dataset from GitHub");
   }
@@ -271,6 +285,29 @@ export const POST = async (request: NextRequest) => {
 const deleteSchema = z.object({
   slug: z.string().min(1),
 });
+
+const listQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  perPage: z.coerce.number().int().min(1).max(5000).default(2000),
+});
+
+const fetchAdminDatasetFromSupabase = async (params: { page: number; perPage: number }) => {
+  const supabase = createSupabaseServerClient();
+  const from = (params.page - 1) * params.perPage;
+  const to = from + params.perPage - 1;
+
+  const { data, error } = await supabase
+    .from("software")
+    .select("*")
+    .order("release_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as SoftwareRow[];
+  return rows.map(toSoftware);
+};
 
 export const DELETE = async (request: NextRequest) => {
   const unauthorized = ensureAuthorized(request);
