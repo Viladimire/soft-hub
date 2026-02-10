@@ -702,8 +702,9 @@ const extractSizeCandidatesFromText = (text: string) => {
 const pickBestSizeCandidate = (candidates: number[]) => {
   if (!candidates.length) return 0;
   const sorted = [...candidates].sort((a, b) => a - b);
-  // Prefer typical installer sizes over tiny artifacts; pick the median-ish.
-  return sorted[Math.floor(sorted.length / 2)] ?? 0;
+  // Prefer full installer sizes over tiny artifacts (portable/patch). In practice,
+  // when multiple candidates exist, the largest reasonable size is usually the correct one.
+  return sorted[sorted.length - 1] ?? 0;
 };
 
 const extractPlainNumberSizeMbFromHtml = (html: string) => {
