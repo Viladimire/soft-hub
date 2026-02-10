@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Download, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowUpRight, Download, Sparkles } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import type { Software } from "@/lib/types/software";
@@ -43,12 +43,6 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="ghost" className="gap-2 text-neutral-200">
-            <Link href={software.websiteUrl ?? software.downloadUrl} target="_blank">
-              {t("actions.website")}
-              <ExternalLink className="h-4 w-4" />
-            </Link>
-          </Button>
           <Button asChild variant="primary" className="gap-2">
             <Link href={software.downloadUrl}>
               {t("actions.download")}
