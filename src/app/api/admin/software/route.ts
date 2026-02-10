@@ -17,6 +17,8 @@ import { toSoftware, type SoftwareRow } from "@/lib/services/softwareService";
 import { softwareSchema } from "@/lib/validations/software.schema";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
 
+export const runtime = "nodejs";
+
 const platformValues = ["windows", "mac", "linux", "android", "ios", "web"] as const satisfies readonly Platform[];
 const categoryValues = [
   "software",
