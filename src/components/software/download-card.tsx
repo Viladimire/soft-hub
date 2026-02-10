@@ -14,9 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const DownloadCard = ({ software, locale }: { software: Software; locale: string }) => {
   const t = useTranslations("pages.softwareDetail.downloadCard");
-  const versionLabel = /^(?:v)?\d+\.\d+(?:\.\d+){0,3}$/i.test((software.version ?? "").trim())
-    ? software.version
-    : "-";
+  const versionLabel = (software.version ?? "").trim() ? software.version : "-";
 
   return (
     <Card className="border-white/10 bg-white/5">
