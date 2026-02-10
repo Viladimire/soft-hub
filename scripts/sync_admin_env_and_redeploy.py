@@ -100,6 +100,51 @@ def vercel_request(
         return json.loads(raw.decode("utf-8"))
 
 
+def get_project(project_id: str, *, token: str, team_id: Optional[str]) -> Dict[str, Any]:
+    params: Dict[str, str] = {}
+    if team_id:
+        params["teamId"] = team_id
+    return vercel_request("GET", f"/v9/projects/{project_id}", token=token, params=params)
+
+
+def create_production_deployment_from_git(
+    project_id: str,
+    *,
+    token: str,
+    team_id: Optional[str],
+) -> Dict[str, Any]:
+    project = get_project(project_id, token=token, team_id=team_id)
+    link = project.get("link") if isinstance(project, dict) else None
+    if not isinstance(link, dict):
+        raise RuntimeError("Project has no git link; cannot create deployment via API")
+
+    repo = link.get("repo")
+    org = link.get("org")
+    repo_id = link.get("repoId")
+    ref = link.get("productionBranch") or "main"
+    if not (repo and org and repo_id):
+        raise RuntimeError("Missing repo metadata from project link")
+
+    params: Dict[str, str] = {}
+    if team_id:
+        params["teamId"] = team_id
+
+    payload: Dict[str, Any] = {
+        "name": project.get("name") or "soft-hub",
+        "project": project_id,
+        "target": "production",
+        "gitSource": {
+            "type": "github",
+            "repo": repo,
+            "org": org,
+            "repoId": int(repo_id),
+            "ref": ref,
+        },
+    }
+
+    return vercel_request("POST", "/v13/deployments", token=token, params=params, payload=payload, timeout=60)
+
+
 def list_env(project_id: str, *, token: str, team_id: Optional[str]) -> list[Dict[str, Any]]:
     params: Dict[str, str] = {"decrypt": "false"}
     if team_id:
@@ -196,6 +241,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--admin-secret-env", default="ADMIN_API_SECRET")
     parser.add_argument("--sleep-after-hook", type=int, default=10)
     parser.add_argument("--run-cron-check", action="store_true")
+    parser.add_argument("--deploy-mode", choices=["hook", "api"], default="hook")
     args = parser.parse_args(argv)
 
     cfg = read_json(args.config_path)
@@ -276,6 +322,32 @@ def main(argv: Optional[list[str]] = None) -> int:
     for k in changed:
         print(f"- {k}")
 
+    if not deploy_hook:
+        if args.deploy_mode == "hook":
+            print("⚠️ No deployHookUrl found; env synced but no redeploy triggered.")
+            return 0
+
+    if args.deploy_mode == "api":
+        print("↻ Creating production deployment via Vercel API...")
+        try:
+            res = create_production_deployment_from_git(project_id, token=vercel_token, team_id=team_id)
+            uid = res.get("id") or res.get("uid") or "(unknown)"
+            url = res.get("url") or "(pending)"
+            print(f"✅ Deployment requested: {uid} {url}")
+        except Exception as e:
+            print(f"❌ Failed to create deployment via API: {e}", file=sys.stderr)
+            return 1
+    else:
+        print("↻ Triggering redeploy hook...")
+        try:
+            trigger_deploy_hook(deploy_hook)
+        except Exception as e:
+            print(f"❌ Failed to trigger deploy hook: {e}", file=sys.stderr)
+            return 1
+
+    if args.sleep_after_hook > 0:
+        time.sleep(args.sleep_after_hook)
+
     if args.run_cron_check:
         print("🔎 Running cron endpoints check...")
         publish_url = f"{args.site_url.rstrip('/')}/api/cron/publish?secret={cron_secret}"
@@ -291,21 +363,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         if status_s >= 400:
             print(body_s)
 
-    if not deploy_hook:
-        print("⚠️ No deployHookUrl found; env synced but no redeploy triggered.")
-        return 0
-
-    print("↻ Triggering redeploy hook...")
-    try:
-        trigger_deploy_hook(deploy_hook)
-    except Exception as e:
-        print(f"❌ Failed to trigger deploy hook: {e}", file=sys.stderr)
-        return 1
-
-    if args.sleep_after_hook > 0:
-        time.sleep(args.sleep_after_hook)
-
-    print("✅ Redeploy triggered.")
+    print("✅ Redeploy requested.")
     return 0
 
 
