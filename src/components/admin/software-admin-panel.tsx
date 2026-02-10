@@ -612,7 +612,7 @@ const applyOrbitWatermarkToBlob = async (blob: Blob, mime: string) => {
 
   // Prefer webp for size; then compress to stay under ~900KB.
   const outMime = "image/webp";
-  const outBlob = await compressCanvasToTargetSize(canvas, { mime: outMime, targetBytes: 900 * 1024 });
+  const outBlob = await compressCanvasToTargetSize(canvas, { mime: outMime, targetBytes: 650 * 1024 });
   return outBlob ?? blob;
 };
 
