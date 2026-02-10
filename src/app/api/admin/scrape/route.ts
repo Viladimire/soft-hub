@@ -803,6 +803,16 @@ const extractSizeInMbFromHtml = (html: string) => {
   return isReasonableSizeInMb(best) ? best : 0;
 };
 
+const extractDeveloperCtaSizeMbFromHtml = (html: string) => {
+  // FileCR-style pages sometimes show an accurate size next to the "Download from developer" CTA.
+  // Prefer this marker when present to avoid wrong HEAD/Range-derived sizes.
+  const rx = /(download\s+from\s+developer)[\s\S]{0,500}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
+  const match = html.match(rx);
+  if (!match) return 0;
+  const mb = parseSizeToMb(`${match[2]} ${match[3]}`);
+  return isReasonableSizeInMb(mb) ? mb : 0;
+};
+
 const extractSection = (
   lines: string[],
   startMatchers: Array<(line: string) => boolean>,
@@ -1529,6 +1539,9 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
     const fromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
     const parsed = fromProductInfo ? parseSizeToMb(fromProductInfo) : 0;
     if (parsed > 0) return { mb: parsed, confidence: "high" as const };
+
+    const fromDeveloperCta = extractDeveloperCtaSizeMbFromHtml(html);
+    if (fromDeveloperCta > 0) return { mb: fromDeveloperCta, confidence: "high" as const };
 
     // Prefer explicit HTML size markers (e.g. <div class="download-size">632</div>) over line heuristics.
     // These often omit units and are more reliable than generic "file size" text inside requirements sections.

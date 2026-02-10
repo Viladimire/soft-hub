@@ -786,12 +786,22 @@ export const autoFillSoftwareData = async (softwareName: string, options: AutoFi
 
     const repoFullName = (github?.repoFullName ?? "").trim();
     const changelog = repoFullName ? await fetchGitHubChangelog(repoFullName) : [];
+    const fallbackVersion = (data.version ?? "").trim() || (options.version ?? "").trim();
+    const fallbackChangelog = fallbackVersion
+      ? ([
+          {
+            version: fallbackVersion,
+            date: new Date().toISOString(),
+            highlights: ["Latest release"],
+          },
+        ] satisfies NonNullable<AutoFillData["changelog"]>)
+      : [];
 
     return {
       success: true,
       data: {
         ...data,
-        changelog: changelog?.length ? changelog : [],
+        changelog: changelog?.length ? changelog : fallbackChangelog,
         summary: clampText(data.summary, 220),
         description: clampText(data.description, 1200),
         version: clampText(data.version || "", 40),
