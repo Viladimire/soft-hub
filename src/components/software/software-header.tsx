@@ -16,6 +16,7 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
   const locale = useLocale();
   const releaseDate = formatReleaseDate(software.updatedAt, locale);
   const versionLabel = (software.version ?? "").trim() ? software.version : "-";
+  const downloadHref = `/${locale}/download/${software.slug}`;
 
   return (
     <header className="space-y-6">
@@ -44,7 +45,7 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
 
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="primary" className="gap-2">
-            <Link href={software.downloadUrl}>
+            <Link href={downloadHref}>
               {t("actions.download")}
               <Download className="h-4 w-4" />
             </Link>

@@ -128,6 +128,7 @@ export default async function SoftwareDetailPage({
   const resolvedDownloadUrl = latestRelease?.downloadUrl ?? software.downloadUrl;
   const resolvedReleaseDate = latestRelease?.releaseDate ?? software.releaseDate;
   const resolvedSize = latestRelease?.sizeInBytes ?? software.sizeInBytes;
+  const downloadRedirectUrl = new URL(`/${locale}/download/${software.slug}`, SITE_URL).toString();
   const displaySoftware = {
     ...software,
     version: resolvedVersion,
@@ -161,7 +162,7 @@ export default async function SoftwareDetailPage({
     description: software.summary ?? software.description ?? undefined,
     softwareVersion: resolvedVersion,
     url: new URL(`/${locale}/software/${software.slug}`, SITE_URL).toString(),
-    downloadUrl: resolvedDownloadUrl,
+    downloadUrl: downloadRedirectUrl,
     datePublished: resolvedReleaseDate,
     dateModified: software.updatedAt,
     fileSize: typeof resolvedSize === "number" && resolvedSize > 0 ? formatFileSizeForJsonLd(resolvedSize) : undefined,
@@ -180,7 +181,7 @@ export default async function SoftwareDetailPage({
           price: 0,
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          url: resolvedDownloadUrl,
+          url: downloadRedirectUrl,
         }
       : undefined,
     aggregateRating:

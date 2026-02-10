@@ -1552,7 +1552,7 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
       const ratio = resolved / sizeCandidate.mb;
       // Only trust network-derived size when it is close to explicit HTML size markers.
       // Some sites redirect HEAD/Range to HTML landing pages or CDN stubs with incorrect lengths.
-      if (ratio >= 0.6 && ratio <= 1.6) return resolved;
+      if (ratio >= 0.9 && ratio <= 1.1) return resolved;
       return sizeCandidate.mb;
     }
 

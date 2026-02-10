@@ -15,13 +15,14 @@ import { Card, CardContent } from "@/components/ui/card";
 export const DownloadCard = ({ software, locale }: { software: Software; locale: string }) => {
   const t = useTranslations("pages.softwareDetail.downloadCard");
   const versionLabel = (software.version ?? "").trim() ? software.version : "-";
+  const downloadHref = `/${locale}/download/${software.slug}`;
 
   return (
     <Card className="border-white/10 bg-white/5">
       <CardContent className="space-y-4 p-4 sm:p-6">
         <Button asChild variant="primary" className="w-full gap-2 rounded-2xl py-5 text-sm sm:py-6">
           <Link
-            href={software.downloadUrl}
+            href={downloadHref}
             onClick={() => {
               void trackDownload(software.id, {
                 slug: software.slug,
