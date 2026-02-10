@@ -1,0 +1,87 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
+
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/utils/rate-limit";
+import { incrementSoftwareStat, recordAnalyticsEvent, resolveSoftware } from "@/lib/services/analytics.server";
+
+export const runtime = "nodejs";
+
+const paramsSchema = z.object({
+  locale: z.string().min(2).max(10),
+  slug: z.string().min(1).max(200),
+});
+
+const isLikelyBot = (userAgent: string) => {
+  const ua = (userAgent || "").toLowerCase();
+  if (!ua) return true;
+  return /(bot|crawler|spider|scrape|headless|phantom|selenium|playwright|puppeteer|curl|wget|python|httpclient)/i.test(ua);
+};
+
+export const GET = async (
+  request: NextRequest,
+  ctx: { params: Promise<{ locale: string; slug: string }> },
+) => {
+  const limit = rateLimit(request, { keyPrefix: "download-redirect", limit: 20, windowMs: 60_000 });
+  if (!limit.ok) {
+    return NextResponse.json(
+      { message: "Too many requests" },
+      {
+        status: 429,
+        headers: {
+          "x-ratelimit-limit": String(limit.limit),
+          "x-ratelimit-remaining": String(limit.remaining),
+          "x-ratelimit-reset": String(limit.resetAt),
+        },
+      },
+    );
+  }
+
+  const userAgent = request.headers.get("user-agent") || "";
+  if (isLikelyBot(userAgent)) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+  const rawParams = await ctx.params;
+  const { locale, slug } = paramsSchema.parse(rawParams);
+
+  const supabase = createSupabaseServerClient();
+
+  const software = await resolveSoftware(supabase, { slug });
+  if (!software) {
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+  }
+
+  const metadata: Record<string, string> = {
+    slug,
+    locale,
+    source: "download-redirect",
+  };
+
+  const vercelCountry = request.headers.get("x-vercel-ip-country");
+  const vercelRegion = request.headers.get("x-vercel-ip-country-region");
+  const vercelCity = request.headers.get("x-vercel-ip-city");
+  if (vercelCountry) metadata.country = vercelCountry;
+  if (vercelRegion) metadata.region = vercelRegion;
+  if (vercelCity) metadata.city = vercelCity;
+
+  try {
+    await recordAnalyticsEvent(supabase, {
+      softwareId: software.id,
+      eventType: "download",
+      metadata,
+    });
+    await incrementSoftwareStat(supabase, {
+      softwareId: software.id,
+      field: "downloads",
+    });
+  } catch {
+    // best-effort
+  }
+
+  if (!software.download_url) {
+    return NextResponse.json({ message: "Missing download url" }, { status: 422 });
+  }
+
+  return NextResponse.redirect(software.download_url, 302);
+};
