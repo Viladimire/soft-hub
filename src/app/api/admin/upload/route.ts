@@ -9,7 +9,11 @@ import { uploadImageAssetToGitHub } from "@/lib/services/github/softwareDataStor
 export const runtime = "nodejs";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-const GITHUB_CONTENTS_SOFT_LIMIT_BYTES = 900 * 1024;
+// GitHub Contents API has strict payload limits and the upload uses base64.
+// Base64 expands size by ~4/3, so a raw 900KB image can exceed GitHub's cap after encoding.
+// Keep this conservative to avoid opaque 500s.
+const GITHUB_CONTENTS_SOFT_LIMIT_BYTES = 700 * 1024;
+const estimateBase64Size = (rawBytes: number) => Math.ceil((rawBytes / 3) * 4);
 
 const bodySchema = z.object({
   type: z.enum(["logo", "hero", "screenshot"]),
@@ -57,11 +61,13 @@ export const POST = async (request: NextRequest) => {
 
     const bytes = new Uint8Array(await file.arrayBuffer());
 
-    if (bytes.length > GITHUB_CONTENTS_SOFT_LIMIT_BYTES) {
+    const base64Bytes = estimateBase64Size(bytes.length);
+    if (bytes.length > GITHUB_CONTENTS_SOFT_LIMIT_BYTES || base64Bytes > 950 * 1024) {
       return NextResponse.json(
         {
           message: "Image is too large after processing. Please upload a smaller image.",
           bytes: bytes.length,
+          base64Bytes,
           limit: GITHUB_CONTENTS_SOFT_LIMIT_BYTES,
         },
         { status: 413 },
