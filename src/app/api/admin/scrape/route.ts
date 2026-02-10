@@ -3,6 +3,8 @@ import { z } from "zod";
 import { isAdminRequestAuthorized, getAdminSecretOrThrow } from "@/lib/auth/admin-session";
 import net from "node:net";
 
+export const runtime = "nodejs";
+
 const extractAnchorHrefs = (html: string) => {
   const rx = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
   const urls: string[] = [];

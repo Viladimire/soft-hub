@@ -6,6 +6,8 @@ import { z } from "zod";
 import { getAdminSecretOrThrow, isAdminRequestAuthorized } from "@/lib/auth/admin-session";
 import { uploadImageAssetToGitHub } from "@/lib/services/github/softwareDataStore";
 
+export const runtime = "nodejs";
+
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
 const bodySchema = z.object({

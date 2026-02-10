@@ -15,9 +15,7 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
   const t = useTranslations("pages.softwareDetail.header");
   const locale = useLocale();
   const releaseDate = formatReleaseDate(software.updatedAt, locale);
-  const versionLabel = /^(?:v)?\d+\.\d+(?:\.\d+){0,3}$/i.test((software.version ?? "").trim())
-    ? software.version
-    : "-";
+  const versionLabel = (software.version ?? "").trim() ? software.version : "-";
 
   return (
     <header className="space-y-6">
