@@ -131,7 +131,7 @@ def create_production_deployment_from_git(
 
     payload: Dict[str, Any] = {
         "name": project.get("name") or "soft-hub",
-        "project": project_id,
+        "projectId": project_id,
         "target": "production",
         "gitSource": {
             "type": "github",
@@ -334,6 +334,13 @@ def main(argv: Optional[list[str]] = None) -> int:
             uid = res.get("id") or res.get("uid") or "(unknown)"
             url = res.get("url") or "(pending)"
             print(f"✅ Deployment requested: {uid} {url}")
+        except HTTPError as e:
+            detail = e.read().decode("utf-8", errors="ignore") if hasattr(e, "read") else ""
+            print(
+                f"❌ Failed to create deployment via API: HTTP {getattr(e, 'code', '?')} {detail[:600]}",
+                file=sys.stderr,
+            )
+            return 1
         except Exception as e:
             print(f"❌ Failed to create deployment via API: {e}", file=sys.stderr)
             return 1
