@@ -31,6 +31,41 @@ const payloadSchema = z.object({
     .optional(),
 });
 
+const redact = (value?: string) => {
+  if (!value) return value;
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+  if (trimmed.length <= 8) return "***";
+  return `${trimmed.slice(0, 3)}***${trimmed.slice(-3)}`;
+};
+
+const sanitizeConfig = (config: unknown) => {
+  const parsed = payloadSchema.partial().safeParse(config);
+  const safe = parsed.success ? parsed.data : {};
+  return {
+    ...safe,
+    github: safe.github
+      ? {
+          ...safe.github,
+          token: safe.github.token ? redact(safe.github.token) : undefined,
+        }
+      : undefined,
+    supabase: safe.supabase
+      ? {
+          ...safe.supabase,
+          serviceRoleKey: safe.supabase.serviceRoleKey ? redact(safe.supabase.serviceRoleKey) : undefined,
+        }
+      : undefined,
+    vercel: safe.vercel
+      ? {
+          ...safe.vercel,
+          token: safe.vercel.token ? redact(safe.vercel.token) : undefined,
+          deployHookUrl: safe.vercel.deployHookUrl ? "***" : undefined,
+        }
+      : undefined,
+  };
+};
+
 export const GET = async (request: NextRequest) => {
   if (!isAdminRequestAuthorized(request)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -38,7 +73,7 @@ export const GET = async (request: NextRequest) => {
 
   const config = await readLocalAdminConfig();
   const path = process.env.VERCEL ? "supabase:public.admin_config" : getLocalAdminConfigPath();
-  return NextResponse.json({ config, path });
+  return NextResponse.json({ config: sanitizeConfig(config), path });
 };
 
 export const PUT = async (request: NextRequest) => {
