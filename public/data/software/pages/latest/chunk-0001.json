@@ -1,13 +1,12 @@
 [
   {
-    "name": "Adobe Photoshop 2026 Free Download (Latest version)",
+    "id": "5bf9dedd-fb89-45c2-8745-8067b98fdc9f",
     "slug": "adobe-photoshop-2026-free-download-latest-version",
+    "name": "Adobe Photoshop 2026 Free Download (Latest version)",
     "summary": "Free Download Adobe Photoshop 2026 for Windows 10 and 11. Latest version with AI models Flux Kontext Pro and Gemini Nano Banana.",
     "description": "Free Download Adobe Photoshop 2026 for Windows 10 and 11. Latest version with AI models Flux Kontext Pro and Gemini Nano Banana.",
     "version": "Adobe Photoshop 2026 Free Download (Latest version)",
     "sizeInBytes": 2566284902,
-    "downloadUrl": "https://filecr.com/windows/adobe-photoshop-download-0053/",
-    "releaseDate": "2026-02-07T00:00:00.000Z",
     "platforms": [
       "windows"
     ],
@@ -18,39 +17,26 @@
       "operating-systems"
     ],
     "type": "standard",
+    "websiteUrl": null,
+    "downloadUrl": "https://filecr.com/windows/adobe-photoshop-download-0053/",
     "isFeatured": false,
     "isTrending": false,
+    "releaseDate": "2026-02-07T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2026-02-07T18:16:06.790Z",
     "stats": {
-      "downloads": 0,
       "views": 0,
+      "votes": 0,
       "rating": 3,
-      "votes": 0
+      "downloads": 0
     },
-    "media": {
-      "logoUrl": "https://media.imgcdn.org/repo/2023/03/adobe-photoshop-2023-0061/Adobe_Photoshop_CC_icon.png",
-      "gallery": [
-        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/c4a02246-7358-4a17-9bf9-7af754424aee-1770488112825.webp",
-        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/598ccd8b-4d42-4960-8088-b9934398065b-1770488112477.webp",
-        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/5168aa10-1826-4f12-84dc-c275d6350d88-1770488108678.webp"
-      ],
-      "heroImage": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/hero/8ae731c7-1b56-4410-b4ab-df16f4d50a44-1770488111326.webp"
-    },
-    "requirements": {
-      "minimum": [
-        "Processor: Intel or AMD processor with 64-bit support; 2 GHz or faster processor",
-        "Operating system: Microsoft Windows 10, 11",
-        "Hard disk space: 8 GB or more of available hard disk space for 64-bit installation; additional free space required during installation (cannot install on a volume that uses a case-sensitive file system)"
-      ],
-      "recommended": [
-        "RAM: 8 GB RAM (16 GB recommended)"
-      ]
-    },
-    "changelog": [],
     "developer": {
       "name": "Adobe Photoshop 2026 Free Download (Latest version)",
       "source": "wikipedia",
-      "wikiTitle": "Adobe Photoshop",
-      "wikiUrl": "https://en.wikipedia.org/wiki/Adobe_Photoshop"
+      "contact": null,
+      "website": null,
+      "wikiUrl": "https://en.wikipedia.org/wiki/Adobe_Photoshop",
+      "wikiTitle": "Adobe Photoshop"
     },
     "features": [
       "Frame Tool for easy masking",
@@ -67,133 +53,411 @@
       "Support for Southeast Asian scripts",
       "Modernized compositing engine"
     ],
-    "id": "e2741898-fd68-429c-aaf4-5dccee5e0b3c",
-    "createdAt": "2026-02-07T18:16:03.703Z",
-    "updatedAt": "2026-02-07T18:16:03.703Z",
-    "websiteUrl": null
-  },
-  {
-    "id": "software-gridwave-analytics",
-    "slug": "gridwave-analytics",
-    "name": "Gridwave Analytics",
-    "summary": "Unified analytics lakehouse with realtime observability",
-    "description": "Gridwave Analytics enables hybrid teams to query streaming and historical datasets with SQL-first notebooks, auto-scaling compute, and governance guardrails.",
-    "version": "2.3.0",
-    "sizeInBytes": 241172480,
-    "platforms": [
-      "web"
-    ],
-    "categories": [
-      "productivity",
-      "development"
-    ],
-    "type": "freemium",
-    "websiteUrl": "https://gridwave.io",
-    "downloadUrl": "https://gridwave.io/signup",
-    "isFeatured": false,
-    "releaseDate": "2024-08-11T00:00:00.000Z",
-    "updatedAt": "2024-12-01T00:00:00.000Z",
-    "createdAt": "2021-09-30T00:00:00.000Z",
-    "stats": {
-      "downloads": 82000,
-      "views": 190000,
-      "rating": 4.3,
-      "votes": 2600
-    },
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1517433456452-f9633a875f6f?auto=format&fit=crop&w=900&q=80"
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/c4a02246-7358-4a17-9bf9-7af754424aee-1770488112825.webp",
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/598ccd8b-4d42-4960-8088-b9934398065b-1770488112477.webp",
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/5168aa10-1826-4f12-84dc-c275d6350d88-1770488108678.webp"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://media.imgcdn.org/repo/2023/03/adobe-photoshop-2023-0061/Adobe_Photoshop_CC_icon.png",
+      "heroImage": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/hero/8ae731c7-1b56-4410-b4ab-df16f4d50a44-1770488111326.webp"
     },
     "requirements": {
       "minimum": [
-        "Modern browser",
-        "Company SSO"
+        "Processor: Intel or AMD processor with 64-bit support; 2 GHz or faster processor",
+        "Operating system: Microsoft Windows 10, 11",
+        "Hard disk space: 8 GB or more of available hard disk space for 64-bit installation; additional free space required during installation (cannot install on a volume that uses a case-sensitive file system)"
       ],
       "recommended": [
-        "Snowflake or BigQuery",
-        "Kafka connector"
+        "RAM: 8 GB RAM (16 GB recommended)"
+      ]
+    },
+    "changelog": []
+  },
+  {
+    "id": "74e1789d-7e3e-4883-b6f9-bcf22b5b191d",
+    "slug": "iobit-advanced-systemcare-pro-download-latest-2026",
+    "name": "IObit Advanced SystemCare Pro Download (Latest 2026)",
+    "summary": "There might be lots of trouble with most old and slow PCs to slow them down. Equipped with Advanced SystemCare, your PC will stay error-free and smoother. IObit Advanced SystemCare has the New Performance Monitor to rele",
+    "description": "There might be lots of trouble with most old and slow PCs to slow them down. Equipped with Advanced SystemCare, your PC will stay error-free and smoother. IObit Advanced SystemCare has the New Performance Monitor to release memory to smooth PC running within seconds with one click. IObit Advanced SystemCare is a powerful, universal tool for securing your computer and taking care of its performance. The program offers real-time protection against numerous threats and types of attacks, browser tracking, and cumbersome advertisements and can also clean the registry and optimize some Windows activities. Advanced SystemCare Pro, in real-time, protects against malicious programs like spyware and ransomware, attacks carried out via DNS, tracking users' activities on the Web through cookies and ads, and blocking websites suspected of phishing and similar Internet threats. In addition, the program allows you to block pop-ups in browsers and is forced by external programs to change the home page, guaranteeing safe and comfortable Web browsing.",
+    "version": "IObit Advanced SystemCare Pro Download (Latest 2026)",
+    "sizeInBytes": 262144000,
+    "platforms": [
+      "windows"
+    ],
+    "categories": [
+      "software"
+    ],
+    "type": "standard",
+    "websiteUrl": null,
+    "downloadUrl": "https://s1-filecr.xyz/02f10d5282cee3b1?ref=72c44180d41a5c1964d7dcd93366e28b",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2026-01-30T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2026-01-30T16:13:59.864Z",
+    "stats": {
+      "views": 0,
+      "votes": 0,
+      "rating": 0,
+      "downloads": 255175
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://media.imgcdn.org/repo/2023/03/advanced-systemcare/Advanced-SystemCare-Pro-16-free-download.jpg",
+        "https://media.imgcdn.org/repo/2023/03/advanced-systemcare/Scr1_Advanced-SystemCare_free-download.jpg",
+        "https://media.imgcdn.org/repo/2023/03/advanced-systemcare/Scr5_Advanced-SystemCare_free-download.jpg"
+      ],
+      "logoUrl": "https://media.imgcdn.org/repo/2023/03/advanced-systemcare/Advanced-SystemCare-Pro.png",
+      "heroImage": "https://media.imgcdn.org/repo/2023/03/advanced-systemcare/Advanced-SystemCare-Pro-16-free-download.jpg"
+    },
+    "requirements": {
+      "minimum": [
+        "Supported OS: Windows 11, Windows 10, Windows 8.1, Windows 7",
+        "Free Hard Disk Space: 200 MB or more",
+        "Previous version",
+        "date",
+        "Additional info",
+        "downloads",
+        "File Name : Advanced SystemCare Pro 19.1.0.176 Multilingual",
+        "Version : 19.1.0.176",
+        "69.1 mb",
+        "File Name : Advanced SystemCare Pro 18.5.0.250 Multilingual",
+        "Version : 18.5.0.250",
+        "63.4 mb",
+        "File Name : Advanced SystemCare Pro 18.4.0.247 Multilingual",
+        "Version : 18.4.0.247",
+        "63.1 mb",
+        "File Name : Advanced SystemCare Pro 17.6.0.322 Multilingual"
+      ],
+      "recommended": [
+        "RAM (Memory): 2 GB RAM (4 GB recommended)"
+      ]
+    },
+    "changelog": []
+  },
+  {
+    "id": "f748b052-578b-4480-8d12-a9ede9822b7a",
+    "slug": "test-save-after-migration-008",
+    "name": "Test Save After Migration 008",
+    "summary": "Test summary long enough for validation",
+    "description": "This is a test description long enough to pass the minimum length validation in the schema.",
+    "version": "1.0.0",
+    "sizeInBytes": 123456,
+    "platforms": [
+      "windows"
+    ],
+    "categories": [
+      "software"
+    ],
+    "type": "standard",
+    "websiteUrl": "https://example.com",
+    "downloadUrl": "https://example.com/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2026-01-28T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2026-01-28T20:23:19.559Z",
+    "stats": {
+      "views": 0,
+      "votes": 0,
+      "rating": 0,
+      "downloads": 0
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=160&q=80",
+      "heroImage": "https://images.unsplash.com/photo-1523473827534-86c5be8377aa?auto=format&fit=crop&w=1600&q=80"
+    },
+    "requirements": {
+      "minimum": [
+        "Windows 10"
+      ],
+      "recommended": [
+        "Windows 11"
+      ]
+    },
+    "changelog": []
+  },
+  {
+    "id": "f1be626b-da48-42ae-b18b-5d5b6b8f6bd1",
+    "slug": "atlas-ide",
+    "name": "Atlas IDE",
+    "summary": "Lightweight AI-enhanced IDE for cloud-native builders.",
+    "description": "Atlas IDE streamlines microservice development with AI refactors, Kubernetes manifests wizards, and built-in performance profiling.",
+    "version": "1.9.4",
+    "sizeInBytes": 503316480,
+    "platforms": [
+      "windows",
+      "linux"
+    ],
+    "categories": [
+      "development"
+    ],
+    "type": "free",
+    "websiteUrl": "https://atlaside.dev",
+    "downloadUrl": "https://atlaside.dev/download",
+    "isFeatured": true,
+    "isTrending": false,
+    "releaseDate": "2024-09-01T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2024-05-10T00:00:00.000Z",
+    "stats": {
+      "views": 350000,
+      "votes": 6400,
+      "rating": 4.8,
+      "downloads": 164000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1580894894513-541e068a055d?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ],
+      "recommended": [
+        "8-core CPU",
+        "16GB RAM",
+        "Docker"
       ]
     },
     "changelog": [
       {
-        "version": "2.3.0",
-        "date": "2024-12-01T00:00:00.000Z",
+        "date": "2024-09-30",
+        "version": "1.9.4",
         "highlights": [
-          "Notebook branching",
-          "Streaming lineage"
+          "AI refactor",
+          "Service map visualization"
         ]
       }
     ]
   },
   {
-    "id": "software-pixel-forge",
-    "slug": "pixel-forge",
-    "name": "Pixel Forge",
-    "summary": "AI-powered image lab with procedural brush systems",
-    "description": "Pixel Forge pairs diffusion models with non-destructive editing for illustrators building playable artboards and branded asset packs.",
-    "version": "1.2.0",
-    "sizeInBytes": 314572800,
+    "id": "25a4901e-c0de-465c-8237-7c044658191a",
+    "slug": "stellar-sim",
+    "name": "Stellar Sim",
+    "summary": "Space mission sandbox with physics-accurate simulations.",
+    "description": "Stellar Sim is a gamified simulation environment for aerospace students and enthusiasts, featuring mission planning and orbital mechanics.",
+    "version": "1.4.0",
+    "sizeInBytes": 1887436800,
+    "platforms": [
+      "windows"
+    ],
+    "categories": [
+      "education",
+      "multimedia"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://stellarsim.com",
+    "downloadUrl": "https://stellarsim.com/download",
+    "isFeatured": true,
+    "isTrending": false,
+    "releaseDate": "2024-08-05T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-11-18T00:00:00.000Z",
+    "stats": {
+      "views": 330000,
+      "votes": 5100,
+      "rating": 4.7,
+      "downloads": 128000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Intel i5",
+        "12GB RAM",
+        "GTX 960"
+      ],
+      "recommended": [
+        "Intel i7",
+        "16GB RAM",
+        "RTX 2060"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-09-22",
+        "version": "1.4.0",
+        "highlights": [
+          "Lunar missions",
+          "VR cockpit"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c7cf1338-48a8-4a40-b6a3-3b82f7a85d30",
+    "slug": "pilot-hub",
+    "name": "Pilot Hub",
+    "summary": "Project pilot console for product discovery squads.",
+    "description": "Pilot Hub combines backlog discovery, experiment tracking, and customer feedback analytics to guide product squads.",
+    "version": "2.6.3",
+    "sizeInBytes": 319815680,
     "platforms": [
       "windows",
       "mac"
     ],
     "categories": [
-      "design"
+      "productivity"
     ],
     "type": "freemium",
-    "websiteUrl": "https://pixelforge.design",
-    "downloadUrl": "https://pixelforge.design/download",
+    "websiteUrl": "https://pilothub.app",
+    "downloadUrl": "https://pilothub.app/download",
     "isFeatured": false,
-    "releaseDate": "2024-07-09T00:00:00.000Z",
-    "updatedAt": "2024-11-15T00:00:00.000Z",
-    "createdAt": "2022-11-08T00:00:00.000Z",
+    "isTrending": false,
+    "releaseDate": "2024-07-14T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2024-02-23T00:00:00.000Z",
     "stats": {
-      "downloads": 88000,
-      "views": 210000,
-      "rating": 4.4,
-      "votes": 2750
+      "views": 160000,
+      "votes": 2500,
+      "rating": 4.3,
+      "downloads": 73000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1618005198919-d3d4b5a92eee?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1580894906472-4be22482c37f?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1523476893152-5e0d7d17c1d2?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "Windows 10",
-        "8 GB RAM",
-        "Dedicated GPU"
+        "Dual-core CPU",
+        "4GB RAM"
       ],
       "recommended": [
-        "Windows 11",
-        "16 GB RAM",
-        "RTX 3060"
+        "Quad-core CPU",
+        "8GB RAM"
       ]
     },
     "changelog": [
       {
-        "version": "1.2.0",
-        "date": "2024-11-15T00:00:00.000Z",
+        "date": "2024-09-03",
+        "version": "2.6.3",
         "highlights": [
-          "Prompt history",
-          "Texture baking"
+          "Experiment hub",
+          "Feedback analytics"
         ]
       }
     ]
   },
   {
-    "id": "software-nebula-engine",
+    "id": "edce1edf-5f98-4950-8736-d792cbb8cea1",
+    "slug": "pulse-gamer",
+    "name": "Pulse Gamer",
+    "summary": "Game launcher with performance booster and social hub.",
+    "description": "Pulse Gamer optimizes PC games with performance tweaks, driver updates, and a tight-knit social hub for squads.",
+    "version": "4.4.1",
+    "sizeInBytes": 534773760,
+    "platforms": [
+      "windows"
+    ],
+    "categories": [
+      "multimedia"
+    ],
+    "type": "free",
+    "websiteUrl": "https://pulsegamer.gg",
+    "downloadUrl": "https://pulsegamer.gg/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-07-07T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-04-19T00:00:00.000Z",
+    "stats": {
+      "views": 380000,
+      "votes": 6200,
+      "rating": 4.5,
+      "downloads": 172000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1518672019642-1ba9a2f0f1f4?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Intel i5",
+        "8GB RAM",
+        "GTX 1050"
+      ],
+      "recommended": [
+        "Intel i7",
+        "16GB RAM",
+        "RTX 2060"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-08-15",
+        "version": "4.4.1",
+        "highlights": [
+          "Performance booster",
+          "Squad hub"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d667697a-98be-4906-8b9a-d95c9bafafcd",
     "slug": "nebula-engine",
     "name": "Nebula Engine",
-    "summary": "Lightweight WebGPU game runtime with cinematic pipelines",
-    "description": "Nebula Engine unlocks GPU-native rendering on the web with modular rendering stages, XR tooling, and automated asset optimization for indie teams.",
-    "version": "0.9.5",
-    "sizeInBytes": 671088640,
+    "summary": "WebGPU game runtime with cinematic pipelines for indies.",
+    "description": "Nebula Engine unlocks GPU-native rendering on the web and desktop with modular rendering stages, XR tooling, and automated asset pipelines.",
+    "version": "1.2.5",
+    "sizeInBytes": 702545920,
     "platforms": [
       "windows",
       "linux"
@@ -203,168 +467,578 @@
       "multimedia"
     ],
     "type": "open-source",
-    "websiteUrl": "https://nebula.engine.dev",
-    "downloadUrl": "https://github.com/nebula/engine/releases/latest",
-    "isFeatured": true,
-    "releaseDate": "2024-06-25T00:00:00.000Z",
-    "updatedAt": "2024-10-05T00:00:00.000Z",
-    "createdAt": "2023-01-19T00:00:00.000Z",
+    "websiteUrl": "https://nebulaengine.dev",
+    "downloadUrl": "https://github.com/nebulaengine/releases/latest/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-07-05T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2024-02-14T00:00:00.000Z",
     "stats": {
-      "downloads": 95000,
-      "views": 204000,
-      "rating": 4.6,
-      "votes": 2300
+      "views": 150000,
+      "votes": 2600,
+      "rating": 4.4,
+      "downloads": 78000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "Windows 10",
-        "8 GB RAM",
-        "Compatible GPU"
+        "AMD Ryzen 5",
+        "16GB RAM",
+        "8GB VRAM"
       ],
       "recommended": [
-        "Windows 11",
-        "16 GB RAM",
-        "RTX 3070"
+        "AMD Ryzen 7",
+        "32GB RAM",
+        "12GB VRAM"
       ]
     },
     "changelog": [
       {
-        "version": "0.9.5",
-        "date": "2024-10-05T00:00:00.000Z",
+        "date": "2024-09-10",
+        "version": "1.2.5",
         "highlights": [
-          "WebXR stabilizer",
-          "SDF shader pack"
+          "Physically-based rendering",
+          "XR toolkit"
         ]
       }
     ]
   },
   {
-    "id": "software-vector-hub",
-    "slug": "vector-hub",
-    "name": "Vector Hub",
-    "summary": "Managed vector database with embeddings toolkit and SDKs",
-    "description": "Vector Hub powers production AI workloads with PQ/IVF indexing, hybrid search, and automatic model evaluation dashboards for retrieval teams.",
-    "version": "1.5.2",
-    "sizeInBytes": 255852544,
+    "id": "5f94403a-da7b-47d2-bb18-fd92321e625d",
+    "slug": "vertex-guard",
+    "name": "Vertex Guard",
+    "summary": "Next-gen antivirus with behavior sandboxing.",
+    "description": "Vertex Guard shields desktops from zero-day exploits with behavior sandboxing, memory inspection, and threat intelligence feeds.",
+    "version": "7.3.2",
+    "sizeInBytes": 450887680,
     "platforms": [
-      "web",
+      "windows"
+    ],
+    "categories": [
+      "security"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://vertexguard.io",
+    "downloadUrl": "https://vertexguard.io/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-06-24T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-05-30T00:00:00.000Z",
+    "stats": {
+      "views": 210000,
+      "votes": 3100,
+      "rating": 4.2,
+      "downloads": 99000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1580894894513-541e068a055d?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-08-16",
+        "version": "7.3.2",
+        "highlights": [
+          "Memory inspector",
+          "Threat intelligence feeds"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a74d3bb8-c4aa-4472-a603-e15a73b6c6a0",
+    "slug": "stride-fitness",
+    "name": "Stride Fitness",
+    "summary": "Personal trainer app with adaptive workout generator.",
+    "description": "Stride Fitness tailors workout plans with sensor integration, AI feedback, and cross-device syncing for athletes and casual users alike.",
+    "version": "3.1.5",
+    "sizeInBytes": 199229440,
+    "platforms": [
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "utilities",
+      "multimedia"
+    ],
+    "type": "free",
+    "websiteUrl": "https://stridefitness.app",
+    "downloadUrl": "https://stridefitness.app/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-06-10T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-09-02T00:00:00.000Z",
+    "stats": {
+      "views": 140000,
+      "votes": 2100,
+      "rating": 4.2,
+      "downloads": 68000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1502767089025-6572583495b0?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-08-01",
+        "version": "3.1.5",
+        "highlights": [
+          "Adaptive workouts",
+          "Wearable sync"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9fc90b51-af1d-4ead-b395-1d63926d5f73",
+    "slug": "glide-share",
+    "name": "Glide Share",
+    "summary": "High-speed media sharing hub with live collaboration.",
+    "description": "Glide Share makes sharing large media projects effortless with live reviews, annotations, and accelerate transfers.",
+    "version": "2.4.3",
+    "sizeInBytes": 440401920,
+    "platforms": [
+      "windows",
+      "mac",
       "linux"
     ],
     "categories": [
-      "development",
+      "multimedia",
       "productivity"
     ],
     "type": "freemium",
-    "websiteUrl": "https://vectorhub.ai",
-    "downloadUrl": "https://vectorhub.ai/signup",
-    "isFeatured": true,
-    "releaseDate": "2024-06-03T00:00:00.000Z",
-    "updatedAt": "2024-11-18T00:00:00.000Z",
-    "createdAt": "2022-03-20T00:00:00.000Z",
+    "websiteUrl": "https://glideshare.com",
+    "downloadUrl": "https://glideshare.com/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-06-04T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-03-14T00:00:00.000Z",
     "stats": {
-      "downloads": 101000,
-      "views": 240000,
-      "rating": 4.5,
-      "votes": 3100
+      "views": 180000,
+      "votes": 2600,
+      "rating": 4.2,
+      "downloads": 87000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1446057032654-9d8885db76c6?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "REST access",
-        "API key"
+        "Dual-core CPU",
+        "4GB RAM"
       ],
       "recommended": [
-        "Private network",
-        "GPU inference cluster"
+        "Quad-core CPU",
+        "8GB RAM"
       ]
     },
     "changelog": [
       {
-        "version": "1.5.2",
-        "date": "2024-11-18T00:00:00.000Z",
+        "date": "2024-08-25",
+        "version": "2.4.3",
         "highlights": [
-          "Hybrid filters",
-          "New Python SDK"
+          "Accelerated transfers",
+          "Annotation suite"
         ]
       }
     ]
   },
   {
-    "id": "software-aurora-desk",
-    "slug": "aurora-desk",
-    "name": "Aurora Desk",
-    "summary": "Realtime support console powered by adaptive AI co-pilots",
-    "description": "Aurora Desk unifies customer conversations, knowledge bases, and AI automations for SaaS support teams targeting sub-minute resolution times.",
-    "version": "3.4.6",
-    "sizeInBytes": 209715200,
+    "id": "ab512e30-7ffb-4368-8d1f-e02a1d70f84b",
+    "slug": "blueprint-studio",
+    "name": "Blueprint Studio",
+    "summary": "Generative UI/UX design suite with collaborative review.",
+    "description": "Blueprint Studio helps designers and product squads generate, prototype, and validate interfaces with AI-assisted flows and synchronized handoff to engineering.",
+    "version": "2.1.0",
+    "sizeInBytes": 658505728,
     "platforms": [
-      "web"
+      "mac",
+      "windows"
     ],
     "categories": [
-      "productivity"
+      "design"
     ],
     "type": "freemium",
-    "websiteUrl": "https://auroradesk.app",
-    "downloadUrl": "https://auroradesk.app/signup",
-    "isFeatured": false,
-    "releaseDate": "2024-05-21T00:00:00.000Z",
-    "updatedAt": "2024-11-10T00:00:00.000Z",
-    "createdAt": "2021-06-14T00:00:00.000Z",
+    "websiteUrl": "https://blueprint.studio",
+    "downloadUrl": "https://cdn.blueprint.studio/mac/latest",
+    "isFeatured": true,
+    "isTrending": false,
+    "releaseDate": "2024-05-30T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2024-01-12T00:00:00.000Z",
     "stats": {
-      "downloads": 61000,
-      "views": 150000,
-      "rating": 4.2,
-      "votes": 2200
+      "views": 610000,
+      "votes": 7800,
+      "rating": 4.8,
+      "downloads": 204000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1580894894513-541e068a055d?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "Modern browser",
-        "Team workspace"
+        "Apple M1",
+        "8GB RAM"
       ],
       "recommended": [
-        "Slack integration",
-        "OpenAI API key"
+        "Apple M2",
+        "16GB RAM",
+        "Metal-capable GPU"
       ]
     },
     "changelog": [
       {
-        "version": "3.4.6",
-        "date": "2024-11-10T00:00:00.000Z",
+        "date": "2024-09-18",
+        "version": "2.1.0",
         "highlights": [
-          "Agent co-work",
-          "Knowledge embeddings"
+          "Realtime voice notes",
+          "Figma sync 2.0"
         ]
       }
     ]
   },
   {
-    "id": "software-sentinel-guard",
-    "slug": "sentinel-guard",
-    "name": "Sentinel Guard",
-    "summary": "AI-native endpoint defense with live threat choreography",
-    "description": "Sentinel Guard blends behavioral AI and topology awareness to neutralize ransomware, lateral movement, and zero-day exploits with real-time mitigation playbooks.",
-    "version": "3.1.0",
-    "sizeInBytes": 293601280,
+    "id": "443a0145-c006-40bd-8005-6857749ffbc5",
+    "slug": "ember-mail",
+    "name": "Ember Mail",
+    "summary": "Secure desktop mail client with zero-knowledge encryption.",
+    "description": "Ember Mail wraps modern email workflows with zero-knowledge encryption, calendar sync, and identity protections.",
+    "version": "5.0.0",
+    "sizeInBytes": 325058560,
+    "platforms": [
+      "windows",
+      "mac",
+      "linux"
+    ],
+    "categories": [
+      "utilities",
+      "security"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://embermail.io",
+    "downloadUrl": "https://embermail.io/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-05-12T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2022-12-09T00:00:00.000Z",
+    "stats": {
+      "views": 230000,
+      "votes": 3600,
+      "rating": 4.4,
+      "downloads": 103000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1527430253228-e93688616381?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-07-17",
+        "version": "5.0.0",
+        "highlights": [
+          "Zero-knowledge upgrade",
+          "Calendar sync"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c7850e3c-5be7-4978-8983-feddd35b3ad1",
+    "slug": "flux-render",
+    "name": "Flux Render",
+    "summary": "Realtime renderer for ArchViz & digital twins.",
+    "description": "Flux Render is a realtime rendering toolkit for architecture and digital twin teams, offering photorealistic lighting, BIM sync, and VR walkthroughs.",
+    "version": "7.1.2",
+    "sizeInBytes": 2202009600,
+    "platforms": [
+      "windows"
+    ],
+    "categories": [
+      "design",
+      "multimedia"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://fluxrender.com",
+    "downloadUrl": "https://fluxrender.com/download/windows",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-05-07T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2022-02-18T00:00:00.000Z",
+    "stats": {
+      "views": 140000,
+      "votes": 2100,
+      "rating": 4.1,
+      "downloads": 64000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Intel i5",
+        "16GB RAM",
+        "6GB VRAM"
+      ],
+      "recommended": [
+        "Intel i9",
+        "32GB RAM",
+        "12GB VRAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-08-22",
+        "version": "7.1.2",
+        "highlights": [
+          "BIM live sync",
+          "Ray-traced caustics"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e668240f-1ce9-40b1-a0a1-6b838d4ed7a6",
+    "slug": "cloud-chisel",
+    "name": "Cloud Chisel",
+    "summary": "Serverless deployment studio with cost observability.",
+    "description": "Cloud Chisel simplifies shipping serverless apps with blue/green preview, live cost breakdowns, and policy guards.",
+    "version": "2.8.1",
+    "sizeInBytes": 272629760,
+    "platforms": [
+      "windows",
+      "mac",
+      "linux"
+    ],
+    "categories": [
+      "development"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://cloudchisel.dev",
+    "downloadUrl": "https://cloudchisel.dev/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-05-01T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-07-12T00:00:00.000Z",
+    "stats": {
+      "views": 190000,
+      "votes": 3100,
+      "rating": 4.4,
+      "downloads": 91000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM",
+        "Docker"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-07-27",
+        "version": "2.8.1",
+        "highlights": [
+          "Cost observability",
+          "Policy guards"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "de7b534e-8017-48a9-a510-6730eebf7f31",
+    "slug": "aether-notion",
+    "name": "Aether Notion",
+    "summary": "Knowledge base tool with smart graph traversal.",
+    "description": "Aether Notion lets distributed teams build and traverse knowledge graphs, complete with AI-powered insights and automated relation suggestions.",
+    "version": "3.2.1",
+    "sizeInBytes": 288358400,
+    "platforms": [
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "productivity",
+      "education"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://aethern.com",
+    "downloadUrl": "https://aethern.com/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-04-18T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-12-11T00:00:00.000Z",
+    "stats": {
+      "views": 150000,
+      "votes": 2800,
+      "rating": 4.5,
+      "downloads": 73000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-07-02",
+        "version": "3.2.1",
+        "highlights": [
+          "Graph AI guides",
+          "Smart relation suggestions"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63393d6c-3ea3-4dec-9a02-825e3f60957d",
+    "slug": "sentinel-core",
+    "name": "Sentinel Core",
+    "summary": "Endpoint security hub with zero-trust orchestration.",
+    "description": "Sentinel Core monitors workloads across desktop fleets with behavioral AI, rapid threat isolation, and encrypted telemetry exports.",
+    "version": "5.2.3",
+    "sizeInBytes": 471859200,
     "platforms": [
       "windows",
       "linux"
@@ -373,333 +1047,695 @@
       "security"
     ],
     "type": "freemium",
-    "websiteUrl": "https://sentinelguard.ai",
-    "downloadUrl": "https://sentinelguard.ai/download",
-    "isFeatured": false,
-    "releaseDate": "2024-04-02T00:00:00.000Z",
-    "updatedAt": "2024-11-05T00:00:00.000Z",
-    "createdAt": "2020-12-30T00:00:00.000Z",
+    "websiteUrl": "https://sentinelcore.io",
+    "downloadUrl": "https://download.sentinelcore.io/latest",
+    "isFeatured": true,
+    "isTrending": false,
+    "releaseDate": "2024-04-09T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-12-30T00:00:00.000Z",
     "stats": {
-      "downloads": 189000,
-      "views": 410000,
-      "rating": 4.3,
-      "votes": 6100
+      "views": 280000,
+      "votes": 5200,
+      "rating": 4.6,
+      "downloads": 158000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "Windows 10",
-        "6 GB RAM",
-        "Trusted Platform Module"
+        "Intel i3",
+        "8GB RAM"
       ],
       "recommended": [
-        "Windows 11",
-        "8 GB RAM",
-        "Dedicated security chip"
+        "Intel i7",
+        "16GB RAM"
       ]
     },
     "changelog": [
       {
-        "version": "3.1.0",
-        "date": "2024-11-05T00:00:00.000Z",
+        "date": "2024-07-22",
+        "version": "5.2.3",
         "highlights": [
-          "Kernel isolation improvements",
-          "New telemetry exporter"
+          "Playbook automation",
+          "Kernel telemetry dashboard"
         ]
       }
     ]
   },
   {
-    "id": "software-flux-render",
-    "slug": "flux-render",
-    "name": "Flux Render",
-    "summary": "Cloud renderer for cinematic-grade motion and product shots",
-    "description": "Flux Render delivers unbiased GPU rendering queues with collaborative shot review and native USD pipelines for studio teams and agencies.",
-    "version": "7.0.1",
-    "sizeInBytes": 805306368,
+    "id": "a1f38eec-cf2f-4703-8121-4711f83b8dc2",
+    "slug": "forge-learn",
+    "name": "Forge Learn",
+    "summary": "Developer education platform with interactive labs.",
+    "description": "Forge Learn provides guided labs, live coding sandboxes, and AI mentors for aspiring developers and teams.",
+    "version": "1.5.0",
+    "sizeInBytes": 298844160,
+    "platforms": [
+      "windows",
+      "mac",
+      "linux"
+    ],
+    "categories": [
+      "education",
+      "development"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://forgelearn.dev",
+    "downloadUrl": "https://forgelearn.dev/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-04-05T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-07-08T00:00:00.000Z",
+    "stats": {
+      "views": 200000,
+      "votes": 3800,
+      "rating": 4.6,
+      "downloads": 92000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-07-12",
+        "version": "1.5.0",
+        "highlights": [
+          "AI mentor",
+          "Live coding sandboxes"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e9c3dbd0-4439-4dda-9ce8-77506e739c82",
+    "slug": "ignite-learn",
+    "name": "Ignite Learn",
+    "summary": "STEM learning lab with interactive simulations.",
+    "description": "Ignite Learn delivers STEM curricula with interactive simulations, live feedback, and educator dashboards for classrooms.",
+    "version": "5.5.0",
+    "sizeInBytes": 377487360,
     "platforms": [
       "windows",
       "mac"
     ],
     "categories": [
-      "multimedia",
-      "design"
+      "education"
     ],
-    "type": "freemium",
-    "websiteUrl": "https://fluxrender.com",
-    "downloadUrl": "https://fluxrender.com/download",
+    "type": "free",
+    "websiteUrl": "https://ignitelearn.io",
+    "downloadUrl": "https://ignitelearn.io/download",
     "isFeatured": true,
-    "releaseDate": "2024-03-08T00:00:00.000Z",
-    "updatedAt": "2024-10-28T00:00:00.000Z",
-    "createdAt": "2019-09-02T00:00:00.000Z",
+    "isTrending": false,
+    "releaseDate": "2024-03-29T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-10-05T00:00:00.000Z",
     "stats": {
-      "downloads": 132000,
-      "views": 280000,
-      "rating": 4.6,
-      "votes": 3500
+      "views": 230000,
+      "votes": 5400,
+      "rating": 4.8,
+      "downloads": 118000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "8 GB RAM",
-        "Metal or DirectX 12 GPU"
+        "Intel i5",
+        "8GB RAM"
       ],
       "recommended": [
-        "32 GB RAM",
-        "RTX 3080 or M3 Max"
+        "Intel i7",
+        "16GB RAM",
+        "GPU with 4GB"
       ]
     },
     "changelog": [
       {
-        "version": "7.0.1",
-        "date": "2024-10-28T00:00:00.000Z",
+        "date": "2024-06-18",
+        "version": "5.5.0",
         "highlights": [
-          "ACES color pipeline",
-          "Onion-skin editor"
+          "Physics lab pack",
+          "Educator analytics"
         ]
       }
     ]
   },
   {
-    "id": "software-strata-secure",
-    "slug": "strata-secure",
-    "name": "Strata Secure",
-    "summary": "Zero-trust network fabric with adaptive policy orchestration",
-    "description": "Strata Secure links distributed teams and data centers with intent-based segmentation, identity-aware routing, and continuous policy testing.",
-    "version": "6.1.3",
-    "sizeInBytes": 268435456,
+    "id": "e4751ede-0f9c-45bd-bfe5-18b40ef36aae",
+    "slug": "horizon-desk",
+    "name": "Horizon Desk",
+    "summary": "Workspace dashboard with unified notifications & focus.",
+    "description": "Horizon Desk consolidates all workstreams, notifications, and focus modes into a unified desktop hub with AI summarization.",
+    "version": "2.2.0",
+    "sizeInBytes": 335544320,
     "platforms": [
-      "linux",
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "productivity"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://horizondesk.app",
+    "downloadUrl": "https://horizondesk.app/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-03-16T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-05-04T00:00:00.000Z",
+    "stats": {
+      "views": 210000,
+      "votes": 3400,
+      "rating": 4.4,
+      "downloads": 101000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-05-28",
+        "version": "2.2.0",
+        "highlights": [
+          "Notification hub",
+          "Focus modes"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "346b49f3-c2aa-4d42-a505-0f53890f92ba",
+    "slug": "aria-spectra",
+    "name": "Aria Spectra",
+    "summary": "Immersive DAW for musicians with spectral AI tools.",
+    "description": "Aria Spectra delivers pro-grade music production with spectral remixing, AI stem separation, and collaborative cloud sessions.",
+    "version": "6.5.0",
+    "sizeInBytes": 1614807040,
+    "platforms": [
+      "mac",
       "windows"
     ],
     "categories": [
-      "security",
-      "productivity"
+      "multimedia"
     ],
     "type": "freemium",
-    "websiteUrl": "https://stratasecure.com",
-    "downloadUrl": "https://stratasecure.com/download",
+    "websiteUrl": "https://ariaspectra.io",
+    "downloadUrl": "https://cdn.ariaspectra.io/latest",
     "isFeatured": false,
-    "releaseDate": "2024-02-22T00:00:00.000Z",
-    "updatedAt": "2024-09-02T00:00:00.000Z",
-    "createdAt": "2018-07-11T00:00:00.000Z",
+    "isTrending": false,
+    "releaseDate": "2024-03-03T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2022-10-11T00:00:00.000Z",
     "stats": {
-      "downloads": 119000,
-      "views": 265000,
-      "rating": 4.1,
-      "votes": 1980
+      "views": 260000,
+      "votes": 3400,
+      "rating": 4.3,
+      "downloads": 134000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1518773553398-650c184e0bb3?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1464375117522-1311d6a5b81b?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "2 CPU cores",
-        "4 GB RAM",
-        "Layer 3 switch"
+        "Intel i5",
+        "8GB RAM",
+        "SSD"
       ],
       "recommended": [
-        "4 CPU cores",
-        "8 GB RAM",
-        "Hardware acceleration"
+        "Intel i7",
+        "16GB RAM",
+        "Audio interface"
       ]
     },
     "changelog": [
       {
-        "version": "6.1.3",
-        "date": "2024-09-02T00:00:00.000Z",
+        "date": "2024-07-19",
+        "version": "6.5.0",
         "highlights": [
-          "Policy simulation",
-          "Adaptive failover"
+          "Spectral mixer",
+          "Collab Jam Rooms"
         ]
       }
     ]
   },
   {
-    "id": "software-spectrum-studio",
-    "slug": "spectrum-studio",
-    "name": "Spectrum Studio",
-    "summary": "3D-native UI creation suite built for live collaboration",
-    "description": "Spectrum Studio delivers a generative 3D design environment with rich component libraries, motion prototypes, and zero-friction handoff across front-end frameworks.",
-    "version": "2.6.1",
-    "sizeInBytes": 536870912,
+    "id": "ce606380-d7bb-4b15-b30a-f73faa759985",
+    "slug": "quantum-crunch",
+    "name": "Quantum Crunch",
+    "summary": "High-performance data cruncher for analysts & researchers.",
+    "description": "Quantum Crunch accelerates large dataset exploration, blending GPU-accelerated transformation pipelines with collaborative notebooks.",
+    "version": "4.0.2",
+    "sizeInBytes": 859832320,
     "platforms": [
       "windows",
       "mac"
     ],
     "categories": [
-      "design",
-      "productivity"
+      "development",
+      "utilities"
     ],
     "type": "freemium",
-    "websiteUrl": "https://spectrum.studio",
-    "downloadUrl": "https://cdn.spectrum.studio/download/latest",
+    "websiteUrl": "https://quantumcrunch.io",
+    "downloadUrl": "https://downloads.quantumcrunch.io/app",
     "isFeatured": true,
-    "releaseDate": "2024-02-10T00:00:00.000Z",
-    "updatedAt": "2024-12-12T00:00:00.000Z",
-    "createdAt": "2022-08-01T00:00:00.000Z",
+    "isTrending": false,
+    "releaseDate": "2024-02-21T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-09-30T00:00:00.000Z",
     "stats": {
-      "downloads": 189200,
-      "views": 320000,
-      "rating": 4.7,
-      "votes": 2380
+      "views": 470000,
+      "votes": 8900,
+      "rating": 4.9,
+      "downloads": 212000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1580894894513-541e068a055d?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1523473827534-86c5be8377aa?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "Windows 10 or macOS 12",
-        "8 GB RAM",
-        "Intel Iris Plus"
+        "Intel i5",
+        "16GB RAM"
       ],
       "recommended": [
-        "Windows 11 or macOS 14",
-        "16 GB RAM",
-        "RTX 3060 or M2"
+        "Intel i9",
+        "32GB RAM",
+        "RTX 3060"
       ]
     },
     "changelog": [
       {
-        "version": "2.6.1",
-        "date": "2024-12-12T00:00:00.000Z",
+        "date": "2024-05-08",
+        "version": "4.0.2",
         "highlights": [
-          "New procedural texturing",
-          "Team presence indicators"
+          "GPU acceleration",
+          "Notebook sharing"
         ]
       }
     ]
   },
   {
-    "id": "software-lumen-note",
+    "id": "ed74ccb9-e43f-4801-b65b-f83da2c190e0",
+    "slug": "stream-shaper",
+    "name": "Stream Shaper",
+    "summary": "Live streaming studio with adaptive overlays & analytics.",
+    "description": "Stream Shaper empowers creators with adaptive overlays, audience analytics, and a plugin marketplace for live streaming.",
+    "version": "3.9.0",
+    "sizeInBytes": 629145600,
+    "platforms": [
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "multimedia"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://streamshaper.tv",
+    "downloadUrl": "https://streamshaper.tv/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-02-12T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2022-08-29T00:00:00.000Z",
+    "stats": {
+      "views": 320000,
+      "votes": 5000,
+      "rating": 4.4,
+      "downloads": 148000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Intel i5",
+        "8GB RAM",
+        "GTX 960"
+      ],
+      "recommended": [
+        "Intel i7",
+        "16GB RAM",
+        "RTX 2070"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-04-30",
+        "version": "3.9.0",
+        "highlights": [
+          "Adaptive overlays",
+          "Plugin marketplace"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cd38fa32-ca69-455d-af5a-026ce9078eb9",
+    "slug": "catalyst-forge",
+    "name": "Catalyst Forge",
+    "summary": "Low-code automation builder for operations teams.",
+    "description": "Catalyst Forge lets operations teams design automations, build connectors, and measure ROI with zero-code dashboards.",
+    "version": "1.7.2",
+    "sizeInBytes": 251658240,
+    "platforms": [
+      "windows",
+      "mac"
+    ],
+    "categories": [
+      "productivity",
+      "utilities"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://catalystforge.io",
+    "downloadUrl": "https://catalystforge.io/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-02-08T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-05-22T00:00:00.000Z",
+    "stats": {
+      "views": 120000,
+      "votes": 1900,
+      "rating": 4.3,
+      "downloads": 59000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1549921296-3ecf9fbc71fc?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-04-29",
+        "version": "1.7.2",
+        "highlights": [
+          "Automation builder",
+          "ROI dashboards"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "675675ed-45f6-48e7-ba64-9920845efd1e",
+    "slug": "echo-scribe",
+    "name": "Echo Scribe",
+    "summary": "Transcription & dubbing studio for media teams.",
+    "description": "Echo Scribe transcribes, translates, and dubs media with neural voices, built-in editor, and collaboration timeline.",
+    "version": "3.8.0",
+    "sizeInBytes": 440401920,
+    "platforms": [
+      "mac",
+      "windows"
+    ],
+    "categories": [
+      "multimedia",
+      "productivity"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://echoscribe.io",
+    "downloadUrl": "https://echoscribe.io/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-02-04T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-06-14T00:00:00.000Z",
+    "stats": {
+      "views": 210000,
+      "votes": 3600,
+      "rating": 4.4,
+      "downloads": 94000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ],
+      "recommended": [
+        "8-core CPU",
+        "16GB RAM",
+        "GPU acceleration"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-05-12",
+        "version": "3.8.0",
+        "highlights": [
+          "Neural dubbing",
+          "Collaboration timeline"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "8bbbb9b0-4d06-481c-9cbd-107b9d64a61a",
+    "slug": "guardian-backup",
+    "name": "Guardian Backup",
+    "summary": "Cross-platform backup suite with ransomware shield.",
+    "description": "Guardian Backup automates incremental backups across platforms with ransomware detection and immutable snapshot recovery.",
+    "version": "9.2.0",
+    "sizeInBytes": 346030080,
+    "platforms": [
+      "windows",
+      "mac",
+      "linux"
+    ],
+    "categories": [
+      "utilities",
+      "security"
+    ],
+    "type": "freemium",
+    "websiteUrl": "https://guardianbackup.io",
+    "downloadUrl": "https://guardianbackup.io/download",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2024-01-28T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2022-09-14T00:00:00.000Z",
+    "stats": {
+      "views": 290000,
+      "votes": 4700,
+      "rating": 4.6,
+      "downloads": 156000
+    },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
+    "media": {
+      "gallery": [
+        "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "logoUrl": "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
+    },
+    "requirements": {
+      "minimum": [
+        "Dual-core CPU",
+        "4GB RAM"
+      ],
+      "recommended": [
+        "Quad-core CPU",
+        "8GB RAM"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2024-03-21",
+        "version": "9.2.0",
+        "highlights": [
+          "Immutable snapshots",
+          "Ransomware heuristics"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f8624365-cf5b-4975-b49d-c2b5d529f817",
     "slug": "lumen-note",
     "name": "Lumen Note",
-    "summary": "Second-brain workspace with Markdown-first collaboration",
+    "summary": "Second-brain workspace with Markdown-first collaboration.",
     "description": "Lumen Note powers knowledge workflows with ambient AI assistants, deep integrations, and multi-device sync designed for thinkers and product squads.",
-    "version": "1.8.4",
-    "sizeInBytes": 199229440,
+    "version": "2.3.0",
+    "sizeInBytes": 220200960,
     "platforms": [
-      "mac"
+      "mac",
+      "windows"
     ],
     "categories": [
       "productivity",
       "education"
     ],
     "type": "free",
-    "websiteUrl": "https://lumennote.com",
-    "downloadUrl": "https://lumennote.com/download/mac",
+    "websiteUrl": "https://lumennote.app",
+    "downloadUrl": "https://lumennote.app/download",
     "isFeatured": false,
-    "releaseDate": "2024-01-12T00:00:00.000Z",
-    "updatedAt": "2024-09-18T00:00:00.000Z",
-    "createdAt": "2022-02-05T00:00:00.000Z",
+    "isTrending": false,
+    "releaseDate": "2024-01-18T00:00:00.000Z",
+    "updatedAt": "2026-02-07T22:13:08.487Z",
+    "createdAt": "2023-08-20T00:00:00.000Z",
     "stats": {
-      "downloads": 72000,
-      "views": 130000,
-      "rating": 4.8,
-      "votes": 980
+      "views": 210000,
+      "votes": 3900,
+      "rating": 4.6,
+      "downloads": 98000
     },
+    "developer": {
+      "name": null,
+      "contact": null,
+      "website": null
+    },
+    "features": [],
     "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=160&q=80",
       "gallery": [
-        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80"
+        "https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80"
       ],
-      "heroImage": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1600&q=80"
+      "logoUrl": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=120&q=80",
+      "heroImage": null
     },
     "requirements": {
       "minimum": [
-        "macOS 13",
-        "4 GB RAM"
+        "Dual-core CPU",
+        "4GB RAM"
       ],
       "recommended": [
-        "macOS 14",
-        "8 GB RAM",
-        "iCloud Drive"
+        "Quad-core CPU",
+        "8GB RAM"
       ]
     },
     "changelog": [
       {
-        "version": "1.8.4",
-        "date": "2024-09-18T00:00:00.000Z",
+        "date": "2024-04-22",
+        "version": "2.3.0",
         "highlights": [
-          "Canvas mode",
-          "Notion import"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "software-keystone-build",
-    "slug": "keystone-build",
-    "name": "Keystone Build",
-    "summary": "Automated CI/CD control plane for cross-cloud deployments",
-    "description": "Keystone Build orchestrates multi-region deployments with typed pipelines, structured logs, and progressive verification for enterprise-grade delivery.",
-    "version": "4.2.0",
-    "sizeInBytes": 251658240,
-    "platforms": [
-      "web"
-    ],
-    "categories": [
-      "development",
-      "productivity"
-    ],
-    "type": "freemium",
-    "websiteUrl": "https://keystonebuild.com",
-    "downloadUrl": "https://keystonebuild.com/signup",
-    "isFeatured": false,
-    "releaseDate": "2023-08-14T00:00:00.000Z",
-    "updatedAt": "2024-09-30T00:00:00.000Z",
-    "createdAt": "2020-05-22T00:00:00.000Z",
-    "stats": {
-      "downloads": 145000,
-      "views": 375000,
-      "rating": 4.4,
-      "votes": 4100
-    },
-    "media": {
-      "logoUrl": "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=160&q=80",
-      "gallery": [
-        "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80"
-      ],
-      "heroImage": "https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?auto=format&fit=crop&w=1600&q=80"
-    },
-    "requirements": {
-      "minimum": [
-        "Latest Chrome",
-        "Team permissions"
-      ],
-      "recommended": [
-        "SSO provider",
-        "GitHub / GitLab integration"
-      ]
-    },
-    "changelog": [
-      {
-        "version": "4.2.0",
-        "date": "2024-09-30T00:00:00.000Z",
-        "highlights": [
-          "Pipeline blueprints",
-          "Error budgets dashboard"
+          "AI summarizer",
+          "Offline notebooks"
         ]
       }
     ]
