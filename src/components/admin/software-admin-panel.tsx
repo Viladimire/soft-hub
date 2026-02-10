@@ -1167,6 +1167,7 @@ export const SoftwareAdminPanel = () => {
         developer: Record<string, unknown>;
         categories: string[];
         platforms: Platform[];
+        changelog?: Array<{ version: string; date: string; highlights: string[] }>;
       }>("/api/admin/auto-fill", {
         method: "POST",
         body: JSON.stringify({ name: formState.name, version: formState.version }),
@@ -1265,6 +1266,12 @@ export const SoftwareAdminPanel = () => {
         const candidateSize = parseNumber(data.sizeInMb ?? "", 0);
         const shouldApplySize = Number.isFinite(candidateSize) && candidateSize > 0;
 
+        const nextChangelogJson = state.changelogJson.trim()
+          ? state.changelogJson
+          : Array.isArray(data.changelog) && data.changelog.length
+            ? JSON.stringify(data.changelog, null, 2)
+            : state.changelogJson;
+
         return {
           ...state,
           summary: shouldAutoApplySummary ? (data.summary ?? state.summary) : state.summary,
@@ -1275,18 +1282,7 @@ export const SoftwareAdminPanel = () => {
               : shouldApplyVersion
                 ? candidateVersion
                 : state.version,
-          sizeInMb:
-            parseNumber(state.sizeInMb, 0) > 0 && state.sizeInMb !== "250"
-              ? state.sizeInMb
-              : shouldApplySize
-                ? String(Math.round(candidateSize * 10) / 10)
-                : state.sizeInMb,
-          statsDownloads: nextDownloadsValue,
-          statsViews: parseNumber(state.statsViews, 0) > 0 ? state.statsViews : String(derived.views),
-          statsRating: parseNumber(state.statsRating, 0) > 0 ? state.statsRating : String(derived.rating),
-          statsVotes: parseNumber(state.statsVotes, 0) > 0 ? state.statsVotes : String(derived.votes),
-          websiteUrl: state.websiteUrl.trim() ? state.websiteUrl : data.websiteUrl ?? state.websiteUrl,
-          logoUrl: resolvedLogo,
+          changelogJson: nextChangelogJson,
           heroImage: resolvedHero,
           gallery: nextGallery,
           minRequirements: state.minRequirements.trim()

@@ -24,6 +24,11 @@ export type AutoFillData = {
   developer: Record<string, unknown>;
   categories: string[];
   platforms: Array<"windows" | "mac" | "linux" | "android" | "ios" | "web">;
+  changelog?: Array<{
+    version: string;
+    date: string;
+    highlights: string[];
+  }>;
 };
 
 type AutoFillOptions = {
@@ -46,6 +51,7 @@ type GitHubResult = {
   downloads: number;
   websiteUrl: string;
   developer: Record<string, unknown>;
+  repoFullName?: string;
   images: {
     heroImage: string;
     logoUrl: string;
@@ -555,11 +561,79 @@ const fetchFromGitHub = async (name: string): Promise<GitHubResult> => {
     downloads,
     websiteUrl,
     developer,
+    repoFullName: fullName || undefined,
     images: {
       heroImage: ogImageUrl && isValidUrl(ogImageUrl) ? ogImageUrl : "",
       logoUrl: ownerAvatarUrl && isValidUrl(ownerAvatarUrl) ? ownerAvatarUrl : "",
     },
   };
+};
+
+const normalizeGitHubVersion = (raw: string) => {
+  const trimmed = String(raw ?? "").trim();
+  if (!trimmed) return "";
+  return trimmed.replace(/^v/i, "");
+};
+
+const toChangelogHighlights = (raw: string) => {
+  const text = String(raw ?? "").replace(/\r/g, "\n");
+  const lines = text
+    .split("\n")
+    .map((line) => line.replace(/^[-*\s]+/, "").trim())
+    .filter(Boolean);
+
+  if (!lines.length) return [] as string[];
+
+  const nonTrivial = lines.filter((line) => line.length >= 3);
+  return (nonTrivial.length ? nonTrivial : lines).slice(0, 8);
+};
+
+const fetchGitHubChangelog = async (repoFullName: string) => {
+  const match = repoFullName.match(/^([\w.-]+)\/([\w.-]+)$/);
+  if (!match) return [] as AutoFillData["changelog"];
+
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+  };
+
+  const token = process.env.GITHUB_TOKEN;
+  if (token) {
+    headers.Authorization = `token ${token}`;
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${match[1]}/${match[2]}/releases?per_page=6`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) return [] as AutoFillData["changelog"];
+
+    const json: unknown = await res.json();
+    if (!Array.isArray(json)) return [] as AutoFillData["changelog"];
+
+    const entries = json
+      .filter(isPlainRecord)
+      .map((release) => {
+        const tag = normalizeGitHubVersion(toText(release.tag_name));
+        const name = normalizeGitHubVersion(toText(release.name));
+        const version = tag || name;
+        if (!version) return null;
+
+        const publishedAtRaw = toText(release.published_at) || toText(release.created_at);
+        const parsed = Date.parse(publishedAtRaw);
+        const date = Number.isNaN(parsed) ? "" : new Date(parsed).toISOString();
+        if (!date) return null;
+
+        const body = toText(release.body);
+        const highlights = toChangelogHighlights(body);
+        if (!highlights.length) return null;
+
+        return { version, date, highlights };
+      })
+      .filter((v): v is NonNullable<typeof v> => Boolean(v));
+
+    return entries.slice(0, 5);
+  } catch {
+    return [] as AutoFillData["changelog"];
+  }
 };
 
 const fetchImagesFromUnsplash = async (name: string): Promise<UnsplashResult> => {
@@ -679,6 +753,7 @@ const mergeData = (params: {
     developer,
     categories,
     platforms,
+    changelog: [],
   };
 };
 
@@ -709,10 +784,14 @@ export const autoFillSoftwareData = async (softwareName: string, options: AutoFi
       sizeInMb: merged.sizeInMb || (fallback.sizeInMb > 0 ? fallback.sizeInMb.toFixed(1) : ""),
     };
 
+    const repoFullName = (github?.repoFullName ?? "").trim();
+    const changelog = repoFullName ? await fetchGitHubChangelog(repoFullName) : [];
+
     return {
       success: true,
       data: {
         ...data,
+        changelog: changelog?.length ? changelog : [],
         summary: clampText(data.summary, 220),
         description: clampText(data.description, 1200),
         version: clampText(data.version || "", 40),
