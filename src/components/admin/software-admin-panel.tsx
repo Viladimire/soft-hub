@@ -555,6 +555,42 @@ const drawOrbitWatermark = (ctx: CanvasRenderingContext2D, x: number, y: number,
   ctx.restore();
 };
 
+const resizeBitmapToCanvas = (source: ImageBitmap, maxDimension: number) => {
+  const width = source.width;
+  const height = source.height;
+  if (!width || !height) return null;
+
+  const scale = Math.min(1, maxDimension / Math.max(width, height));
+  const outWidth = Math.max(1, Math.round(width * scale));
+  const outHeight = Math.max(1, Math.round(height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = outWidth;
+  canvas.height = outHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(source as unknown as CanvasImageSource, 0, 0, outWidth, outHeight);
+  return { canvas, ctx, width: outWidth, height: outHeight };
+};
+
+const canvasToBlob = (canvas: HTMLCanvasElement, mime: string, quality?: number) =>
+  new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mime, quality));
+
+const compressCanvasToTargetSize = async (canvas: HTMLCanvasElement, params: { mime: string; targetBytes: number }) => {
+  if (params.mime !== "image/webp") {
+    return (await canvasToBlob(canvas, params.mime)) ?? null;
+  }
+
+  const qualities = [0.88, 0.82, 0.76, 0.7, 0.64, 0.58];
+  for (const q of qualities) {
+    const blob = await canvasToBlob(canvas, params.mime, q);
+    if (!blob) continue;
+    if (blob.size <= params.targetBytes) return blob;
+  }
+
+  return (await canvasToBlob(canvas, params.mime, 0.5)) ?? null;
+};
+
 const applyOrbitWatermarkToBlob = async (blob: Blob, mime: string) => {
   if (typeof createImageBitmap !== "function") {
     return blob;
@@ -562,20 +598,10 @@ const applyOrbitWatermarkToBlob = async (blob: Blob, mime: string) => {
 
   const image = await createImageBitmap(blob);
 
-  const width = image.width;
-  const height = image.height;
-  if (!width || !height) {
-    return blob;
-  }
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return blob;
-
-  const source = image as unknown as CanvasImageSource;
-  ctx.drawImage(source, 0, 0, width, height);
+  // Resize first (keeps upload sizes within GitHub API limits).
+  const resized = resizeBitmapToCanvas(image, 1600);
+  if (!resized) return blob;
+  const { canvas, ctx, width, height } = resized;
 
   (ctx as unknown as { __softHubWatermarkBitmap?: ImageBitmap | null }).__softHubWatermarkBitmap = await getWatermarkBitmap();
 
@@ -584,12 +610,9 @@ const applyOrbitWatermarkToBlob = async (blob: Blob, mime: string) => {
   const margin = Math.max(20, Math.round(watermarkSize * 0.18));
   drawOrbitWatermark(ctx, width - watermarkSize - margin, height - watermarkSize - margin, watermarkSize);
 
-  const outMime = mime === "image/png" ? "image/png" : "image/webp";
-  const quality = outMime === "image/webp" ? 0.92 : undefined;
-
-  const outBlob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, outMime, quality),
-  );
+  // Prefer webp for size; then compress to stay under ~900KB.
+  const outMime = "image/webp";
+  const outBlob = await compressCanvasToTargetSize(canvas, { mime: outMime, targetBytes: 900 * 1024 });
   return outBlob ?? blob;
 };
 

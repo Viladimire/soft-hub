@@ -9,6 +9,7 @@ import { uploadImageAssetToGitHub } from "@/lib/services/github/softwareDataStor
 export const runtime = "nodejs";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const GITHUB_CONTENTS_SOFT_LIMIT_BYTES = 900 * 1024;
 
 const bodySchema = z.object({
   type: z.enum(["logo", "hero", "screenshot"]),
@@ -55,6 +56,18 @@ export const POST = async (request: NextRequest) => {
     }
 
     const bytes = new Uint8Array(await file.arrayBuffer());
+
+    if (bytes.length > GITHUB_CONTENTS_SOFT_LIMIT_BYTES) {
+      return NextResponse.json(
+        {
+          message: "Image is too large after processing. Please upload a smaller image.",
+          bytes: bytes.length,
+          limit: GITHUB_CONTENTS_SOFT_LIMIT_BYTES,
+        },
+        { status: 413 },
+      );
+    }
+
     const { url, path } = await uploadImageAssetToGitHub({
       bytes,
       mime: file.type,
@@ -70,8 +83,15 @@ export const POST = async (request: NextRequest) => {
 
     if (error instanceof Error) {
       const message = error.message || "Failed to upload asset";
+      const isGitHubSizeError = /too\s*large|maximum\s*file\s*size|content\s*too\s*large|413/i.test(message);
       const status = message.includes("Missing GitHub configuration values") ? 501 : 500;
-      return NextResponse.json({ message }, { status });
+      return NextResponse.json(
+        {
+          message,
+          hint: isGitHubSizeError ? "Try a smaller image (GitHub has a strict file size limit for this upload path)." : undefined,
+        },
+        { status: isGitHubSizeError ? 413 : status },
+      );
     }
 
     console.error("Failed to upload asset", error);

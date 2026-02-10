@@ -198,10 +198,33 @@ export const POST = async (request: NextRequest) => {
   try {
     const payload = await request.json();
     const software = adminSoftwareSchema.parse(payload);
-    const record = toSoftwareRecord(software);
+    let record = toSoftwareRecord(software);
     const previousSlug = software.previousSlug?.trim();
 
     const warnings: string[] = [];
+
+    // If the client didn't send an id (or lost it), but the slug already exists in Supabase,
+    // reuse the existing identity to avoid accidental duplicates.
+    if (!software.id) {
+      try {
+        const supabase = createSupabaseServerClient();
+        const { data } = await supabase
+          .from("software")
+          .select("id, created_at")
+          .eq("slug", record.slug)
+          .maybeSingle();
+
+        if (data?.id) {
+          record = {
+            ...record,
+            id: data.id,
+            createdAt: typeof data.created_at === "string" && data.created_at.trim() ? data.created_at : record.createdAt,
+          };
+        }
+      } catch {
+        // Best effort only.
+      }
+    }
 
     // GitHub is the source of truth (DB-free scaling)
     if (previousSlug && previousSlug !== record.slug) {
