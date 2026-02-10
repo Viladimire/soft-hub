@@ -7,6 +7,7 @@ import { autoFillSoftwareData } from "@/lib/services/autoFillService";
 const payloadSchema = z.object({
   name: z.string().min(1),
   version: z.string().optional(),
+  debug: z.boolean().optional(),
 });
 
 const ensureAuthorized = (request: NextRequest) => {
@@ -32,7 +33,7 @@ export const POST = async (request: NextRequest) => {
 
   try {
     const payload = await request.json();
-    const { name, version } = payloadSchema.parse(payload);
+    const { name, version, debug } = payloadSchema.parse(payload);
 
     const result = await autoFillSoftwareData(name, { version });
     if (!result.success) {
@@ -40,14 +41,25 @@ export const POST = async (request: NextRequest) => {
     }
 
     const data = result.data;
+    const debugInfo = debug
+      ? {
+          serverTime: new Date().toISOString(),
+          vercel: {
+            commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+            deploymentId: process.env.VERCEL_DEPLOYMENT_ID ?? null,
+            url: process.env.VERCEL_URL ?? null,
+          },
+        }
+      : undefined;
     const changelog = Array.isArray(data.changelog) ? data.changelog : [];
     if (changelog.length) {
-      return NextResponse.json(data);
+      return NextResponse.json(debugInfo ? { ...data, debug: debugInfo } : data);
     }
 
     const fallbackVersion = (data.version ?? "").trim() || (version ?? "").trim() || "latest";
     return NextResponse.json({
       ...data,
+      ...(debugInfo ? { debug: debugInfo } : null),
       changelog: [
         {
           version: fallbackVersion,

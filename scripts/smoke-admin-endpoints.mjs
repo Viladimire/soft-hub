@@ -59,17 +59,53 @@ const extToMime = (ext) => {
   return "application/octet-stream";
 };
 
-const postUpload = async (filePath, type) => {
-  const url = new URL("/api/admin/upload", BASE_URL).toString();
-  const abs = path.resolve(filePath);
+const tinyPngBytes = () =>
+  Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/6X8lqkAAAAASUVORK5CYII=",
+    "base64",
+  );
+
+const buildUploadPayload = async () => {
+  if (!UPLOAD_FILE) {
+    return {
+      filename: "tiny.png",
+      mime: "image/png",
+      bytes: tinyPngBytes(),
+      source: "fallback-tiny-png",
+    };
+  }
+
+  const abs = path.resolve(UPLOAD_FILE);
   const filename = path.basename(abs);
   const mime = extToMime(path.extname(filename));
-
   const bytes = await fs.promises.readFile(abs);
-  const blob = new Blob([bytes], { type: mime });
+
+  // If the file is too big, don't treat it as a failure of the endpoint.
+  // GitHub upload path has strict size limits.
+  if (bytes.length > 650 * 1024) {
+    return {
+      filename: "tiny.png",
+      mime: "image/png",
+      bytes: tinyPngBytes(),
+      source: `fallback-tiny-png (original ${filename} was ${bytes.length} bytes)`,
+    };
+  }
+
+  return {
+    filename,
+    mime,
+    bytes,
+    source: `file:${UPLOAD_FILE}`,
+  };
+};
+
+const postUpload = async (type) => {
+  const url = new URL("/api/admin/upload", BASE_URL).toString();
+  const payload = await buildUploadPayload();
+  const blob = new Blob([payload.bytes], { type: payload.mime });
 
   const form = new FormData();
-  form.append("file", blob, filename);
+  form.append("file", blob, payload.filename);
   form.append("type", type);
 
   const res = await fetch(url, {
@@ -94,6 +130,9 @@ const printResult = (title, result) => {
   console.log("\n====", title, "====");
   console.log("url:", result.url);
   console.log("status:", result.status, "ok:", result.ok);
+  if (result.meta) {
+    console.log("meta:", JSON.stringify(result.meta, null, 2));
+  }
   console.log("response:", JSON.stringify(result.json, null, 2));
 };
 
@@ -103,6 +142,7 @@ const main = async () => {
   const autofill = await postJson("/api/admin/auto-fill", {
     name: "CapCut",
     version: "",
+    debug: true,
   });
   printResult("AUTO-FILL", autofill);
 
@@ -113,12 +153,8 @@ const main = async () => {
     console.log("\n==== SCRAPE ====\nSKIPPED (SCRAPE_URL not set)");
   }
 
-  if (UPLOAD_FILE) {
-    const upload = await postUpload(UPLOAD_FILE, "logo");
-    printResult("UPLOAD", upload);
-  } else {
-    console.log("\n==== UPLOAD ====\nSKIPPED (UPLOAD_FILE not set)");
-  }
+  const upload = await postUpload("logo");
+  printResult("UPLOAD", upload);
 };
 
 main().catch((err) => {
