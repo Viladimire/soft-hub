@@ -38,6 +38,31 @@ from urllib.request import Request, urlopen
 VERCEL_API_BASE = "https://api.vercel.com"
 
 
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def load_or_create_local_cron_secret() -> str:
+    local_dir = repo_root() / ".local"
+    secret_path = local_dir / "soft-hub-cron-secret.txt"
+    try:
+        if secret_path.exists():
+            value = secret_path.read_text(encoding="utf-8").strip()
+            if value:
+                return value
+    except Exception:
+        pass
+
+    value = secrets.token_urlsafe(32)
+    try:
+        local_dir.mkdir(parents=True, exist_ok=True)
+        secret_path.write_text(value, encoding="utf-8")
+    except Exception:
+        # If we can't write locally, fall back to ephemeral secret.
+        return value
+    return value
+
+
 def read_json(path: Path) -> Dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -270,7 +295,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     cron_secret = os.environ.get("CRON_SECRET")
     if not cron_secret:
-        cron_secret = secrets.token_urlsafe(32)
+        cron_secret = load_or_create_local_cron_secret()
 
     # Keys to sync.
     to_sync: list[tuple[str, Optional[str]]] = [
