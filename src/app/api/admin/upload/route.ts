@@ -89,14 +89,37 @@ export const POST = async (request: NextRequest) => {
 
     if (error instanceof Error) {
       const message = error.message || "Failed to upload asset";
+      const githubStatusMatch = message.match(/GitHub API request failed \((\d+)\):/i);
+      const githubStatus = githubStatusMatch ? Number(githubStatusMatch[1]) : null;
+
       const isGitHubSizeError = /too\s*large|maximum\s*file\s*size|content\s*too\s*large|413/i.test(message);
-      const status = message.includes("Missing GitHub configuration values") ? 501 : 500;
+      const isAuthError = githubStatus === 401 || githubStatus === 403;
+      const isNotFound = githubStatus === 404;
+
+      const status = (() => {
+        if (message.includes("Missing GitHub configuration values")) return 501;
+        if (isGitHubSizeError) return 413;
+        if (isAuthError || isNotFound) return 502;
+        return 500;
+      })();
+
+      const hint = (() => {
+        if (isGitHubSizeError) return "Try a smaller image (GitHub has a strict file size limit for this upload path).";
+        if (isAuthError) return "GitHub token is missing/invalid or lacks permissions (check GITHUB_CONTENT_TOKEN + repo access).";
+        if (isNotFound) return "GitHub repo/path not found (check GITHUB_DATA_REPO_OWNER/NAME/BRANCH).";
+        return undefined;
+      })();
+
       return NextResponse.json(
         {
           message,
-          hint: isGitHubSizeError ? "Try a smaller image (GitHub has a strict file size limit for this upload path)." : undefined,
+          hint,
+          debug: {
+            githubStatus: githubStatus ?? undefined,
+            provider: "github",
+          },
         },
-        { status: isGitHubSizeError ? 413 : status },
+        { status },
       );
     }
 
