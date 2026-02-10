@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/publish",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/cron/sync-supabase",
-      "schedule": "15 */6 * * *"
+      "schedule": "30 3 * * *"
     }
   ]
 }
