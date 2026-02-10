@@ -806,8 +806,11 @@ const extractSizeInMbFromHtml = (html: string) => {
 const extractDeveloperCtaSizeMbFromHtml = (html: string) => {
   // FileCR-style pages sometimes show an accurate size next to the "Download from developer" CTA.
   // Prefer this marker when present to avoid wrong HEAD/Range-derived sizes.
-  const rx = /(download\s+from\s+developer)[\s\S]{0,500}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
-  const match = html.match(rx);
+  const normalizedText = stripTags(html).replace(/\s+/g, " ").trim();
+  const rxText = /(download\s+from\s+developer)[\s\S]{0,120}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
+  const rxDownload = /(download)[\s\S]{0,80}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
+
+  const match = normalizedText.match(rxText) ?? normalizedText.match(rxDownload) ?? html.match(rxText) ?? html.match(rxDownload);
   if (!match) return 0;
   const mb = parseSizeToMb(`${match[2]} ${match[3]}`);
   return isReasonableSizeInMb(mb) ? mb : 0;
