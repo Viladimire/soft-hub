@@ -131,7 +131,6 @@ def create_production_deployment_from_git(
 
     payload: Dict[str, Any] = {
         "name": project.get("name") or "soft-hub",
-        "projectId": project_id,
         "target": "production",
         "gitSource": {
             "type": "github",
