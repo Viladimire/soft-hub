@@ -64,6 +64,15 @@ export const GET = async (request: NextRequest) => {
 
     const httpsUrl = latest.url.startsWith("http") ? latest.url : `https://${latest.url}`;
 
+    const recent = deployments
+      .slice(0, 5)
+      .filter((d) => d && typeof d === "object" && typeof d.url === "string")
+      .map((d) => ({
+        url: d.url.startsWith("http") ? d.url : `https://${d.url}`,
+        state: d.state ?? null,
+        createdAt: d.createdAt,
+      }));
+
     return NextResponse.json({
       ok: true,
       latest: {
@@ -71,6 +80,7 @@ export const GET = async (request: NextRequest) => {
         state: latest.state ?? null,
         createdAt: latest.createdAt,
       },
+      recent,
     });
   } catch (error) {
     console.error("GET /api/admin/vercel failed", error);
