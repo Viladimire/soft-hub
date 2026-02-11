@@ -10,6 +10,7 @@ import {
   publishLatestSoftwarePagesToGitHub,
   saveSoftwareToGitHub,
 } from "@/lib/services/github/softwareDataStore";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
 import type { Platform, Software, SoftwareCategory } from "@/lib/types/software";
@@ -193,7 +194,7 @@ export const GET = async (request: NextRequest) => {
 
     // If Supabase is configured, prefer it as the admin dataset source.
     // This avoids missing items when GitHub index.json updates are skipped (per-slug storage).
-    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (isSupabaseConfigured()) {
       const items = await fetchAdminDatasetFromSupabase(query);
       return NextResponse.json({ items, sha: "", source: "supabase", page: query.page, perPage: query.perPage });
     }
