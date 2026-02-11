@@ -91,11 +91,11 @@ export const GET = async (
   const url = new URL(request.url);
   const token = url.searchParams.get("t") || url.searchParams.get("token") || "";
   if (!token) {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL(`/${locale}/download/${slug}/start`, request.url), 307);
   }
 
   if (!isValidToken({ secret, token, slug, locale, userAgent })) {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL(`/${locale}/download/${slug}/start`, request.url), 307);
   }
 
   const supabase = createSupabaseServerClient();

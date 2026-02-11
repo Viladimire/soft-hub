@@ -840,7 +840,12 @@ export const SoftwareAdminPanel = () => {
     if (!response.ok) {
       const message = (() => {
         if (payload && typeof payload === "object" && "message" in payload) {
-          return String((payload as { message?: unknown }).message);
+          const msg = String((payload as { message?: unknown }).message);
+          const hint =
+            "hint" in payload && (payload as { hint?: unknown }).hint
+              ? String((payload as { hint?: unknown }).hint)
+              : "";
+          return hint ? `${msg} (${hint})` : msg;
         }
         try {
           return `Image upload failed (${response.status}): ${JSON.stringify(payload)}`;

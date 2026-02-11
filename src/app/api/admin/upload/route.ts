@@ -92,6 +92,10 @@ export const POST = async (request: NextRequest) => {
       const githubStatusMatch = message.match(/GitHub API request failed \((\d+)\):/i);
       const githubStatus = githubStatusMatch ? Number(githubStatusMatch[1]) : null;
 
+      const isNetworkError =
+        error.name === "TypeError" ||
+        /fetch\s*failed|network|econnreset|etimedout|enotfound|socket|tls|certificate|handshake/i.test(message);
+
       const isGitHubSizeError = /too\s*large|maximum\s*file\s*size|content\s*too\s*large|413/i.test(message);
       const isAuthError = githubStatus === 401 || githubStatus === 403;
       const isNotFound = githubStatus === 404;
@@ -100,6 +104,7 @@ export const POST = async (request: NextRequest) => {
         if (message.includes("Missing GitHub configuration values")) return 501;
         if (isGitHubSizeError) return 413;
         if (isAuthError || isNotFound) return 502;
+        if (isNetworkError) return 502;
         return 500;
       })();
 
@@ -107,6 +112,7 @@ export const POST = async (request: NextRequest) => {
         if (isGitHubSizeError) return "Try a smaller image (GitHub has a strict file size limit for this upload path).";
         if (isAuthError) return "GitHub token is missing/invalid or lacks permissions (check GITHUB_CONTENT_TOKEN + repo access).";
         if (isNotFound) return "GitHub repo/path not found (check GITHUB_DATA_REPO_OWNER/NAME/BRANCH).";
+        if (isNetworkError) return "GitHub API request failed due to a network error. Check Vercel outbound connectivity and GitHub availability.";
         return undefined;
       })();
 
