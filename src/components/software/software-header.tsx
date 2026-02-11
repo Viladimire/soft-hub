@@ -48,9 +48,20 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
             variant="primary"
             className="gap-2"
             onClick={() => {
-              if (typeof window !== "undefined") {
-                window.location.href = downloadHref;
-              }
+              void (async () => {
+                if (typeof window === "undefined") return;
+
+                const tokenUrl = new URL("/api/download-token", window.location.origin);
+                tokenUrl.searchParams.set("slug", software.slug);
+                tokenUrl.searchParams.set("locale", locale);
+
+                const response = await fetch(tokenUrl.toString(), { cache: "no-store" });
+                if (!response.ok) return;
+                const payload = (await response.json()) as { token?: string };
+                if (!payload.token) return;
+
+                window.location.href = `${downloadHref}?t=${encodeURIComponent(payload.token)}`;
+              })();
             }}
           >
             {t("actions.download")}

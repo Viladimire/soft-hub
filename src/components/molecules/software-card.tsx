@@ -201,9 +201,20 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
                 variant="primary"
                 className="group/button rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(59,130,246,0.28)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(167,139,250,0.24)]"
                 onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.location.href = downloadHref;
-                  }
+                  void (async () => {
+                    if (typeof window === "undefined") return;
+
+                    const tokenUrl = new URL("/api/download-token", window.location.origin);
+                    tokenUrl.searchParams.set("slug", software.slug);
+                    tokenUrl.searchParams.set("locale", locale);
+
+                    const response = await fetch(tokenUrl.toString(), { cache: "no-store" });
+                    if (!response.ok) return;
+                    const payload = (await response.json()) as { token?: string };
+                    if (!payload.token) return;
+
+                    window.location.href = `${downloadHref}?t=${encodeURIComponent(payload.token)}`;
+                  })();
                 }}
               >
                 {t("downloadNow")}

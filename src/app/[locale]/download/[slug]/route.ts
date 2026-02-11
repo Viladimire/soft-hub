@@ -1,3 +1,5 @@
+import { createHmac, createHash } from "node:crypto";
+
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -11,6 +13,42 @@ const paramsSchema = z.object({
   locale: z.string().min(2).max(10),
   slug: z.string().min(1).max(200),
 });
+
+const getTokenSecret = () => {
+  const secret = process.env.DOWNLOAD_TOKEN_SECRET || process.env.ADMIN_API_SECRET;
+  return typeof secret === "string" && secret.trim().length >= 16 ? secret : "";
+};
+
+const hashUa = (userAgent: string) =>
+  createHash("sha256")
+    .update(userAgent || "")
+    .digest("hex")
+    .slice(0, 16);
+
+const sign = (secret: string, message: string) =>
+  createHmac("sha256", secret)
+    .update(message)
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+
+const isValidToken = (params: { secret: string; token: string; slug: string; locale: string; userAgent: string }) => {
+  const parts = params.token.split(".");
+  if (parts.length !== 3) return false;
+  const exp = Number(parts[0]);
+  const uaHash = parts[1] ?? "";
+  const sig = parts[2] ?? "";
+  if (!Number.isFinite(exp) || exp <= Date.now()) return false;
+  if (!uaHash || !sig) return false;
+
+  const expectedUaHash = hashUa(params.userAgent);
+  if (uaHash !== expectedUaHash) return false;
+
+  const message = `${params.slug}.${params.locale}.${exp}.${uaHash}`;
+  const expectedSig = sign(params.secret, message);
+  return sig === expectedSig;
+};
 
 const isLikelyBot = (userAgent: string) => {
   const ua = (userAgent || "").toLowerCase();
@@ -44,6 +82,21 @@ export const GET = async (
 
   const rawParams = await ctx.params;
   const { locale, slug } = paramsSchema.parse(rawParams);
+
+  const secret = getTokenSecret();
+  if (!secret) {
+    return NextResponse.json({ message: "Download token secret is not configured" }, { status: 501 });
+  }
+
+  const url = new URL(request.url);
+  const token = url.searchParams.get("t") || url.searchParams.get("token") || "";
+  if (!token) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+  if (!isValidToken({ secret, token, slug, locale, userAgent })) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
 
   const supabase = createSupabaseServerClient();
 
