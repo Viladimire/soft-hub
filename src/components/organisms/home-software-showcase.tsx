@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 
 import type { Software } from "@/lib/types/software";
-import { fetchStaticSoftwareDataset } from "@/lib/services/staticSoftwareRepository";
 
 import { SoftwareCard } from "@/components/molecules/software-card";
 
@@ -19,14 +18,30 @@ export const HomeSoftwareShowcase = ({ limit = 12 }: { limit?: number }) => {
 
     const run = async () => {
       try {
-        const dataset = await fetchStaticSoftwareDataset();
-        if (!active) return;
+        if (typeof window === "undefined") return;
 
-        const sorted = [...dataset].sort(
-          (a, b) => (b.stats?.downloads ?? 0) - (a.stats?.downloads ?? 0),
-        );
+        const perPage = Math.max(Math.floor(limit) || 0, 0);
+        if (!perPage) {
+          if (active) setItems([]);
+          return;
+        }
 
-        setItems(sorted.slice(0, Math.max(limit, 0)));
+        const url = new URL("/api/software", window.location.origin);
+        url.searchParams.set("sort", "popular");
+        url.searchParams.set("page", "1");
+        url.searchParams.set("perPage", String(perPage));
+
+        const response = await fetch(url.toString(), { cache: "no-store" });
+        if (!response.ok) {
+          if (active) setItems([]);
+          return;
+        }
+
+        const payload = (await response.json()) as { items?: Software[] };
+        const nextItems = Array.isArray(payload.items) ? payload.items : [];
+        if (active) {
+          setItems(nextItems);
+        }
       } catch {
         if (active) {
           setItems([]);
