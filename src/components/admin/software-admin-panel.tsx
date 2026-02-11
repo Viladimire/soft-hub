@@ -356,6 +356,13 @@ const isEffectivelyEmptyJson = (raw: string) => {
   const trimmed = raw.trim();
   if (!trimmed) return true;
   if (trimmed === "[]" || trimmed === "{}") return true;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (Array.isArray(parsed)) return parsed.length === 0;
+    if (parsed && typeof parsed === "object") return Object.keys(parsed as Record<string, unknown>).length === 0;
+  } catch {
+    // ignore parse errors; treat as non-empty so we don't overwrite user content
+  }
   return false;
 };
 
