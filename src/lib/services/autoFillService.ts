@@ -673,11 +673,13 @@ const fetchImagesFromUnsplash = async (name: string): Promise<UnsplashResult> =>
 
 const mergeData = (params: {
   name: string;
-  wiki: WikiResult;
-  github: GitHubResult;
-  images: UnsplashResult;
+  wiki: WikiResult | null;
+  github: GitHubResult | null;
+  images: UnsplashResult | null;
 }): AutoFillData => {
   const { name, wiki, github, images } = params;
+
+  const safeImages: UnsplashResult = images ?? { logoUrl: "", heroImage: "", screenshots: [] };
 
   const description = clampText(
     wiki?.description || github?.description || "",
@@ -698,7 +700,7 @@ const mergeData = (params: {
   const faviconLogo = buildFaviconUrl(websiteUrl);
 
   const logoCandidates = uniqueUrls([
-    images.logoUrl,
+    safeImages.logoUrl,
     wiki?.thumbnailUrl ?? "",
     github?.images.logoUrl ?? "",
     clearbitLogo,
@@ -706,13 +708,13 @@ const mergeData = (params: {
   ]);
 
   const heroCandidates = uniqueUrls([
-    images.heroImage,
+    safeImages.heroImage,
     github?.images.heroImage ?? "",
     wiki?.thumbnailUrl ?? "",
   ]);
 
   const screenshots = uniqueUrls([
-    ...images.screenshots,
+    ...safeImages.screenshots,
     github?.images.heroImage ?? "",
     wiki?.thumbnailUrl ?? "",
   ]).filter((url) => isValidUrl(url));
