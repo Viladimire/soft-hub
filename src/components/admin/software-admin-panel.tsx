@@ -331,6 +331,13 @@ const isSoftwareCategory = (value: string): value is SoftwareCategory =>
  const normalizeSoftwareType = (value?: unknown): SoftwareType | undefined =>
    value === "standard" ? "standard" : undefined;
 
+const isEffectivelyEmptyJson = (raw: string) => {
+  const trimmed = raw.trim();
+  if (!trimmed) return true;
+  if (trimmed === "[]" || trimmed === "{}") return true;
+  return false;
+};
+
 const isPlatform = (value: string): value is Platform =>
   ["windows", "mac", "linux", "android", "ios", "web"].includes(value);
 
@@ -803,10 +810,16 @@ export const SoftwareAdminPanel = () => {
 
     const payload: unknown = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const message =
-        payload && typeof payload === "object" && "message" in payload
-          ? String((payload as { message?: unknown }).message)
-          : "Image upload failed";
+      const message = (() => {
+        if (payload && typeof payload === "object" && "message" in payload) {
+          return String((payload as { message?: unknown }).message);
+        }
+        try {
+          return `Image upload failed (${response.status}): ${JSON.stringify(payload)}`;
+        } catch {
+          return `Image upload failed (${response.status})`;
+        }
+      })();
       const error = new Error(message) as RequestError;
       error.status = response.status;
       throw error;
@@ -1269,11 +1282,21 @@ export const SoftwareAdminPanel = () => {
         const candidateSize = parseNumber(data.sizeInMb ?? "", 0);
         const shouldApplySize = Number.isFinite(candidateSize) && candidateSize > 0;
 
-        const nextChangelogJson = state.changelogJson.trim()
+        const nextChangelogJson = !isEffectivelyEmptyJson(state.changelogJson)
           ? state.changelogJson
           : Array.isArray(data.changelog) && data.changelog.length
             ? JSON.stringify(data.changelog, null, 2)
-            : state.changelogJson;
+            : JSON.stringify(
+                [
+                  {
+                    version: (data.version ?? "latest") || "latest",
+                    date: new Date().toISOString(),
+                    highlights: ["Latest release"],
+                  },
+                ],
+                null,
+                2,
+              );
 
         return {
           ...state,
@@ -1285,6 +1308,12 @@ export const SoftwareAdminPanel = () => {
               : shouldApplyVersion
                 ? candidateVersion
                 : state.version,
+          sizeInMb:
+            state.sizeInMb.trim() && state.sizeInMb !== "0" && state.sizeInMb !== "250"
+              ? state.sizeInMb
+              : shouldApplySize
+                ? String(Math.round(candidateSize * 10) / 10)
+                : state.sizeInMb,
           changelogJson: nextChangelogJson,
           heroImage: resolvedHero,
           gallery: nextGallery,
@@ -1499,10 +1528,19 @@ export const SoftwareAdminPanel = () => {
 
         const currentNumeric = parseNumber(state.sizeInMb, 0);
         const isDefaultPlaceholder = state.sizeInMb === "250";
-        if (Number.isFinite(currentNumeric) && currentNumeric > 0 && !isDefaultPlaceholder) {
-          return state.sizeInMb;
+        if (!Number.isFinite(currentNumeric) || currentNumeric <= 0 || isDefaultPlaceholder) {
+          return incomingSize;
         }
-        return incomingSize;
+
+        const incomingNumeric = parseNumber(incomingSize, 0);
+        if (Number.isFinite(incomingNumeric) && incomingNumeric > 0) {
+          const ratio = incomingNumeric / currentNumeric;
+          if (ratio < 0.75 || ratio > 1.33) {
+            return incomingSize;
+          }
+        }
+
+        return state.sizeInMb;
       })();
 
       const nextStatsRating = (() => {
