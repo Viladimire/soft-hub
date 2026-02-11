@@ -40,6 +40,10 @@ export async function generateMetadata({
     ? await fetchSoftwareBySlug(slug, createSupabaseServerClient()).catch(() => null)
     : null;
 
+  if (isSupabaseConfigured() && !softwareFromSupabase) {
+    notFound();
+  }
+
   const software = softwareFromSupabase ?? (await getStaticSoftwareBySlug(slug));
 
   if (!software) {
@@ -114,6 +118,10 @@ export default async function SoftwareDetailPage({
   const softwareFromSupabase = isSupabaseConfigured()
     ? await fetchSoftwareBySlug(slug, createSupabaseServerClient()).catch(() => null)
     : null;
+
+  if (isSupabaseConfigured() && !softwareFromSupabase) {
+    notFound();
+  }
 
   const software = softwareFromSupabase ?? (await getStaticSoftwareBySlug(slug));
 

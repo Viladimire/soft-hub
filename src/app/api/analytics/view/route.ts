@@ -9,6 +9,10 @@ import {
   resolveSoftware,
 } from "@/lib/services/analytics.server";
 
+export const GET = async () => NextResponse.json({ status: "ok" }, { status: 200 });
+
+export const HEAD = async () => new NextResponse(null, { status: 204 });
+
 const bodySchema = z.object({
   id: z.string().uuid().optional(),
   slug: z.string().min(1).optional(),
