@@ -328,6 +328,9 @@ const isSoftwareCategory = (value: string): value is SoftwareCategory =>
     "education",
   ].includes(value);
 
+ const normalizeSoftwareType = (value?: unknown): SoftwareType | undefined =>
+   value === "standard" ? "standard" : undefined;
+
 const isPlatform = (value: string): value is Platform =>
   ["windows", "mac", "linux", "android", "ios", "web"].includes(value);
 
@@ -1563,10 +1566,8 @@ export const SoftwareAdminPanel = () => {
               : (pickedResolved.categories?.length ? pickedResolved.categories : state.categories),
         type:
           strategy === "replace"
-            ? (pickedResolved.type && pickedResolved.type !== "standard" ? (pickedResolved.type as any) : state.type)
-            : state.type && state.type !== "standard"
-              ? state.type
-              : (pickedResolved.type ? (pickedResolved.type as any) : state.type),
+            ? (normalizeSoftwareType(pickedResolved.type) ?? state.type)
+            : (state.type ?? normalizeSoftwareType(pickedResolved.type) ?? STANDARD_TYPE),
       };
     });
 
