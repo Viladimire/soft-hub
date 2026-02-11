@@ -1,5 +1,85 @@
 [
   {
+    "id": "9c8e4fa7-6f96-4fb6-bd00-e9d2bbf923f1",
+    "slug": "adobe-illustrator-download-latest-2025-pre-activated",
+    "name": "Adobe Illustrator Download (Latest 2025) Pre-Activated",
+    "summary": "Free download Adobe Illustrator Latest full version - The industry-standard vector graphics software.",
+    "description": "The drawing program is a professional solution for designing professional vector-based illustrations for posters, business letters, business cards, brochures, websites, and menus. You can bundle and group up to 100 large drawings in a single Illustrator file. Via a selection list, you can access the desired element directly. \"Adobe Illustrator\" reads all major formats such as EPS, FXG, PSD, TIFF, GIF, JPEG, SWF, SVG, DWG, or DXF. If you want to pass on your designs, \"package files\" offer themselves. Here, you summarize all required fonts and graphics in one folder. Alternatively, secure your print-sharing designs as multi-page PDF documents with Illustrator layers.",
+    "version": "30.2.1.1",
+    "sizeInBytes": 3575539302,
+    "platforms": [
+      "windows",
+      "web"
+    ],
+    "categories": [
+      "multimedia"
+    ],
+    "type": "standard",
+    "websiteUrl": null,
+    "downloadUrl": "https://filecr.com/windows/adobe-illustrator-2025-0053/?id=556949888000",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2026-02-11T00:00:00.000Z",
+    "updatedAt": "2026-02-11T19:05:59.850Z",
+    "createdAt": "2026-02-11T18:44:25.662Z",
+    "stats": {
+      "views": 2,
+      "votes": 12041,
+      "rating": 4.4,
+      "downloads": 5
+    },
+    "developer": {
+      "name": "Adobe Illustrator Download (Latest 2025) Pre-Activated",
+      "source": "wikipedia",
+      "wikiUrl": "https://en.wikipedia.org/wiki/Adobe_Photoshop",
+      "wikiTitle": "Adobe Photoshop"
+    },
+    "features": [
+      "Iconic work at any size",
+      "Gorgeous typography that says it all",
+      "Draw attention everywhere",
+      "Pro power comes as a standard",
+      "Freeform Gradients",
+      "Global Editing",
+      "Customizable toolbar",
+      "Presentation and Trim Preview",
+      "Visual font browsing",
+      "More accessible Adobe Fonts",
+      "Scaling to fit your monitor",
+      "Actual size preview",
+      "Puppet Warp enhancement",
+      "And so much more"
+    ],
+    "media": {
+      "gallery": [
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/633a9948-26ff-4497-8893-6ff4c752e7a3-1770835368329.webp",
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/3637b077-677a-456f-a7f8-4c4586998921-1770835361558.webp",
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/42db6a2e-7011-49ae-8b54-5868c76f6fdc-1770835369273.webp"
+      ],
+      "logoUrl": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/logo/7c9fc0c8-464f-4a2c-b0e5-23ffcbe71736-1770835367759.webp",
+      "heroImage": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/hero/3eb2a697-13f8-473a-93c8-dfa76eebd8b7-1770835368949.webp"
+    },
+    "requirements": {
+      "minimum": [
+        "Intel Pentium 4 or AMD Athlon 64 processor",
+        "Microsoft Windows 7 with Service Pack 1, Windows 8.1, or Windows 10",
+        "2 GB of available hard disk space for installation; additional free space required during installation (cannot install on removable flash storage devices)"
+      ],
+      "recommended": [
+        "2 GB of RAM (8 GB recommended) for 64-bit"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2026-02-11T18:42:58.473Z",
+        "version": "30.2.1.1",
+        "highlights": [
+          "Latest release"
+        ]
+      }
+    ]
+  },
+  {
     "id": "0c473e29-24ef-4f29-bf15-518939be3369",
     "slug": "ascomp-secure-eraser-professional-7100",
     "name": "ASCOMP Secure Eraser Professional 7.100",
@@ -21,13 +101,13 @@
     "isFeatured": true,
     "isTrending": false,
     "releaseDate": "2026-02-10T00:00:00.000Z",
-    "updatedAt": "2026-02-11T16:20:43.621Z",
+    "updatedAt": "2026-02-11T19:05:59.365Z",
     "createdAt": "2026-02-10T21:23:03.520Z",
     "stats": {
       "views": 16668,
       "votes": 20,
       "rating": 4.6,
-      "downloads": 5555
+      "downloads": 5557
     },
     "developer": {},
     "features": [
@@ -77,13 +157,13 @@
     "isFeatured": false,
     "isTrending": false,
     "releaseDate": "2024-08-11T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:55.368Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 190000,
       "votes": 2600,
       "rating": 4.3,
-      "downloads": 82000
+      "downloads": 82005
     },
     "developer": {},
     "features": [],
@@ -136,13 +216,13 @@
     "isFeatured": false,
     "isTrending": false,
     "releaseDate": "2024-07-09T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:43.705Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 210000,
       "votes": 2750,
       "rating": 4.4,
-      "downloads": 88000
+      "downloads": 88006
     },
     "developer": {},
     "features": [],
@@ -198,13 +278,13 @@
     "isFeatured": true,
     "isTrending": false,
     "releaseDate": "2024-06-25T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:43.712Z",
     "createdAt": "2024-02-14T00:00:00.000Z",
     "stats": {
       "views": 204000,
       "votes": 2300,
       "rating": 4.6,
-      "downloads": 95000
+      "downloads": 95006
     },
     "developer": {},
     "features": [],
@@ -260,13 +340,13 @@
     "isFeatured": true,
     "isTrending": false,
     "releaseDate": "2024-06-03T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:27.951Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 240000,
       "votes": 3100,
       "rating": 4.5,
-      "downloads": 101000
+      "downloads": 101005
     },
     "developer": {},
     "features": [],
@@ -318,13 +398,13 @@
     "isFeatured": false,
     "isTrending": false,
     "releaseDate": "2024-05-21T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:59.371Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 150000,
       "votes": 2200,
       "rating": 4.2,
-      "downloads": 61000
+      "downloads": 61006
     },
     "developer": {},
     "features": [],
@@ -377,13 +457,13 @@
     "isFeatured": false,
     "isTrending": false,
     "releaseDate": "2024-04-02T00:00:00.000Z",
-    "updatedAt": "2026-02-10T17:04:13.689Z",
+    "updatedAt": "2026-02-11T19:05:28.634Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 410003,
       "votes": 6100,
       "rating": 4.3,
-      "downloads": 189000
+      "downloads": 189007
     },
     "developer": {},
     "features": [],
@@ -439,13 +519,13 @@
     "isFeatured": true,
     "isTrending": false,
     "releaseDate": "2024-03-08T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:38.558Z",
     "createdAt": "2022-02-18T00:00:00.000Z",
     "stats": {
       "views": 280000,
       "votes": 3500,
       "rating": 4.6,
-      "downloads": 132000
+      "downloads": 132007
     },
     "developer": {},
     "features": [],
@@ -499,13 +579,13 @@
     "isFeatured": false,
     "isTrending": false,
     "releaseDate": "2024-02-22T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:40.607Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 265000,
       "votes": 1980,
       "rating": 4.1,
-      "downloads": 119000
+      "downloads": 119005
     },
     "developer": {},
     "features": [],
@@ -561,13 +641,13 @@
     "isFeatured": true,
     "isTrending": false,
     "releaseDate": "2024-02-10T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:35.333Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 320000,
       "votes": 2380,
       "rating": 4.7,
-      "downloads": 189200
+      "downloads": 189208
     },
     "developer": {},
     "features": [],
@@ -623,13 +703,13 @@
     "isFeatured": false,
     "isTrending": false,
     "releaseDate": "2024-01-12T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:55.408Z",
     "createdAt": "2023-08-20T00:00:00.000Z",
     "stats": {
       "views": 130000,
       "votes": 980,
       "rating": 4.8,
-      "downloads": 72000
+      "downloads": 72006
     },
     "developer": {},
     "features": [],
@@ -683,13 +763,13 @@
     "isFeatured": false,
     "isTrending": false,
     "releaseDate": "2023-08-14T00:00:00.000Z",
-    "updatedAt": "2026-02-10T16:38:57.784Z",
+    "updatedAt": "2026-02-11T19:05:28.301Z",
     "createdAt": "2026-02-10T16:38:57.784Z",
     "stats": {
       "views": 375000,
       "votes": 4100,
       "rating": 4.4,
-      "downloads": 145000
+      "downloads": 145006
     },
     "developer": {},
     "features": [],
