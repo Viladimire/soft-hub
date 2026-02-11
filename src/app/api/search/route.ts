@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchFilteredSoftware } from "@/lib/services/softwareService";
 import { searchStaticSoftwareViaChunks } from "@/lib/services/staticSoftwareRepository";
@@ -68,25 +69,35 @@ export const GET = async (request: NextRequest) => {
     const page = parsed.page ?? 1;
     const perPage = parsed.perPage ?? 20;
 
-    try {
-      const result = await fetchFilteredSoftware(
-        {
-          query,
-          category: parsed.category ?? null,
-          platforms: splitCsv(parsed.platforms),
-          types: splitCsv(parsed.types),
-          sortBy: parsed.sort ?? parsed.sortBy,
+    if (isSupabaseConfigured()) {
+      try {
+        const result = await fetchFilteredSoftware(
+          {
+            query,
+            category: parsed.category ?? null,
+            platforms: splitCsv(parsed.platforms),
+            types: splitCsv(parsed.types),
+            sortBy: parsed.sort ?? parsed.sortBy,
+            page,
+            perPage,
+          },
+          supabase,
+        );
+
+        return NextResponse.json(result);
+      } catch {
+        return NextResponse.json({
+          items: [],
+          total: 0,
           page,
           perPage,
-        },
-        supabase,
-      );
-
-      return NextResponse.json(result);
-    } catch {
-      const fallback = await searchStaticSoftwareViaChunks({ query, page, perPage, maxChunksToScan: 25 });
-      return NextResponse.json(fallback);
+          hasMore: false,
+        });
+      }
     }
+
+    const fallback = await searchStaticSoftwareViaChunks({ query, page, perPage, maxChunksToScan: 25 });
+    return NextResponse.json(fallback);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });

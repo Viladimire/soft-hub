@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchFilteredSoftware } from "@/lib/services/softwareService";
 import { filterStaticSoftwareViaChunks } from "@/lib/services/staticSoftwareRepository";
@@ -54,34 +55,44 @@ export const GET = async (request: NextRequest) => {
     const platforms = splitCsv(parsed.platforms);
     const types = splitCsv(parsed.types);
 
-    try {
-      const result = await fetchFilteredSoftware(
-        {
-          query,
-          category: parsed.category ?? null,
-          platforms,
-          types,
-          sortBy: parsed.sort ?? parsed.sortBy,
+    if (isSupabaseConfigured()) {
+      try {
+        const result = await fetchFilteredSoftware(
+          {
+            query,
+            category: parsed.category ?? null,
+            platforms,
+            types,
+            sortBy: parsed.sort ?? parsed.sortBy,
+            page,
+            perPage,
+          },
+          supabase,
+        );
+
+        return NextResponse.json(result);
+      } catch {
+        return NextResponse.json({
+          items: [],
+          total: 0,
           page,
           perPage,
-        },
-        supabase,
-      );
-
-      return NextResponse.json(result);
-    } catch {
-      // Chunk fallback supports latest ordering. For non-latest sorts, still return latest-ordered matches.
-      const fallback = await filterStaticSoftwareViaChunks({
-        query,
-        category: parsed.category ?? null,
-        platforms,
-        types,
-        page,
-        perPage,
-        maxChunksToScan: 50,
-      });
-      return NextResponse.json(fallback);
+          hasMore: false,
+        });
+      }
     }
+
+    // Chunk fallback supports latest ordering. For non-latest sorts, still return latest-ordered matches.
+    const fallback = await filterStaticSoftwareViaChunks({
+      query,
+      category: parsed.category ?? null,
+      platforms,
+      types,
+      page,
+      perPage,
+      maxChunksToScan: 50,
+    });
+    return NextResponse.json(fallback);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });
