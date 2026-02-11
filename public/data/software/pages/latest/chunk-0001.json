@@ -1,5 +1,62 @@
 [
   {
+    "id": "0c473e29-24ef-4f29-bf15-518939be3369",
+    "slug": "ascomp-secure-eraser-professional-7100",
+    "name": "ASCOMP Secure Eraser Professional 7.100",
+    "summary": "Free Download ASCOMP Secure Eraser Professional 7.100 Full Version - Securely delete your sensitive files, folders and drives.",
+    "description": "Erase Your Documents and Drives Securely. Because it&rsquo;s been deleted from your hard drive doesn&rsquo;t mean it&rsquo;s gone forever. Anyone can restore it anytime if they do not overwrite the information. It gets even more complicated if a computer has been resold or given away. This program uses the most renowned method of data disposal and overwrites sensitive information in such a sure way that it can never be retrieved &ndash; even with specialized software. This easy-to-use Windows software will overwrite sensitive data up to 35 times &ndash; regardless of whether they are files, folders, drives, recycle bins or traces of surfing.",
+    "version": "7.100",
+    "sizeInBytes": 14889779,
+    "platforms": [
+      "windows"
+    ],
+    "categories": [
+      "productivity",
+      "utilities",
+      "operating-systems"
+    ],
+    "type": "standard",
+    "websiteUrl": null,
+    "downloadUrl": "https://filecr.com/windows/ascomp-secure-eraser/",
+    "isFeatured": true,
+    "isTrending": false,
+    "releaseDate": "2026-02-10T00:00:00.000Z",
+    "updatedAt": "2026-02-11T16:20:43.621Z",
+    "createdAt": "2026-02-10T21:23:03.520Z",
+    "stats": {
+      "views": 16668,
+      "votes": 20,
+      "rating": 4.6,
+      "downloads": 5555
+    },
+    "developer": {},
+    "features": [
+      "Delete your sensitive files",
+      "Overwrite data upto 35 times",
+      "Safe &amp; secure removal",
+      "US Department of Defense standard data erasing"
+    ],
+    "media": {
+      "gallery": [
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/4d797c01-6c85-4818-ab93-de7fe4ad786c-1770758519987.webp",
+        "https://media.imgcdn.org/repo/2023/03/ascomp-secure-eraser/secure-eraser-professional-free-download-02.jpg",
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/c3b62b82-1a3a-4048-8980-ce0412abcce9-1770758520142.webp"
+      ],
+      "logoUrl": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/logo/08946251-6c76-4f1d-afe6-16035783c306-1770758497913.webp",
+      "heroImage": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/hero/924746d5-4c94-42f1-859e-b98906458f96-1770758498991.webp"
+    },
+    "requirements": {
+      "minimum": [
+        "Supported OS: Windows 11, Windows 10, Windows 8.1, Windows 7",
+        "Free Hard Disk Space: 200 MB or more"
+      ],
+      "recommended": [
+        "RAM (Memory): 2 GB RAM (4 GB recommended)"
+      ]
+    },
+    "changelog": []
+  },
+  {
     "id": "3c523f6a-b60c-49c2-91d2-48d10f7d0f3d",
     "slug": "gridwave-analytics",
     "name": "Gridwave Analytics",
