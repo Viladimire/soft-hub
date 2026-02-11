@@ -44,11 +44,17 @@ export const SoftwareHeader = ({ software }: { software: Software }) => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="primary" className="gap-2">
-            <Link href={downloadHref}>
-              {t("actions.download")}
-              <Download className="h-4 w-4" />
-            </Link>
+          <Button
+            variant="primary"
+            className="gap-2"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.location.href = downloadHref;
+              }
+            }}
+          >
+            {t("actions.download")}
+            <Download className="h-4 w-4" />
           </Button>
         </div>
       </div>

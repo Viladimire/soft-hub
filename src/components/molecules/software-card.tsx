@@ -199,15 +199,17 @@ export const SoftwareCard = ({ software, className, showActions = true }: Softwa
               </Button>
               <Button
                 variant="primary"
-                asChild
                 className="group/button rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-[0_18px_40px_rgba(59,130,246,0.28)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(167,139,250,0.24)]"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.location.href = downloadHref;
+                  }
+                }}
               >
-                <Link href={downloadHref}>
-                  {t("downloadNow")}
-                  <span className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-                    <Download className="h-3.5 w-3.5 transition group-hover/button:animate-bounce" />
-                  </span>
-                </Link>
+                {t("downloadNow")}
+                <span className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+                  <Download className="h-3.5 w-3.5 transition group-hover/button:animate-bounce" />
+                </span>
               </Button>
             </div>
           </footer>
