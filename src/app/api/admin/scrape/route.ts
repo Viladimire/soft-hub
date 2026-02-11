@@ -719,9 +719,22 @@ const extractPlainNumberSizeMbFromHtml = (html: string) => {
     }
 
     if (directCandidates.length) {
-      // FileCR often contains multiple download-size elements (portable vs full installer).
-      // Prefer the largest reasonable size.
-      return directCandidates.sort((a, b) => b - a)[0] ?? 0;
+      // FileCR sometimes contains multiple download-size elements.
+      // The largest value is not always correct (can be a different mirror/variant).
+      // Prefer the most frequent value (mode). If tied, prefer the largest.
+      const freq = new Map<string, { mb: number; count: number }>();
+      for (const mb of directCandidates) {
+        const key = String(Math.round(mb * 10) / 10);
+        const current = freq.get(key);
+        if (current) {
+          current.count += 1;
+        } else {
+          freq.set(key, { mb: Math.round(mb * 10) / 10, count: 1 });
+        }
+      }
+
+      const best = Array.from(freq.values()).sort((a, b) => b.count - a.count || b.mb - a.mb)[0];
+      return best?.mb ?? 0;
     }
   }
 
