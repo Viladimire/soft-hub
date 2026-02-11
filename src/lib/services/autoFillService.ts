@@ -764,11 +764,15 @@ export const autoFillSoftwareData = async (softwareName: string, options: AutoFi
       return { success: false, error: "Software name is required" };
     }
 
-    const [wiki, github, images] = await Promise.all([
+    const [wikiResult, githubResult, imagesResult] = await Promise.allSettled([
       fetchFromWikipedia(name),
       fetchFromGitHub(name),
       fetchImagesFromUnsplash(name),
     ]);
+
+    const wiki = wikiResult.status === "fulfilled" ? wikiResult.value : null;
+    const github = githubResult.status === "fulfilled" ? githubResult.value : null;
+    const images = imagesResult.status === "fulfilled" ? imagesResult.value : null;
 
     const merged = mergeData({ name, wiki, github, images });
 
