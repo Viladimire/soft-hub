@@ -1,7 +1,6 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import Link from "next/link";
 
 import type { Software } from "@/lib/types/software";
 import { formatBytes, formatReleaseDate } from "@/lib/utils/format";
@@ -137,12 +136,14 @@ export const SoftwareDetailsTabs = ({ software }: { software: Software }) => {
                       <span>Downloads: {release.downloadsCount}</span>
                     </div>
                     <div>
-                      <Link
+                      <a
                         href={release.downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
                         className="text-xs font-semibold text-white underline decoration-white/20 underline-offset-4 hover:decoration-white/60"
                       >
                         Download this version
-                      </Link>
+                      </a>
                     </div>
                   </div>
                 ))}

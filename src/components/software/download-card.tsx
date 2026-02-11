@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Download, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -20,19 +19,22 @@ export const DownloadCard = ({ software, locale }: { software: Software; locale:
   return (
     <Card className="border-white/10 bg-white/5">
       <CardContent className="space-y-4 p-4 sm:p-6">
-        <Button asChild variant="primary" className="w-full gap-2 rounded-2xl py-5 text-sm sm:py-6">
-          <Link
-            href={downloadHref}
-            onClick={() => {
-              void trackDownload(software.id, {
-                slug: software.slug,
-                source: "software-detail",
-              });
-            }}
-          >
-            <Download className="h-4 w-4" />
-            {t("primaryCta")}
-          </Link>
+        <Button
+          variant="primary"
+          className="w-full gap-2 rounded-2xl py-5 text-sm sm:py-6"
+          onClick={() => {
+            void trackDownload(software.id, {
+              slug: software.slug,
+              source: "software-detail",
+            });
+
+            if (typeof window !== "undefined") {
+              window.location.href = downloadHref;
+            }
+          }}
+        >
+          <Download className="h-4 w-4" />
+          {t("primaryCta")}
         </Button>
 
         <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
