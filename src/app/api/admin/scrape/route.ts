@@ -701,10 +701,24 @@ const extractSizeCandidatesFromText = (text: string) => {
 
 const pickBestSizeCandidate = (candidates: number[]) => {
   if (!candidates.length) return 0;
-  const sorted = [...candidates].sort((a, b) => a - b);
-  // Prefer full installer sizes over tiny artifacts (portable/patch). In practice,
-  // when multiple candidates exist, the largest reasonable size is usually the correct one.
-  return sorted[sorted.length - 1] ?? 0;
+  // When multiple size candidates exist (common on FileCR), the largest value is
+  // not always correct (can be a different mirror/variant). Prefer the most
+  // frequent (mode). If tied, prefer the largest.
+  const freq = new Map<string, { mb: number; count: number }>();
+  for (const mbRaw of candidates) {
+    if (!Number.isFinite(mbRaw) || mbRaw <= 0) continue;
+    const mb = Math.round(mbRaw * 10) / 10;
+    const key = String(mb);
+    const current = freq.get(key);
+    if (current) {
+      current.count += 1;
+    } else {
+      freq.set(key, { mb, count: 1 });
+    }
+  }
+
+  const best = Array.from(freq.values()).sort((a, b) => b.count - a.count || b.mb - a.mb)[0];
+  return best?.mb ?? 0;
 };
 
 const extractPlainNumberSizeMbFromHtml = (html: string) => {
