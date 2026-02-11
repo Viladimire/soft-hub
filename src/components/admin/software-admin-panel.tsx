@@ -265,6 +265,27 @@ const parseChangelog = (raw: string) => {
   }
 };
 
+const isEffectivelyEmptyDeveloperJson = (raw: string) => {
+  const trimmed = raw.trim();
+  if (!trimmed) return true;
+  if (trimmed === "{}") return true;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return true;
+    const entries = Object.entries(parsed as Record<string, unknown>);
+    if (!entries.length) return true;
+    return entries.every(([, value]) => {
+      if (value == null) return true;
+      if (typeof value === "string") return value.trim().length === 0;
+      if (Array.isArray(value)) return value.length === 0;
+      if (typeof value === "object") return Object.keys(value as Record<string, unknown>).length === 0;
+      return false;
+    });
+  } catch {
+    return false;
+  }
+};
+
 const parseDeveloperJson = (raw: string) => {
   if (!raw.trim()) {
     return {};
@@ -1251,13 +1272,19 @@ export const SoftwareAdminPanel = () => {
               : state.statsDownloads;
 
         const nextDeveloperJson = state.developerJson.trim()
-          ? state.developerJson
+          ? (isEffectivelyEmptyDeveloperJson(state.developerJson) ? "" : state.developerJson)
           : data.developer && Object.keys(data.developer).length > 0
             ? JSON.stringify(data.developer, null, 2)
             : state.developerJson;
 
+        const resolvedDeveloperJson = isEffectivelyEmptyDeveloperJson(nextDeveloperJson)
+          ? (data.developer && Object.keys(data.developer).length > 0
+              ? JSON.stringify(data.developer, null, 2)
+              : "")
+          : nextDeveloperJson;
+
         const parsedDownloads = parseNumber(nextDownloadsValue, 0);
-        const parsedDeveloper = parseDeveloperJson(nextDeveloperJson);
+        const parsedDeveloper = parseDeveloperJson(resolvedDeveloperJson);
         const starsRaw = (parsedDeveloper as Record<string, unknown>)["stars"];
         const stars = typeof starsRaw === "number" && Number.isFinite(starsRaw) ? starsRaw : undefined;
         const derived = computePopularityStats({ downloads: parsedDownloads, stars });
@@ -1326,7 +1353,7 @@ export const SoftwareAdminPanel = () => {
           features: state.features.trim()
             ? state.features
             : sanitizeFeaturesText((data.features ?? []).join("\n")) || state.features,
-          developerJson: nextDeveloperJson,
+          developerJson: resolvedDeveloperJson,
           categories: nextCategories.length ? nextCategories : state.categories,
           platforms: nextPlatforms.length ? nextPlatforms : state.platforms,
         };
