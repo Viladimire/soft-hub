@@ -1618,10 +1618,6 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
   const downloads = pickDownloads(lines, productInfo);
 
   const sizeCandidate = (() => {
-    const fromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
-    const parsed = fromProductInfo ? parseSizeToMb(fromProductInfo) : 0;
-    if (parsed > 0) return { mb: parsed, confidence: "high" as const };
-
     const fromDeveloperCta = extractDeveloperCtaSizeMbFromHtml(html);
     if (fromDeveloperCta > 0) return { mb: fromDeveloperCta, confidence: "high" as const };
 
@@ -1629,6 +1625,13 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
     // These often omit units and are more reliable than generic "file size" text inside requirements sections.
     const fromHtml = extractSizeInMbFromHtml(html);
     if (fromHtml > 0) return { mb: fromHtml, confidence: "high" as const };
+
+    const fromProductInfo = productInfo.get("file size") || productInfo.get("filesize") || "";
+    if (fromProductInfo) {
+      const suspicious = /\b(?:ram|vram|memory|disk|storage|space|hdd|ssd|directx|opengl|vulkan)\b/i.test(fromProductInfo);
+      const parsed = suspicious ? 0 : parseSizeToMb(fromProductInfo);
+      if (parsed > 0) return { mb: parsed, confidence: "medium" as const };
+    }
 
     const picked = pickSizeInMb(lines);
     if (picked > 0) return { mb: picked, confidence: "medium" as const };
