@@ -521,12 +521,14 @@ const request = async <T,>(
 
     const errorObject = (errorBody ?? {}) as {
       message?: unknown;
+      hint?: unknown;
       errors?: { fieldErrors?: Record<string, unknown> };
       debug?: { stack?: unknown; details?: unknown; hint?: unknown; code?: unknown };
     };
 
     const baseMessage =
       typeof errorObject?.message === "string" ? errorObject.message : `Request failed (${response.status})`;
+    const topLevelHint = typeof errorObject?.hint === "string" ? errorObject.hint : "";
     const fieldErrors = errorObject?.errors?.fieldErrors as Record<string, string[] | undefined> | undefined;
     const fieldSummary = fieldErrors
       ? Object.entries(fieldErrors)
@@ -545,7 +547,19 @@ const request = async <T,>(
       if (typeof debug.stack === "string" && debug.stack) debugParts.push(debug.stack);
     }
 
-    const message = [baseMessage, fieldSummary, debugParts.join("\n"), rawBodyFallback].filter(Boolean).join("\n");
+    if (errorBody && typeof errorBody === "object" && "debug" in (errorBody as Record<string, unknown>)) {
+      const dbg = (errorBody as { debug?: unknown }).debug;
+      if (dbg && typeof dbg === "object" && "status" in (dbg as Record<string, unknown>)) {
+        const upstreamStatus = (dbg as { status?: unknown }).status;
+        if (typeof upstreamStatus === "number" && Number.isFinite(upstreamStatus)) {
+          debugParts.push(`upstream_status=${upstreamStatus}`);
+        }
+      }
+    }
+
+    const message = [baseMessage, topLevelHint, fieldSummary, debugParts.join("\n"), rawBodyFallback]
+      .filter(Boolean)
+      .join("\n");
     const error = new Error(message) as RequestError;
     error.status = response.status;
     throw error;
