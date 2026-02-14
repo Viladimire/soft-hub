@@ -1,5 +1,85 @@
 [
   {
+    "id": "1ae23a30-f37d-41c0-9690-180c081d90eb",
+    "slug": "system-mechanic-pro-260181-free-download",
+    "name": "System Mechanic Pro 26.0.1.81 Free Download",
+    "summary": "Free Download iolo System Mechanic Pro 26.0.1.81 Full Version - Offline Installer - It keeps your PC running faster, cleaner and error-free.",
+    "description": "System Mechanic Professional is an amazingly comprehensive tool that provides everything you'll need to clean, speed up, repair, and secure your PC. Certified anti-virus/anti-spyware blocks the latest threats using advanced dual-engine security. It provides complete repair, tuning, and maintenance of your computer using the seven advanced tools. Its patented technology works to fix registry errors, defrag hard disks, clean trash files, and speed up Windows for maximum performance and stability.",
+    "version": "26.0.1.81",
+    "sizeInBytes": 56413389,
+    "platforms": [
+      "windows"
+    ],
+    "categories": [
+      "security",
+      "productivity",
+      "utilities",
+      "operating-systems"
+    ],
+    "type": "standard",
+    "websiteUrl": null,
+    "downloadUrl": "https://filecr.com/windows/system-mechanic/",
+    "isFeatured": false,
+    "isTrending": false,
+    "releaseDate": "2026-02-11T00:00:00.000Z",
+    "updatedAt": "2026-02-14T16:35:35.042Z",
+    "createdAt": "2026-02-11T20:19:29.180Z",
+    "stats": {
+      "views": 9,
+      "votes": 153,
+      "rating": 4.3,
+      "downloads": 5
+    },
+    "developer": {
+      "name": "System Mechanic Pro 26.0.1.81 Free Download",
+      "source": "wikipedia",
+      "wikiUrl": "https://en.wikipedia.org/wiki/Tetris",
+      "wikiTitle": "Tetris"
+    },
+    "features": [
+      "Malware signature detection and behavior-monitoring heuristics",
+      "Privacy protection is designed to erase sensitive data after it's deleted permanently.",
+      "Retrieves many lost and accidentally deleted files from PCs, cameras, and more.",
+      "Advanced cleaning and repair removes more unsafe clutter",
+      "The redesigned look is the most accessible version to use yet",
+      "Adjusts dozens of Windows settings for greatly improved processor",
+      "Cleans up over 50 types of junk files.",
+      "Wipes internet and chat history, clutter, and cache.",
+      "Defrags, compacts, optimizes and backs up system registry.",
+      "Re-aligns and defragments disjointed program files for the very fastest access.",
+      "Reclaims wasted RAM in real-time.",
+      "Finds and plugs Windows security holes with the latest available patches.",
+      "Safely and permanently deletes unwanted sensitive files."
+    ],
+    "media": {
+      "gallery": [
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/9e15d080-e4a4-483c-b93b-a772dd4eb342-1770841104018.webp",
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/c4938180-7d51-4038-aa93-d216b7e1e6c9-1770841114446.webp",
+        "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/screenshot/10441847-3337-4020-870b-885e66f0279b-1770841116470.webp"
+      ],
+      "logoUrl": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/logo/bbe176e3-0a18-477b-b91c-67467b6bb6a2-1770841115198.webp",
+      "heroImage": "https://cdn.jsdelivr.net/gh/Viladimire/soft-hub@main/public/assets/admin/hero/865ce4d1-d77c-4a59-b053-282a6c239fe0-1770841086293.webp"
+    },
+    "requirements": {
+      "minimum": [
+        "Supported OS: Windows 11, Windows 10, Windows 8.1, Windows 7",
+        "Free Hard Disk Space: 200 MB or more"
+      ],
+      "recommended": [
+        "RAM (Memory): 2 GB RAM (4 GB recommended)"
+      ]
+    },
+    "changelog": [
+      {
+        "date": "2026-02-11T20:19:07.527Z",
+        "version": "26.0.1.81",
+        "highlights": [
+          "Latest release"
+        ]
+      }
+    ]
+  },
+  {
     "id": "3c523f6a-b60c-49c2-91d2-48d10f7d0f3d",
     "slug": "gridwave-analytics",
     "name": "Gridwave Analytics",
