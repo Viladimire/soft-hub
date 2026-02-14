@@ -226,31 +226,40 @@ const resolveSizeViaHead = async (candidate: URL) => {
 };
 
 const fetchHtmlLight = async (url: URL) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6_000);
-  try {
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      redirect: "follow",
-      headers: {
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "accept-language": "en-US,en;q=0.9",
-        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
-      },
-      signal: controller.signal,
-    });
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_LIGHT_TIMEOUT_MS);
+    try {
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "accept-language": "en-US,en;q=0.9",
+          accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+        },
+        signal: controller.signal,
+      });
 
-    if (!res.ok) return "";
-    const ct = (res.headers.get("content-type") ?? "").toLowerCase();
-    if (ct && !ct.includes("html")) return "";
-    const text = await res.text();
-    return text.length > 600_000 ? text.slice(0, 600_000) : text;
-  } catch {
-    return "";
-  } finally {
-    clearTimeout(timeout);
+      if (!res.ok) return "";
+      const ct = (res.headers.get("content-type") ?? "").toLowerCase();
+      if (ct && !ct.includes("html")) return "";
+      const text = await res.text();
+      return text.length > 600_000 ? text.slice(0, 600_000) : text;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "";
+      const isTimeout =
+        error instanceof Error &&
+        (error.name === "AbortError" || /aborted|abort|timeout|timed\s*out|etimedout/i.test(msg));
+      if (isTimeout && attempt === 0) continue;
+      return "";
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+
+  return "";
 };
 
 const resolveDownloadSizeFromHtml = async (baseUrl: URL, html: string) => {
@@ -326,7 +335,17 @@ type ScrapeResult = {
 };
 
 const MAX_HTML_BYTES = 1_500_000;
-const FETCH_TIMEOUT_MS = 10_000;
+const FETCH_TIMEOUT_MS = (() => {
+  const raw = process.env.SCRAPE_FETCH_TIMEOUT_MS;
+  const parsed = raw ? Number.parseInt(raw, 10) : NaN;
+  return Number.isFinite(parsed) && parsed >= 3_000 ? parsed : 20_000;
+})();
+
+const FETCH_LIGHT_TIMEOUT_MS = (() => {
+  const raw = process.env.SCRAPE_FETCH_LIGHT_TIMEOUT_MS;
+  const parsed = raw ? Number.parseInt(raw, 10) : NaN;
+  return Number.isFinite(parsed) && parsed >= 3_000 ? parsed : 12_000;
+})();
 
 const clampText = (value: string, max: number) => value.trim().replace(/\s+/g, " ").slice(0, max);
 
@@ -1425,60 +1444,71 @@ const extractImgSources = (html: string) => {
 };
 
 const fetchHtml = async (url: URL) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  let lastTimeoutError: Error | null = null;
 
-  try {
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      redirect: "follow",
-      headers: {
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "accept-language": "en-US,en;q=0.9",
-        accept: "text/html,application/xhtml+xml",
-      },
-      signal: controller.signal,
-    });
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-    if (!res.ok) {
-      const err = new Error(`Upstream responded with ${res.status}`) as Error & { status?: number };
-      err.status = res.status;
-      throw err;
-    }
+    try {
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "accept-language": "en-US,en;q=0.9",
+          accept: "text/html,application/xhtml+xml",
+        },
+        signal: controller.signal,
+      });
 
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.toLowerCase().includes("text/html")) {
-      // still allow if missing content-type
-      if (contentType && !contentType.toLowerCase().includes("html")) {
-        const err = new Error("URL did not return HTML") as Error & { status?: number };
-        err.status = 415;
-        throw err;
-      }
-    }
-
-    const text = await res.text();
-    const limited = text.length > MAX_HTML_BYTES ? text.slice(0, MAX_HTML_BYTES) : text;
-    return limited;
-  } catch (error) {
-    if (error instanceof Error) {
-      const msg = error.message || "Failed to fetch HTML";
-      const isTimeout =
-        error.name === "AbortError" ||
-        /aborted|abort|timeout|timed\s*out|etimedout/i.test(msg);
-      if (isTimeout) {
-        const err = new Error("Upstream timeout") as Error & { status?: number };
-        err.status = 504;
+      if (!res.ok) {
+        const err = new Error(`Upstream responded with ${res.status}`) as Error & { status?: number };
+        err.status = res.status;
         throw err;
       }
 
-      throw error;
-    }
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("text/html")) {
+        // still allow if missing content-type
+        if (contentType && !contentType.toLowerCase().includes("html")) {
+          const err = new Error("URL did not return HTML") as Error & { status?: number };
+          err.status = 415;
+          throw err;
+        }
+      }
 
-    throw new Error("Failed to fetch HTML");
-  } finally {
-    clearTimeout(timeout);
+      const text = await res.text();
+      const limited = text.length > MAX_HTML_BYTES ? text.slice(0, MAX_HTML_BYTES) : text;
+      return limited;
+    } catch (error) {
+      if (error instanceof Error) {
+        const msg = error.message || "Failed to fetch HTML";
+        const isTimeout =
+          error.name === "AbortError" ||
+          /aborted|abort|timeout|timed\s*out|etimedout/i.test(msg);
+
+        if (isTimeout) {
+          lastTimeoutError = error;
+          if (attempt === 0) continue;
+          const err = new Error("Upstream timeout") as Error & { status?: number };
+          err.status = 504;
+          throw err;
+        }
+
+        throw error;
+      }
+
+      throw new Error("Failed to fetch HTML");
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+
+  const err = new Error(lastTimeoutError?.message || "Upstream timeout") as Error & { status?: number };
+  err.status = 504;
+  throw err;
 };
 
 const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "soft" | "strict"): Promise<ScrapeResult> => {
