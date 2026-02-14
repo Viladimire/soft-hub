@@ -836,7 +836,15 @@ export const SoftwareAdminPanel = () => {
       body: form,
     });
 
-    const payload: unknown = await response.json().catch(() => ({}));
+    const payloadText = await response.text().catch(() => "");
+    const payload: unknown = (() => {
+      if (!payloadText) return {};
+      try {
+        return JSON.parse(payloadText);
+      } catch {
+        return { message: payloadText.slice(0, 400) };
+      }
+    })();
     if (!response.ok) {
       const message = (() => {
         if (payload && typeof payload === "object" && "message" in payload) {

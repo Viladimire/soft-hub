@@ -28,20 +28,9 @@ export const DownloadCard = ({ software, locale }: { software: Software; locale:
               source: "software-detail",
             });
 
-            void (async () => {
-              if (typeof window === "undefined") return;
-
-              const tokenUrl = new URL("/api/download-token", window.location.origin);
-              tokenUrl.searchParams.set("slug", software.slug);
-              tokenUrl.searchParams.set("locale", locale);
-
-              const response = await fetch(tokenUrl.toString(), { cache: "no-store" });
-              if (!response.ok) return;
-              const payload = (await response.json()) as { token?: string };
-              if (!payload.token) return;
-
-              window.location.href = `${downloadHref}?t=${encodeURIComponent(payload.token)}`;
-            })();
+            if (typeof window !== "undefined") {
+              window.location.href = downloadHref;
+            }
           }}
         >
           <Download className="h-4 w-4" />

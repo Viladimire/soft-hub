@@ -17,6 +17,13 @@ const getTokenSecret = () => {
   return typeof secret === "string" && secret.trim().length >= 16 ? secret : "";
 };
 
+const isVerifiedCookieValid = (raw: string | undefined) => {
+  if (!raw) return false;
+  const ts = Number(raw);
+  if (!Number.isFinite(ts) || ts <= 0) return false;
+  return Date.now() - ts < 60 * 60_000;
+};
+
 const hashUa = (userAgent: string) =>
   createHash("sha256")
     .update(userAgent || "")
@@ -50,6 +57,11 @@ export const GET = async (request: NextRequest) => {
   const secret = getTokenSecret();
   if (!secret) {
     return NextResponse.json({ message: "Download token secret is not configured" }, { status: 501 });
+  }
+
+  const verified = request.cookies.get("dl_verified")?.value;
+  if (!isVerifiedCookieValid(verified)) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
   try {

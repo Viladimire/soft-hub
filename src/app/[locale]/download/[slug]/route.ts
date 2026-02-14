@@ -33,6 +33,13 @@ const sign = (secret: string, message: string) =>
     .replace(/\//g, "_")
     .replace(/=+$/g, "");
 
+const isVerifiedCookieValid = (raw: string | undefined) => {
+  if (!raw) return false;
+  const ts = Number(raw);
+  if (!Number.isFinite(ts) || ts <= 0) return false;
+  return Date.now() - ts < 60 * 60_000;
+};
+
 const isValidToken = (params: { secret: string; token: string; slug: string; locale: string; userAgent: string }) => {
   const parts = params.token.split(".");
   if (parts.length !== 3) return false;
@@ -91,6 +98,11 @@ export const GET = async (
   const url = new URL(request.url);
   const token = url.searchParams.get("t") || url.searchParams.get("token") || "";
   if (!token) {
+    return NextResponse.redirect(new URL(`/${locale}/download/${slug}/start`, request.url), 307);
+  }
+
+  const verified = request.cookies.get("dl_verified")?.value;
+  if (!isVerifiedCookieValid(verified)) {
     return NextResponse.redirect(new URL(`/${locale}/download/${slug}/start`, request.url), 307);
   }
 

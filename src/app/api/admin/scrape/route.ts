@@ -622,7 +622,7 @@ const isReasonableSizeInMb = (mb: number) => Number.isFinite(mb) && mb >= 1 && m
 const isRequirementsContext = (ctx: string) => {
   const normalized = ctx.toLowerCase();
   // Common system requirements signals that frequently contain numbers/sizes.
-  return /\b(?:system\s+requirements?|requirements?|minimum|recommended|min\.|rec\.|ram|memory|vram|gpu|cpu|processor|disk|storage|space|directx|opengl|windows|mac|linux|android|ios)\b/i.test(
+  return /\b(?:system\s+requirements?|requirements?|minimum|recommended|min\.|rec\.|ram|memory|vram|gpu|cpu|processor|disk|storage|space|hdd|ssd|directx|opengl|vulkan|windows|mac|linux|android|ios)\b/i.test(
     normalized,
   );
 };
@@ -639,31 +639,33 @@ const extractSizeCandidatesFromText = (text: string) => {
   const normalized = String(text || "");
   if (!normalized) return candidates;
 
-  const labelRx = /\b(?:file\s*size|filesize|download\s*size|size)\b[^\n\r]{0,80}?(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
+  const labelRx = /\b(?:file\s*size|filesize|download\s*size)\b[^\n\r]{0,80}?(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
   let m: RegExpExecArray | null;
   while ((m = labelRx.exec(normalized))) {
     const hit = m[0] ?? "";
-    const isWeakLabel = /\bsize\b/i.test(hit) && !/\b(?:file\s*size|filesize|download\s*size)\b/i.test(hit);
     if (isRequirementsContext(hit)) continue;
-    if (isWeakLabel && !isDownloadContext(hit)) continue;
     const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
     if (isReasonableSizeInMb(mb)) candidates.push(mb);
   }
 
-  const looseRx = /(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
+  // Loose scan: find size patterns and validate their surrounding context.
+  // Helps with text blocks like "Download size: 1.2 GB".
+  const looseRx = /\b(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
   while ((m = looseRx.exec(normalized))) {
     const start = Math.max(0, m.index - 40);
     const ctx = normalized.slice(start, m.index + m[0].length + 40);
     if (isRequirementsContext(ctx)) continue;
-    const hasExplicitSizeLabel = /\b(?:file\s*size|filesize|download\s*size|size)\b/i.test(ctx);
+    const hasExplicitSizeLabel = /\b(?:file\s*size|filesize|download\s*size)\b/i.test(ctx);
     if (!isDownloadContext(ctx) && !hasExplicitSizeLabel) continue;
     const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
     if (isReasonableSizeInMb(mb)) candidates.push(mb);
   }
 
-  // Bytes patterns: "fileSize": 585157376 | size: 585157376 bytes
-  const bytesLabelRx = /\b(?:file\s*size|filesize|download\s*size|size)\b[^\n\r]{0,80}?(\d{6,})(?:\s*bytes\b)?/gi;
+  // Bytes patterns: "fileSize": 585157376 | download size: 585157376 bytes
+  const bytesLabelRx = /\b(?:file\s*size|filesize|download\s*size)\b[^\n\r]{0,80}?(\d{6,})(?:\s*bytes\b)?/gi;
   while ((m = bytesLabelRx.exec(normalized))) {
+    const hit = m[0] ?? "";
+    if (isRequirementsContext(hit)) continue;
     const bytes = Number(String(m[1]).replace(/,/g, ""));
     if (!Number.isFinite(bytes) || bytes <= 0) continue;
     const mb = bytes / (1024 * 1024);
@@ -1440,20 +1442,40 @@ const fetchHtml = async (url: URL) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Upstream responded with ${res.status}`);
+      const err = new Error(`Upstream responded with ${res.status}`) as Error & { status?: number };
+      err.status = res.status;
+      throw err;
     }
 
     const contentType = res.headers.get("content-type") ?? "";
     if (!contentType.toLowerCase().includes("text/html")) {
       // still allow if missing content-type
       if (contentType && !contentType.toLowerCase().includes("html")) {
-        throw new Error("URL did not return HTML");
+        const err = new Error("URL did not return HTML") as Error & { status?: number };
+        err.status = 415;
+        throw err;
       }
     }
 
     const text = await res.text();
     const limited = text.length > MAX_HTML_BYTES ? text.slice(0, MAX_HTML_BYTES) : text;
     return limited;
+  } catch (error) {
+    if (error instanceof Error) {
+      const msg = error.message || "Failed to fetch HTML";
+      const isTimeout =
+        error.name === "AbortError" ||
+        /aborted|abort|timeout|timed\s*out|etimedout/i.test(msg);
+      if (isTimeout) {
+        const err = new Error("Upstream timeout") as Error & { status?: number };
+        err.status = 504;
+        throw err;
+      }
+
+      throw error;
+    }
+
+    throw new Error("Failed to fetch HTML");
   } finally {
     clearTimeout(timeout);
   }
@@ -1778,7 +1800,29 @@ export const POST = async (request: NextRequest) => {
     }
 
     const message = error instanceof Error ? error.message : "Failed to scrape";
-    return NextResponse.json({ message }, { status: 500 });
+    const status =
+      error && typeof error === "object" && "status" in error && typeof (error as { status?: unknown }).status === "number"
+        ? Number((error as { status?: unknown }).status)
+        : 500;
+
+    const hint = (() => {
+      if (status === 504) return "The target site took too long to respond. Try again or use a different source URL.";
+      if (status === 415) return "The target URL did not return HTML. Use a page URL (not a direct file/CDN link).";
+      if (status >= 500 && status < 600) return "The upstream site may be blocking requests or temporarily down.";
+      if (status === 401 || status === 403) return "The target site blocked access. Try a different source URL.";
+      return undefined;
+    })();
+
+    return NextResponse.json(
+      {
+        message,
+        hint,
+        debug: {
+          status,
+        },
+      },
+      { status: status >= 400 && status <= 599 ? status : 500 },
+    );
   }
 };
 
