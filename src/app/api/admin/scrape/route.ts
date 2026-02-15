@@ -869,7 +869,7 @@ const extractDeveloperCtaSizeMbFromHtml = (html: string) => {
   // Prefer this marker when present to avoid wrong HEAD/Range-derived sizes.
   const normalizedText = stripTags(html).replace(/\s+/g, " ").trim();
   const rxText = /(download\s+from\s+developer)[\s\S]{0,340}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
-  const rxTextAlt = /(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b[\s\S]{0,220}?(download\s+from\s+developer)/i;
+  const rxTextAlt = /(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b[\s\S]{0,520}?(download\s+from\s+developer)/i;
   const rxDownload = /(download)[\s\S]{0,140}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
 
   const match =
@@ -884,7 +884,26 @@ const extractDeveloperCtaSizeMbFromHtml = (html: string) => {
   const num = hasAlt ? match[1] : match[2];
   const unit = hasAlt ? match[2] : match[3];
   const mb = parseSizeToMb(`${num} ${unit}`);
-  return isReasonableSizeInMb(mb) ? mb : 0;
+  if (isReasonableSizeInMb(mb)) return mb;
+
+  // Raw HTML neighborhood scan: FileCR can have the size visually adjacent but textually far apart
+  // once tags are stripped. Search around the CTA in the original HTML to bias toward header values.
+  const lowerHtml = html.toLowerCase();
+  const needle = "download from developer";
+  const idx = lowerHtml.indexOf(needle);
+  if (idx >= 0) {
+    const start = Math.max(0, idx - 12_000);
+    const end = Math.min(html.length, idx + 12_000);
+    const windowHtml = html.slice(start, end);
+    const windowText = stripTags(windowHtml).replace(/\s+/g, " ").trim();
+    const m2 = windowText.match(/\b(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i);
+    if (m2) {
+      const mb2 = parseSizeToMb(`${m2[1]} ${m2[2]}`);
+      if (isReasonableSizeInMb(mb2)) return mb2;
+    }
+  }
+
+  return 0;
 };
 
 const extractSection = (
