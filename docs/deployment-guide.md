@@ -55,6 +55,15 @@ vercel --version
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` *(Server-only, لا يُستخدم في الواجهة)*
 
+متغيرات إضافية حسب الميزات:
+
+- `ADMIN_API_SECRET` *(لتفعيل لوحة الأدمن و APIs الخاصة بها)*
+- `DOWNLOAD_TOKEN_SECRET` *(سر توقيع توكنات التحميل؛ بديلًا عن استخدام `ADMIN_API_SECRET`)*
+- `TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` *(لحماية صفحة التحميل Turnstile في الإنتاج)*
+- `GITHUB_CONTENT_TOKEN` *(رفع الصور/الملفات إلى GitHub Contents API)*
+- `GITHUB_DATA_REPO_OWNER` / `GITHUB_DATA_REPO_NAME` / `GITHUB_DATA_REPO_BRANCH` *(مكان رفع الأصول/الداتا على GitHub)*
+- `VERCEL_DEPLOY_HOOK_URL` *(اختياري: لتفعيل زر/endpoint تشغيل deploy hook من لوحة الأدمن)*
+
 ### على Vercel (Production + Preview)
 نفس المتغيرات السابقة (حسب احتياج المشروع).
 
@@ -86,7 +95,22 @@ npm run build
 vercel deploy --prod --yes
 ```
 
-> بعد الديبلوي هتلاقي رابط production جديد + alias بيتوجه لـ `soft-hub-alpha.vercel.app` (حسب إعدادات Vercel الحالية).
+> **مهم:** `vercel deploy --prod` ينشر على *المشروع المرتبط حاليًا* في Vercel.
+> 
+> - لو عندك مشروعين (Production + Alpha) لازم تتأكد إنك عامل `vercel link` على المشروع الصحيح قبل النشر.
+> - لا تفترض إن `soft-hub-alpha.vercel.app` بيتحدث تلقائيًا مع Production؛ ده يعتمد على إعدادات Vercel (Alias/Projects).
+
+---
+
+## 3.1) خطوة تأكيد إن الديبلوي وصل (لا تتخطاها)
+
+بعد أي Deploy (Production أو Alpha)، افتح:
+
+- `/api/version`
+
+لازم يرجع JSON فيه `vercel.commit` و `vercel.deploymentId`.
+
+> لو `/api/version` رجّع `404` يبقى أنت غالبًا نشرت على مشروع مختلف أو الـ deploy لم يحدث فعليًا.
 
 ---
 
@@ -199,6 +223,8 @@ npx --yes supabase@latest gen types typescript --db-url <SUPABASE_DB_URL> > src/
 vercel deploy --prod --yes
 ```
 
+> **تنبيه:** تغيير env vars على Vercel لا ينعكس على الديبلوي الحالي إلا بعد Deploy جديد.
+
 ---
 
 ## 9) Troubleshooting سريع
@@ -214,6 +240,16 @@ vercel deploy --prod --yes
 ### C) React hydration / WebGL context lost
 - ممنوع تكرر `OrbitBackground` في صفحات متعددة.
 - لازم يكون مصدر واحد عالمي (حاليًا في `src/app/layout.tsx`).
+
+### D) Upload يرجع 500 في لوحة الأدمن
+- راجع رسالة الخطأ في الـ UI (مفروض تحتوي `buildSha` و `githubStatus` لو المشكلة من GitHub).
+- الأسباب الشائعة:
+  - `GITHUB_CONTENT_TOKEN` ناقص/غير صالح أو بدون صلاحيات.
+  - حجم الصورة كبير بعد المعالجة (يتسبب في 413/فشل رفع GitHub).
+
+### E) Download يظهر رسالة Turnstile غير مُعدّ
+- في الإنتاج: لازم ضبط `TURNSTILE_SITE_KEY` و `TURNSTILE_SECRET_KEY`.
+- على بيئات الاختبار قد يكون فيه bypass حسب الكود/الإعدادات، لكن الأفضل ضبط المتغيرات للإنتاج.
 
 ---
 
