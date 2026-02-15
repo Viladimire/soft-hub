@@ -8,6 +8,8 @@ import { uploadImageAssetToGitHub } from "@/lib/services/github/softwareDataStor
 
 export const runtime = "nodejs";
 
+const BUILD_SHA = process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "";
+
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 // GitHub Contents API has strict payload limits and the upload uses base64.
 // Base64 expands size by ~4/3, so a raw 900KB image can exceed GitHub's cap after encoding.
@@ -74,17 +76,31 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    const { url, path } = await uploadImageAssetToGitHub({
-      bytes,
-      mime: file.type,
-      type: parsed.type,
-      filenameBase: randomUUID(),
-    });
+    const uploadOnce = () =>
+      uploadImageAssetToGitHub({
+        bytes,
+        mime: file.type,
+        type: parsed.type,
+        filenameBase: randomUUID(),
+      });
 
-    return NextResponse.json({ url, path, provider: "github" });
+    let uploaded: { url: string; path: string };
+    try {
+      uploaded = await uploadOnce();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const isConflict = /GitHub API request failed \(409\):/i.test(message);
+      if (!isConflict) throw error;
+      uploaded = await uploadOnce();
+    }
+
+    return NextResponse.json({ url: uploaded.url, path: uploaded.path, provider: "github", buildSha: BUILD_SHA });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: "Validation failed", errors: error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { message: "Validation failed", errors: error.flatten(), buildSha: BUILD_SHA },
+        { status: 400 },
+      );
     }
 
     if (error instanceof Error) {
@@ -120,6 +136,7 @@ export const POST = async (request: NextRequest) => {
         {
           message,
           hint,
+          buildSha: BUILD_SHA,
           debug: {
             githubStatus: githubStatus ?? undefined,
             provider: "github",
@@ -130,6 +147,6 @@ export const POST = async (request: NextRequest) => {
     }
 
     console.error("Failed to upload asset", error);
-    return NextResponse.json({ message: "Failed to upload asset" }, { status: 500 });
+    return NextResponse.json({ message: "Failed to upload asset", buildSha: BUILD_SHA }, { status: 500 });
   }
 };
