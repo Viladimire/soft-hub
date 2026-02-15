@@ -189,6 +189,39 @@ const parseVersionFromString = (raw: string) => {
   return match ? match[1] : "";
 };
 
+const parseHumanNumber = (raw: string) => {
+  const normalized = String(raw ?? "").trim();
+  if (!normalized) return 0;
+
+  const tokenMatch = normalized.match(/\b(\d{1,3}(?:[\s,]\d{3})+|\d+(?:\.\d+)?)\s*([kmb])?\b/i);
+  if (!tokenMatch) return 0;
+  const num = Number(String(tokenMatch[1]).replace(/[\s,]/g, ""));
+  if (!Number.isFinite(num)) return 0;
+  const suffix = (tokenMatch[2] ?? "").toLowerCase();
+  if (suffix === "k") return Math.round(num * 1_000);
+  if (suffix === "m") return Math.round(num * 1_000_000);
+  if (suffix === "b") return Math.round(num * 1_000_000_000);
+  return Math.round(num);
+};
+
+const isRequirementsContext = (ctx: string) =>
+  /\b(?:system\s+requirements?|requirements?|minimum|recommended|ram|memory|vram|gpu|cpu|processor|disk|storage|space|hdd|ssd|directx|opengl|vulkan)\b/i.test(
+    ctx,
+  );
+
+const isDownloadContext = (ctx: string) =>
+  /\b(?:download|installer|installation|setup|file\s*size|filesize|download\s*size|offline\s*installer|direct\s*download|portable|mirror|exe|msi|dmg|pkg|zip|rar|7z|apk|appimage)\b/i.test(
+    ctx,
+  );
+
+const tryExtractDownloadsFromText = (text: string) => {
+  const normalized = String(text ?? "").replace(/\u00a0/g, " ");
+  const rx = /\b(?:total\s+downloads?|downloads?)\b\s*[:\-]?\s*([0-9][0-9,\s.]*\s*[kmb]?)/i;
+  const m = normalized.match(rx);
+  if (!m) return 0;
+  return parseHumanNumber(m[1] ?? "");
+};
+
 const tryExtractSizeAndVersionFromText = (text: string) => {
   const normalized = String(text ?? "").replace(/\u00a0/g, " ");
   const version = parseVersionFromString(normalized);
@@ -197,15 +230,17 @@ const tryExtractSizeAndVersionFromText = (text: string) => {
   const rx = /\b(\d+(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/gi;
   let m: RegExpExecArray | null;
   while ((m = rx.exec(normalized))) {
+    const start = Math.max(0, m.index - 50);
+    const ctx = normalized.slice(start, m.index + m[0].length + 50);
+    if (isRequirementsContext(ctx)) continue;
+    if (!isDownloadContext(ctx)) continue;
     const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
     if (Number.isFinite(mb) && mb > 0) sizeCandidates.push(mb);
     if (sizeCandidates.length >= 40) break;
   }
 
-  // Prefer larger plausible installer sizes.
-  const sizeInMb = sizeCandidates
-    .filter((v) => v >= 20 && v <= 250_000)
-    .sort((a, b) => b - a)[0] ?? 0;
+  // Prefer plausible installer sizes.
+  const sizeInMb = sizeCandidates.filter((v) => v >= 5 && v <= 250_000).sort((a, b) => b - a)[0] ?? 0;
 
   return {
     version,
@@ -213,22 +248,78 @@ const tryExtractSizeAndVersionFromText = (text: string) => {
   };
 };
 
-const fetchSizeAndVersionViaSearch = async (params: { name: string; hintVersion?: string }) => {
-  const baseQuery = params.hintVersion && /\d/.test(params.hintVersion)
-    ? `${params.name} ${params.hintVersion} file size`
-    : `${params.name} file size`;
+const scoreResultUrl = (url: string, officialDomain?: string) => {
+  const host = tryGetDomain(url).toLowerCase();
+  if (!host) return 0;
+  const official = (officialDomain ?? "").toLowerCase();
+  if (official && (host === official || host.endsWith(`.${official}`))) return 100;
+  if (host === "github.com" || host.endsWith(".github.com")) return 90;
+  if (host.endsWith(".microsoft.com") || host === "microsoft.com") return 85;
+  if (host.endsWith(".adobe.com") || host === "adobe.com") return 85;
+  if (/(sourceforge\.net|fosshub\.com|ninite\.com|snapcraft\.io|flathub\.org)/i.test(host)) return 70;
+  if (/(softonic|filehippo|uptodown|filecr|getintopc|crack|torrent)/i.test(host)) return 10;
+  return 40;
+};
 
-  const urls = await fetchSearchResultsByName(baseQuery);
-  for (const url of urls.slice(0, 4)) {
-    const html = await fetchHtmlLight(url);
+const buildSearchQueries = (params: { name: string; hintVersion?: string }) => {
+  const name = params.name.trim();
+  const v = (params.hintVersion ?? "").trim();
+  const hasV = v && /\d/.test(v);
+  const base = hasV ? `${name} ${v}` : name;
+  return Array.from(
+    new Set([
+      `${base} file size`,
+      `${base} download size`,
+      `${base} offline installer size`,
+      `${base} installer size`,
+      `${base} total downloads`,
+    ]),
+  );
+};
+
+const fetchSizeVersionAndDownloadsViaSearch = async (params: {
+  name: string;
+  hintVersion?: string;
+  officialDomain?: string;
+}) => {
+  const queries = buildSearchQueries({ name: params.name, hintVersion: params.hintVersion });
+
+  const seen = new Set<string>();
+  const ranked: Array<{ url: string; score: number }> = [];
+  for (const q of queries) {
+    const urls = await fetchSearchResultsByName(q);
+    for (const url of urls) {
+      if (seen.has(url)) continue;
+      seen.add(url);
+      ranked.push({ url, score: scoreResultUrl(url, params.officialDomain) });
+    }
+  }
+
+  ranked.sort((a, b) => b.score - a.score);
+
+  let bestSize = 0;
+  let bestVersion = "";
+  let bestDownloads = 0;
+
+  for (const item of ranked.slice(0, 10)) {
+    const html = await fetchHtmlLight(item.url);
     if (!html) continue;
     const text = stripHtml(html);
     const extracted = tryExtractSizeAndVersionFromText(text);
-    if (extracted.sizeInMb > 0 || extracted.version) {
-      return extracted;
-    }
+    const downloads = tryExtractDownloadsFromText(text);
+
+    if (!bestVersion && extracted.version) bestVersion = extracted.version;
+    if (downloads > bestDownloads) bestDownloads = downloads;
+    if (extracted.sizeInMb > bestSize) bestSize = extracted.sizeInMb;
+
+    if (bestSize > 0 && bestDownloads > 0 && bestVersion) break;
   }
-  return { version: "", sizeInMb: 0 };
+
+  return {
+    version: bestVersion,
+    sizeInMb: bestSize,
+    downloads: bestDownloads,
+  };
 };
 
 const isValidUrl = (url: string) => {
@@ -780,14 +871,30 @@ export const autoFillSoftwareData = async (softwareName: string, options: AutoFi
 
     const needsVersion = !(merged.version ?? "").trim();
     const needsSize = !(merged.sizeInMb ?? "").trim();
+    const officialDomain = (() => {
+      const url = (merged.websiteUrl ?? "").trim();
+      if (!url) return "";
+      return tryGetDomain(url);
+    })();
+
     const fallback = (needsVersion || needsSize)
-      ? await fetchSizeAndVersionViaSearch({ name, hintVersion: options.version || merged.version })
-      : { version: "", sizeInMb: 0 };
+      ? await fetchSizeVersionAndDownloadsViaSearch({
+          name,
+          hintVersion: options.version || merged.version,
+          officialDomain,
+        })
+      : { version: "", sizeInMb: 0, downloads: 0 };
 
     const data: AutoFillData = {
       ...merged,
       version: merged.version || fallback.version || "",
       sizeInMb: merged.sizeInMb || (fallback.sizeInMb > 0 ? fallback.sizeInMb.toFixed(1) : ""),
+      downloads:
+        merged.downloads > 0
+          ? merged.downloads
+          : typeof fallback.downloads === "number" && Number.isFinite(fallback.downloads) && fallback.downloads > 0
+            ? fallback.downloads
+            : merged.downloads,
     };
 
     const repoFullName = (github?.repoFullName ?? "").trim();
