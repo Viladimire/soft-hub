@@ -21,6 +21,15 @@ const getTurnstileSiteKey = () => {
   return typeof siteKey === "string" && siteKey.trim() ? siteKey.trim() : "";
 };
 
+const shouldBypassTurnstile = () => {
+  if (process.env.NODE_ENV === "production") return false;
+  const vercelEnv = (process.env.VERCEL_ENV || "").toLowerCase();
+  if (vercelEnv && vercelEnv !== "production") return true;
+  const url = (process.env.VERCEL_URL || "").toLowerCase();
+  if (url.includes("alpha")) return true;
+  return false;
+};
+
 export const GET = async (
   request: NextRequest,
   ctx: { params: Promise<{ locale: string; slug: string }> },
@@ -50,7 +59,81 @@ export const GET = async (
 
   const siteKey = getTurnstileSiteKey();
   if (!siteKey) {
-    return NextResponse.json({ message: "TURNSTILE_SITE_KEY is not configured" }, { status: 501 });
+    if (!shouldBypassTurnstile()) {
+      return NextResponse.json({ message: "TURNSTILE_SITE_KEY is not configured" }, { status: 501 });
+    }
+
+    const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Starting download</title>
+    <style>
+      body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#070a12;color:#e5e7eb;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+      .card{width:min(520px,92vw);border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);border-radius:18px;padding:22px}
+      .title{font-size:16px;font-weight:700;margin:0 0 8px}
+      .desc{font-size:13px;opacity:.8;margin:0 0 16px;line-height:1.5}
+      .status{font-size:12px;opacity:.85}
+      .err{color:#fca5a5}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <p class="title">Starting download</p>
+      <p class="desc">Security check is disabled on this environment.</p>
+      <div id="status" class="status">Preparing…</div>
+    </div>
+
+    <script>
+      const statusEl = document.getElementById('status');
+      const setStatus = (txt, isErr) => { statusEl.textContent = txt; statusEl.className = 'status' + (isErr ? ' err' : ''); };
+
+      async function start(){
+        try{
+          const tokenUrl = new URL('/api/download-token', window.location.origin);
+          tokenUrl.searchParams.set('slug', ${JSON.stringify(slug)});
+          tokenUrl.searchParams.set('locale', ${JSON.stringify(locale)});
+          const dr = await fetch(tokenUrl.toString(), { cache: 'no-store' });
+          if(!dr.ok){
+            const p = await dr.json().catch(()=>({}));
+            setStatus(p && p.message ? String(p.message) : ('Failed to start download ('+dr.status+')'), true);
+            return;
+          }
+          const payload = await dr.json().catch(()=>({}));
+          if(!payload || !payload.token){
+            setStatus('Failed to start download', true);
+            return;
+          }
+          setStatus('Redirecting…');
+          window.location.href = ${JSON.stringify(`/${locale}/download/${slug}`)} + '?t=' + encodeURIComponent(payload.token);
+        }catch(e){
+          setStatus('Failed to start download', true);
+        }
+      }
+
+      start();
+    </script>
+  </body>
+</html>`;
+
+    const out = new NextResponse(html, {
+      status: 200,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    });
+    out.cookies.set({
+      name: "dl_verified",
+      value: String(Date.now()),
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+      maxAge: 60 * 60,
+    });
+    return out;
   }
 
   const html = `<!doctype html>
