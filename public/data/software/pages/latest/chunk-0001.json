@@ -626,66 +626,6 @@
     ]
   },
   {
-    "id": "f8624365-cf5b-4975-b49d-c2b5d529f817",
-    "slug": "lumen-note",
-    "name": "Lumen Note",
-    "summary": "Second-brain workspace with Markdown-first collaboration",
-    "description": "Lumen Note powers knowledge workflows with ambient AI assistants, deep integrations, and multi-device sync designed for thinkers and product squads.",
-    "version": "1.8.4",
-    "sizeInBytes": 199229440,
-    "platforms": [
-      "mac"
-    ],
-    "categories": [
-      "productivity",
-      "education"
-    ],
-    "type": "free",
-    "websiteUrl": "https://lumennote.com",
-    "downloadUrl": "https://lumennote.com/download/mac",
-    "isFeatured": false,
-    "isTrending": false,
-    "releaseDate": "2024-01-12T00:00:00.000Z",
-    "updatedAt": "2026-02-11T19:05:55.408Z",
-    "createdAt": "2023-08-20T00:00:00.000Z",
-    "stats": {
-      "views": 130000,
-      "votes": 980,
-      "rating": 4.8,
-      "downloads": 72006
-    },
-    "developer": {},
-    "features": [],
-    "media": {
-      "gallery": [
-        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80"
-      ],
-      "logoUrl": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=160&q=80",
-      "heroImage": "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1600&q=80"
-    },
-    "requirements": {
-      "minimum": [
-        "macOS 13",
-        "4 GB RAM"
-      ],
-      "recommended": [
-        "macOS 14",
-        "8 GB RAM",
-        "iCloud Drive"
-      ]
-    },
-    "changelog": [
-      {
-        "date": "2024-09-18T00:00:00.000Z",
-        "version": "1.8.4",
-        "highlights": [
-          "Canvas mode",
-          "Notion import"
-        ]
-      }
-    ]
-  },
-  {
     "id": "ccafbc7e-4539-43db-b432-83769f4cde76",
     "slug": "keystone-build",
     "name": "Keystone Build",
