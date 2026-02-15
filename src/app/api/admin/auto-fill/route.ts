@@ -35,7 +35,7 @@ export const POST = async (request: NextRequest) => {
     const payload = await request.json();
     const { name, version, debug } = payloadSchema.parse(payload);
 
-    const result = await autoFillSoftwareData(name, { version });
+    const result = await autoFillSoftwareData(name, { version, debug });
     if (!result.success) {
       return NextResponse.json({ message: result.error }, { status: 500 });
     }

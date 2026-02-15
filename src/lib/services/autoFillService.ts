@@ -29,10 +29,21 @@ export type AutoFillData = {
     date: string;
     highlights: string[];
   }>;
+  debugSearch?: {
+    queries: string[];
+    rankedUrls: string[];
+    attemptedUrls: string[];
+    extracted: {
+      version: string;
+      sizeInMb: number;
+      downloads: number;
+    };
+  };
 };
 
 type AutoFillOptions = {
   version?: string;
+  debug?: boolean;
 };
 
 type WikiResult = {
@@ -281,6 +292,7 @@ const fetchSizeVersionAndDownloadsViaSearch = async (params: {
   name: string;
   hintVersion?: string;
   officialDomain?: string;
+  debug?: boolean;
 }) => {
   const queries = buildSearchQueries({ name: params.name, hintVersion: params.hintVersion });
 
@@ -297,11 +309,14 @@ const fetchSizeVersionAndDownloadsViaSearch = async (params: {
 
   ranked.sort((a, b) => b.score - a.score);
 
+  const attemptedUrls: string[] = [];
+
   let bestSize = 0;
   let bestVersion = "";
   let bestDownloads = 0;
 
   for (const item of ranked.slice(0, 10)) {
+    attemptedUrls.push(item.url);
     const html = await fetchHtmlLight(item.url);
     if (!html) continue;
     const text = stripHtml(html);
@@ -319,6 +334,16 @@ const fetchSizeVersionAndDownloadsViaSearch = async (params: {
     version: bestVersion,
     sizeInMb: bestSize,
     downloads: bestDownloads,
+    ...(params.debug
+      ? {
+          debugSearch: {
+            queries,
+            rankedUrls: ranked.slice(0, 30).map((r) => r.url),
+            attemptedUrls,
+            extracted: { version: bestVersion, sizeInMb: bestSize, downloads: bestDownloads },
+          },
+        }
+      : null),
   };
 };
 
@@ -882,6 +907,7 @@ export const autoFillSoftwareData = async (softwareName: string, options: AutoFi
           name,
           hintVersion: options.version || merged.version,
           officialDomain,
+          debug: options.debug === true,
         })
       : { version: "", sizeInMb: 0, downloads: 0 };
 
@@ -895,6 +921,9 @@ export const autoFillSoftwareData = async (softwareName: string, options: AutoFi
           : typeof fallback.downloads === "number" && Number.isFinite(fallback.downloads) && fallback.downloads > 0
             ? fallback.downloads
             : merged.downloads,
+      ...(options.debug === true && (fallback as { debugSearch?: AutoFillData["debugSearch"] }).debugSearch
+        ? { debugSearch: (fallback as { debugSearch: AutoFillData["debugSearch"] }).debugSearch }
+        : null),
     };
 
     const repoFullName = (github?.repoFullName ?? "").trim();
