@@ -60,7 +60,42 @@ export const GET = async (
   const siteKey = getTurnstileSiteKey();
   if (!siteKey) {
     if (!shouldBypassTurnstile()) {
-      return NextResponse.json({ message: "TURNSTILE_SITE_KEY is not configured" }, { status: 501 });
+      const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Download verification unavailable</title>
+    <style>
+      body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#070a12;color:#e5e7eb;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+      .card{width:min(720px,92vw);border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);border-radius:18px;padding:22px}
+      .title{font-size:16px;font-weight:800;margin:0 0 10px}
+      .desc{font-size:13px;opacity:.85;margin:0 0 14px;line-height:1.55}
+      code{background:rgba(255,255,255,.06);padding:2px 6px;border-radius:8px}
+      .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+      .hint{font-size:12px;opacity:.8;margin:12px 0 0}
+      .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e5e7eb;text-decoration:none;font-size:13px}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <p class="title">Download verification is not configured</p>
+      <p class="desc">This download flow requires a Cloudflare Turnstile challenge to verify you are human, but the server is missing the required environment variables.</p>
+      <p class="desc mono">Missing: <code>TURNSTILE_SITE_KEY</code></p>
+      <p class="desc">Fix on Vercel: add <code>TURNSTILE_SITE_KEY</code> and <code>TURNSTILE_SECRET_KEY</code> (Production) then redeploy.</p>
+      <p class="hint">Requested path: <span class="mono">/${locale}/download/${slug}/start</span></p>
+      <a class="btn" href="/">Go back home</a>
+    </div>
+  </body>
+</html>`;
+
+      return new NextResponse(html, {
+        status: 501,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "no-store",
+        },
+      });
     }
 
     const html = `<!doctype html>
