@@ -867,7 +867,26 @@ export const SoftwareAdminPanel = () => {
             "hint" in payload && (payload as { hint?: unknown }).hint
               ? String((payload as { hint?: unknown }).hint)
               : "";
-          return hint ? `${msg} (${hint})` : msg;
+          const buildSha =
+            "buildSha" in payload && (payload as { buildSha?: unknown }).buildSha
+              ? String((payload as { buildSha?: unknown }).buildSha)
+              : "";
+          const debugObj =
+            "debug" in payload && (payload as { debug?: unknown }).debug && typeof (payload as { debug?: unknown }).debug === "object"
+              ? ((payload as { debug?: Record<string, unknown> }).debug as Record<string, unknown>)
+              : null;
+          const githubStatus = debugObj && typeof debugObj.githubStatus === "number" ? String(debugObj.githubStatus) : "";
+          const provider = debugObj && typeof debugObj.provider === "string" ? String(debugObj.provider) : "";
+
+          const extras = [
+            buildSha ? `build: ${buildSha}` : "",
+            provider && githubStatus ? `${provider}: ${githubStatus}` : "",
+          ].filter(Boolean);
+
+          const details = [hint].filter(Boolean).join(" ");
+          const extrasText = extras.length ? ` [${extras.join(" | ")}]` : "";
+          if (details) return `${msg} (${details})${extrasText}`;
+          return `${msg}${extrasText}`;
         }
         try {
           return `Image upload failed (${response.status}): ${JSON.stringify(payload)}`;
