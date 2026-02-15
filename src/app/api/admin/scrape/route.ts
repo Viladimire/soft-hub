@@ -851,16 +851,39 @@ const extractSizeInMbFromHtml = (html: string) => {
   return isReasonableSizeInMb(best) ? best : 0;
 };
 
+const extractHeaderSizeInMbFromHtml = (html: string) => {
+  const headChunk = html.slice(0, 220_000);
+  const mbFromChunk = extractSizeInMbFromHtml(headChunk);
+  if (isReasonableSizeInMb(mbFromChunk)) return mbFromChunk;
+
+  const text = stripTags(headChunk).replace(/\s+/g, " ").trim();
+  const headerLabelRx = /\b(?:version|latest|release)\b[\s\S]{0,120}?\b(?:file\s*size|filesize|download\s*size|size)\b[\s\S]{0,80}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
+  const m = text.match(headerLabelRx);
+  if (!m) return 0;
+  const mb = parseSizeToMb(`${m[1]} ${m[2]}`);
+  return isReasonableSizeInMb(mb) ? mb : 0;
+};
+
 const extractDeveloperCtaSizeMbFromHtml = (html: string) => {
   // FileCR-style pages sometimes show an accurate size next to the "Download from developer" CTA.
   // Prefer this marker when present to avoid wrong HEAD/Range-derived sizes.
   const normalizedText = stripTags(html).replace(/\s+/g, " ").trim();
-  const rxText = /(download\s+from\s+developer)[\s\S]{0,120}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
-  const rxDownload = /(download)[\s\S]{0,80}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
+  const rxText = /(download\s+from\s+developer)[\s\S]{0,340}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
+  const rxTextAlt = /(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b[\s\S]{0,220}?(download\s+from\s+developer)/i;
+  const rxDownload = /(download)[\s\S]{0,140}?(\d{1,6}(?:\.\d+)?)\s*(kb|mb|gb|tb)\b/i;
 
-  const match = normalizedText.match(rxText) ?? normalizedText.match(rxDownload) ?? html.match(rxText) ?? html.match(rxDownload);
+  const match =
+    normalizedText.match(rxText) ??
+    normalizedText.match(rxTextAlt) ??
+    normalizedText.match(rxDownload) ??
+    html.match(rxText) ??
+    html.match(rxTextAlt) ??
+    html.match(rxDownload);
   if (!match) return 0;
-  const mb = parseSizeToMb(`${match[2]} ${match[3]}`);
+  const hasAlt = match[3] && /download\s+from\s+developer/i.test(match[3]);
+  const num = hasAlt ? match[1] : match[2];
+  const unit = hasAlt ? match[2] : match[3];
+  const mb = parseSizeToMb(`${num} ${unit}`);
   return isReasonableSizeInMb(mb) ? mb : 0;
 };
 
@@ -1620,6 +1643,9 @@ const toScrapeResult = async (baseUrl: URL, html: string, englishMode: "off" | "
   const sizeCandidate = (() => {
     const fromDeveloperCta = extractDeveloperCtaSizeMbFromHtml(html);
     if (fromDeveloperCta > 0) return { mb: fromDeveloperCta, confidence: "high" as const };
+
+    const fromHeader = extractHeaderSizeInMbFromHtml(html);
+    if (fromHeader > 0) return { mb: fromHeader, confidence: "high" as const };
 
     // Prefer explicit HTML size markers (e.g. <div class="download-size">632</div>) over line heuristics.
     // These often omit units and are more reliable than generic "file size" text inside requirements sections.

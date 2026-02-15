@@ -598,25 +598,45 @@ export const uploadImageAssetToGitHub = async (params: {
   const config = await resolveGitHubConfig();
   const ext = guessExtension(params.mime);
   const safeBase = (params.filenameBase ?? "asset").replace(/[^a-z0-9_-]/gi, "-");
-  const path = `public/assets/admin/${params.type}/${safeBase}-${Date.now()}.${ext}`;
-  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeGitHubPath(path)}`;
   const content = Buffer.from(params.bytes).toString("base64");
 
-  await githubFetch(url, {
-    method: "PUT",
-    body: JSON.stringify({
-      message: `chore: upload ${params.type} asset`,
-      content,
-      branch: config.branch,
-      committer: {
-        name: COMMITTER_NAME,
-        email: COMMITTER_EMAIL,
-      },
-    }),
-  });
-
-  return {
-    path,
-    url: `${JSDELIVR_BASE}/${config.owner}/${config.repo}@${config.branch}/${path}`,
+  const uploadOnce = async (path: string) => {
+    const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${encodeGitHubPath(path)}`;
+    await githubFetch(url, {
+      method: "PUT",
+      body: JSON.stringify({
+        message: `chore: upload ${params.type} asset`,
+        content,
+        branch: config.branch,
+        committer: {
+          name: COMMITTER_NAME,
+          email: COMMITTER_EMAIL,
+        },
+      }),
+    });
   };
+
+  const firstPath = `public/assets/admin/${params.type}/${safeBase}-${Date.now()}.${ext}`;
+  try {
+    await uploadOnce(firstPath);
+    return {
+      path: firstPath,
+      url: `${JSDELIVR_BASE}/${config.owner}/${config.repo}@${config.branch}/${firstPath}`,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const isConflict = /GitHub API request failed \(409\):/i.test(message);
+    if (!isConflict) throw error;
+
+    // In serverless environments, two uploads can collide (same path) which can trigger a 409.
+    // For image assets we do not need to overwrite; just retry with a new unique path.
+    const retryPath = `public/assets/admin/${params.type}/${safeBase}-${Date.now()}-${Math.random()
+      .toString(16)
+      .slice(2, 10)}.${ext}`;
+    await uploadOnce(retryPath);
+    return {
+      path: retryPath,
+      url: `${JSDELIVR_BASE}/${config.owner}/${config.repo}@${config.branch}/${retryPath}`,
+    };
+  }
 };
