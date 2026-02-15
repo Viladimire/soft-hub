@@ -1239,10 +1239,27 @@ export const SoftwareAdminPanel = () => {
         categories: string[];
         platforms: Platform[];
         changelog?: Array<{ version: string; date: string; highlights: string[] }>;
+        debug?: {
+          serverTime?: string;
+          vercel?: {
+            commit?: string | null;
+            deploymentId?: string | null;
+            url?: string | null;
+          };
+        };
       }>("/api/admin/auto-fill", {
         method: "POST",
-        body: JSON.stringify({ name: formState.name, version: formState.version }),
+        body: JSON.stringify({ name: formState.name, version: formState.version, debug: true }),
       });
+
+      const commit = data.debug?.vercel?.commit ?? "";
+      const deploymentId = data.debug?.vercel?.deploymentId ?? "";
+      if (commit || deploymentId) {
+        pushNotification(
+          "success",
+          `Auto-fill server: commit=${String(commit || "n/a").slice(0, 7)} deployment=${String(deploymentId || "n/a")}`,
+        );
+      }
 
       const normalizedScreenshots = (data.screenshots ?? [])
         .map((value) => normalizeImageUrl(value))
